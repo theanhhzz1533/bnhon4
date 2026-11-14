@@ -28,6 +28,7 @@ namespace Bnhon.Game.UI
         private readonly List<Panel> _panels = new List<Panel>();
         private GridInventory _other;
         private string _otherTitle;
+        private IItemConcealer _concealer;
         private float _cell;
 
         private PlacedItem _dragItem;
@@ -39,6 +40,7 @@ namespace Bnhon.Game.UI
         private GUIStyle _titleStyle;
         private GUIStyle _itemStyle;
         private GUIStyle _hintStyle;
+        private GUIStyle _unknownStyle;
 
         public static InventoryScreen Instance { get; private set; }
 
@@ -58,9 +60,16 @@ namespace Bnhon.Game.UI
         /// <summary>Opens the screen. Pass a container to show it next to the backpack, or null for the backpack alone.</summary>
         public void Open(GridInventory other, string otherTitle)
         {
+            Open(other, otherTitle, null);
+        }
+
+        /// <summary>Opens a container whose items may still be unidentified (see <see cref="IItemConcealer"/>).</summary>
+        public void Open(GridInventory other, string otherTitle, IItemConcealer concealer)
+        {
             CancelDrag();
             _other = other;
             _otherTitle = otherTitle;
+            _concealer = concealer;
             IsOpen = true;
             if (Player != null) Player.ControlEnabled = false;
         }
@@ -81,6 +90,7 @@ namespace Bnhon.Game.UI
             if (!IsOpen) return;
             CancelDrag();
             _other = null;
+            _concealer = null;
             IsOpen = false;
             if (Player != null) Player.ControlEnabled = true;
         }
@@ -144,7 +154,7 @@ namespace Bnhon.Game.UI
                 if (_dragItem == null && TryGetCell(panel, mouse, out int cx, out int cy))
                 {
                     PlacedItem under = panel.Grid.GetAt(cx, cy);
-                    if (under != null) hovered = under;
+                    if (under != null && !IsConcealed(panel.Grid, under)) hovered = under;
                 }
             }
 
@@ -171,6 +181,7 @@ namespace Bnhon.Game.UI
             _cell = Mathf.Floor(Mathf.Clamp(Mathf.Min(Screen.width / (columns + 2f), Screen.height / (rows + 2.6f)), 16f, 52f));
             _titleStyle.fontSize = Mathf.RoundToInt(Mathf.Clamp(_cell * 0.36f, 10f, 17f));
             _hintStyle.fontSize = _titleStyle.fontSize;
+            _unknownStyle.fontSize = Mathf.RoundToInt(Mathf.Clamp(_cell * 0.5f, 10f, 24f));
             _itemStyle.fontSize = Mathf.RoundToInt(Mathf.Clamp(_cell * 0.27f, 8f, 13f));
 
             float x0 = Mathf.Floor((Screen.width - columns * _cell) * 0.5f);
@@ -216,7 +227,7 @@ namespace Bnhon.Game.UI
                 if (!TryGetCell(panel, mouse, out int cx, out int cy)) continue;
 
                 PlacedItem item = panel.Grid.GetAt(cx, cy);
-                if (item == null) return;
+                if (item == null || IsConcealed(panel.Grid, item)) return;
 
                 if (current.button == 0)
                 {
@@ -251,7 +262,13 @@ namespace Bnhon.Game.UI
             foreach (Panel panel in _panels)
             {
                 if (!TryGetCell(panel, mouse, out int cx, out int cy)) continue;
-                _dragSource.MoveTo(_dragItem, panel.Grid, cx - _grabX, cy - _grabY, _dragRotated);
+                int x = cx - _grabX;
+                int y = cy - _grabY;
+                // Dropping onto an unidentified stack would merge into it and give away what it is.
+                if (!IsConcealed(panel.Grid, panel.Grid.GetAt(x, y)))
+                {
+                    _dragSource.MoveTo(_dragItem, panel.Grid, x, y, _dragRotated);
+                }
                 break;
             }
             CancelDrag();
@@ -296,8 +313,31 @@ namespace Bnhon.Game.UI
                     area.y + item.Y * _cell + 1f,
                     item.Width * _cell - 2f,
                     item.Height * _cell - 2f);
-                DrawItem(rect, item, item == _dragItem ? 0.3f : 1f);
+                if (IsConcealed(panel.Grid, item)) DrawUnknown(rect, _concealer.RevealProgress(item));
+                else DrawItem(rect, item, item == _dragItem ? 0.3f : 1f);
             }
+        }
+
+        private bool IsConcealed(GridInventory grid, PlacedItem item)
+        {
+            return item != null && _concealer != null && grid == _other && _concealer.IsHidden(item);
+        }
+
+        /// <summary>An item that has not been identified yet: a dim block of the right size, with a bar while it is being searched.</summary>
+        private void DrawUnknown(Rect rect, float progress)
+        {
+            Fill(rect, new Color(0.34f, 0.35f, 0.38f, 0.55f));
+            Fill(new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, rect.height - 4f), new Color(0.13f, 0.14f, 0.16f, 0.9f));
+
+            GUI.color = new Color(1f, 1f, 1f, progress > 0f ? 0.8f : 0.35f);
+            GUI.Label(rect, "?", _unknownStyle);
+            GUI.color = Color.white;
+
+            if (progress <= 0f) return;
+            float barHeight = Mathf.Max(3f, _cell * 0.1f);
+            var bar = new Rect(rect.x + 3f, rect.y + rect.height - barHeight - 3f, rect.width - 6f, barHeight);
+            Fill(bar, new Color(0f, 0f, 0f, 0.6f));
+            Fill(new Rect(bar.x, bar.y, bar.width * progress, bar.height), new Color(0.95f, 0.85f, 0.4f, 1f));
         }
 
         private void DrawItem(Rect rect, PlacedItem item, float alpha)
@@ -332,7 +372,8 @@ namespace Bnhon.Game.UI
                 int x = cx - _grabX;
                 int y = cy - _grabY;
                 overGrid = true;
-                valid = _dragSource.CanMoveTo(_dragItem, panel.Grid, x, y, _dragRotated);
+                valid = !IsConcealed(panel.Grid, panel.Grid.GetAt(x, y))
+                    && _dragSource.CanMoveTo(_dragItem, panel.Grid, x, y, _dragRotated);
                 // Snap the ghost to the cells it would occupy.
                 rect.x = panel.Area.x + x * _cell + 1f;
                 rect.y = panel.Area.y + y * _cell + 1f;
@@ -373,6 +414,9 @@ namespace Bnhon.Game.UI
             _itemStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperLeft, wordWrap = true, clipping = TextClipping.Clip };
             _itemStyle.normal.textColor = Color.white;
             _itemStyle.padding = new RectOffset(0, 0, 0, 0);
+
+            _unknownStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
+            _unknownStyle.normal.textColor = Color.white;
 
             _hintStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
             _hintStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
