@@ -29,7 +29,7 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [ ] Độ giật khi bắn; vũ khí là vật phẩm trong balo thay vì có sẵn
 - [x] Lăn né và thể lực
 - [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
-- [ ] Zombie tìm đường quanh tường (NavMesh 2D hoặc A*)
+- [x] Zombie tìm đường quanh tường (A* trên lưới), đi tới vị trí cuối cùng nhìn thấy người chơi
 - [x] Đói và khát trong raid; ăn uống và băng bó từ balo
 - [x] Xác zombie lục được, đồ rơi theo loại zombie
 - [ ] Âm thanh tạm: bước chân, súng, zombie

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
 using Bnhon.Game.Combat;
@@ -22,6 +23,8 @@ namespace Bnhon.Game.AI
     /// <summary>
     /// Zombie brain: wanders, investigates noises it can hear, reacts to the
     /// player on sight. What "reacts" means depends on <see cref="ZombieKind"/>.
+    /// Walks around walls with <see cref="NavGrid"/>. A zombie that loses sight
+    /// of the player goes to where it last saw them, not to where they are.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Health))]
@@ -62,6 +65,13 @@ namespace Bnhon.Game.AI
         private float _nextAttackTime;
         private float _nextScreamTime;
         private float _lastSeenTime;
+        private Vector2 _lastSeenPosition;
+        private bool _seesTarget;
+
+        private const float BodyRadius = 0.42f;
+        private readonly List<Vector2> _path = new List<Vector2>();
+        private int _pathIndex;
+        private float _nextRepathTime;
 
         public ZombieKind Kind { get; private set; } = ZombieKind.Walker;
 
@@ -145,10 +155,12 @@ namespace Bnhon.Game.AI
             float distance = toTarget.magnitude;
             float now = UnityEngine.Time.time;
 
-            if (distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position))
+            _seesTarget = distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position);
+            if (_seesTarget)
             {
                 _state = State.Chase;
                 _lastSeenTime = now;
+                _lastSeenPosition = _target.position;
             }
             else if (_state == State.Chase && now - _lastSeenTime > loseInterestTime)
             {
@@ -158,8 +170,9 @@ namespace Bnhon.Game.AI
             switch (_state)
             {
                 case State.Chase:
-                    if (Kind == ZombieKind.Screamer) UpdateScreamer(position, toTarget, distance, now);
-                    else UpdateAttacker(toTarget, distance, now);
+                    if (!_seesTarget) _velocity = Steer(position, _lastSeenPosition, chaseSpeed, now);
+                    else if (Kind == ZombieKind.Screamer) UpdateScreamer(position, toTarget, distance, now);
+                    else UpdateAttacker(position, distance, now);
                     break;
 
                 case State.Investigate:
@@ -171,7 +184,7 @@ namespace Bnhon.Game.AI
                     }
                     else
                     {
-                        _velocity = toPoint.normalized * chaseSpeed * 0.8f;
+                        _velocity = Steer(position, _investigatePoint, chaseSpeed * 0.8f, now);
                     }
                     break;
 
@@ -193,11 +206,11 @@ namespace Bnhon.Game.AI
             _body.linearVelocity = _velocity;
         }
 
-        private void UpdateAttacker(Vector2 toTarget, float distance, float now)
+        private void UpdateAttacker(Vector2 position, float distance, float now)
         {
             if (distance > attackRange)
             {
-                _velocity = toTarget / distance * chaseSpeed;
+                _velocity = Steer(position, _target.position, chaseSpeed, now);
                 return;
             }
 
@@ -205,6 +218,43 @@ namespace Bnhon.Game.AI
             if (now < _nextAttackTime || _targetHealth == null) return;
             _nextAttackTime = now + attackInterval;
             _targetHealth.Damage(attackDamage);
+        }
+
+        /// <summary>
+        /// Velocity toward a destination. Walks straight when nothing is in the way; otherwise
+        /// follows an A* path, re-planned a couple of times a second, skipping ahead to the
+        /// farthest waypoint it can reach in a straight line.
+        /// </summary>
+        private Vector2 Steer(Vector2 position, Vector2 destination, float speed, float now)
+        {
+            Vector2 goal = destination;
+            NavGrid nav = NavGrid.Instance;
+
+            if (nav != null && nav.IsReady && nav.IsLineBlocked(position, destination, BodyRadius))
+            {
+                if (now >= _nextRepathTime)
+                {
+                    // Spread re-planning out so a pack does not all search on the same frame.
+                    _nextRepathTime = now + 0.45f + UnityEngine.Random.value * 0.25f;
+                    nav.TryFindPath(position, destination, _path);
+                    _pathIndex = 0;
+                }
+
+                while (_pathIndex < _path.Count && (_path[_pathIndex] - position).sqrMagnitude < 0.09f) _pathIndex++;
+                while (_pathIndex + 1 < _path.Count && !nav.IsLineBlocked(position, _path[_pathIndex + 1], BodyRadius)) _pathIndex++;
+
+                if (_pathIndex < _path.Count) goal = _path[_pathIndex];
+            }
+            else
+            {
+                _path.Clear();
+                _pathIndex = 0;
+                _nextRepathTime = 0f;
+            }
+
+            Vector2 toGoal = goal - position;
+            float distance = toGoal.magnitude;
+            return distance > 0.01f ? toGoal / distance * speed : Vector2.zero;
         }
 
         private void UpdateScreamer(Vector2 position, Vector2 toTarget, float distance, float now)

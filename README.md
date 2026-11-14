@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 38 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 45 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu

@@ -44,6 +44,8 @@ namespace Bnhon.Game
             _player = BuildPlayer();
             CameraFollow cameraFollow = SetUpCamera(_player);
 
+            new GameObject("NavGrid").AddComponent<NavGrid>();
+
             var director = new GameObject("RaidDirector").AddComponent<RaidDirector>();
             director.Init(_player, cameraFollow, BaseSpawn, _raidSpawn, BuildRaidZone);
             BuildRaidZone();
@@ -187,6 +189,9 @@ namespace Bnhon.Game
                 ZombieKind kind = i % 6 == 0 ? ZombieKind.Screamer : (i % 3 == 1 ? ZombieKind.Runner : ZombieKind.Walker);
                 BuildZombie(RandomRaidPoint(12f), kind);
             }
+
+            // Zombies walk straight until the map is ready, one frame from now.
+            if (NavGrid.Instance != null) NavGrid.Instance.RequestBuild(RaidCenter, RaidSize);
         }
 
         private void BuildZombie(Vector2 position, ZombieKind kind)
