@@ -1,0 +1,79 @@
+# Roadmap ProjectBnhon4.0
+
+Năm mốc, mỗi mốc có một điều kiện xong. Chưa gắn ngày vì chưa chốt quy mô đội. Mốc quan trọng nhất là M1: nếu một chuyến raid graybox chưa vui thì chưa làm tiếp farming hay NPC.
+
+## M0 - Khởi động (đang làm)
+
+Xong khi: mở được project trong Unity và test Core chạy xanh.
+
+- [x] Game Design Document bản đầu
+- [x] Repo git: `.gitignore`, `.gitattributes` (LFS), cấu trúc thư mục
+- [x] `Bnhon.Core`: inventory lưới, bảng loot, lịch, ruộng, quan hệ, nhiệm vụ, phiên raid, kèm unit test
+- [x] `Bnhon.Game`: điều khiển, súng, zombie, thùng đồ, vùng rút lui, ruộng, NPC, HUD debug, `PrototypeBootstrap`
+- [ ] Đẩy repo lên GitHub
+- [ ] Sinh `Packages/` và `ProjectSettings/` bằng Unity 6.3 LTS, commit cùng file `.meta`
+- [ ] Mở project, sửa lỗi biên dịch nếu có, chạy được scene prototype
+- [ ] Chạy test EditMode trong Unity và workflow `core-tests` trên GitHub
+- [ ] Chốt các câu hỏi mở trong GDD mục 12
+
+## M1 - Prototype lõi
+
+Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
+
+- [ ] Một bản đồ graybox làm tay bằng Tilemap, thay khu raid sinh bằng code
+- [ ] Fog of war theo hình nón tầm nhìn
+- [ ] Lục thùng đồ có thời gian, vật phẩm hiện dần
+- [ ] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo và thùng
+- [ ] Túi an toàn có UI riêng
+- [ ] Vũ khí: thêm cận chiến và shotgun; độ giật và độ tản đạn
+- [ ] Lăn né và thể lực
+- [ ] Zombie: thêm loại chạy nhanh và loại gào gọi bầy; tìm đường quanh tường (NavMesh 2D hoặc A*)
+- [ ] Đói và khát trong raid; ăn uống từ balo
+- [ ] Xác người chơi để lại trên bản đồ một chuyến để nhặt lại đồ
+- [ ] Âm thanh tạm: bước chân, súng, zombie
+- [ ] Playtest nội bộ, ghi lại thời lượng một chuyến và tỉ lệ chết
+
+## M2 - Vertical slice
+
+Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 phút.
+
+- [ ] Tách căn cứ và bản đồ raid thành hai scene, có màn chuyển cảnh
+- [ ] Lưu và tải game bằng JSON (lưu khi ngủ và khi kết thúc raid)
+- [ ] Chuyển dữ liệu mẫu trong `PrototypeContent` sang ScriptableObject
+- [ ] Đặt và dời công trình trên lưới: bàn chế tạo, kho, bếp
+- [ ] Chế tạo và bản vẽ
+- [ ] Farming đầy đủ: dụng cụ, bình tưới, 6 loại cây, nấu ăn có buff
+- [ ] Một NPC hoàn chỉnh: lịch sinh hoạt, hội thoại, quà tặng có UI, 2 cảnh tim
+- [ ] Một chuỗi nhiệm vụ cốt truyện mở đầu
+- [ ] Thương nhân mua bán
+- [ ] Pixel art thật cho căn cứ và một khu raid; Pixel Perfect Camera; ánh sáng 2D
+- [ ] HUD và menu bằng UI Toolkit thay cho HUD debug
+
+## M3 - Alpha
+
+Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
+
+- [ ] 3 bản đồ raid, mỗi bản đồ một trùm
+- [ ] 6 NPC, trong đó 4 hẹn hò được; hẹn hò và kết hôn
+- [ ] 4 mùa, ảnh hưởng của mùa lên cây trồng và raid
+- [ ] Cây kỹ năng 3 nhánh
+- [ ] Kẻ cướp có súng, biết nấp
+- [ ] Độ bền và phụ kiện vũ khí
+- [ ] Ngày và đêm trong raid
+- [ ] Cân bằng kinh tế vòng đầu
+- [ ] Bản địa hóa: tách toàn bộ chuỗi ký tự ra bảng
+
+## M4 - Early Access
+
+Xong khi: bản build ổn định, đủ để phát hành Early Access.
+
+- [ ] Nội dung hồi 1 và hồi 2
+- [ ] Hướng dẫn chơi đầu game
+- [ ] Tùy chọn: phím, âm thanh, đồ họa, độ khó
+- [ ] Tối ưu hiệu năng và sửa lỗi
+- [ ] Trang Steam, trailer, bản demo
+- [ ] Tiếng Việt và tiếng Anh
+
+## Ngoài phạm vi bản đầu
+
+PvP, co-op, bản đồ sinh ngẫu nhiên, chăn nuôi, console và mobile.

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Runs the Bnhon.Core unit tests with plain .NET, without opening Unity:
+        dotnet test Tools/CoreTests
+    The same test files also run inside Unity (Window > General > Test Runner > EditMode).
+    LangVersion is pinned to 9.0 because that is what Unity 6 compiles.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RootNamespace>Bnhon.Core.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Assets/_Project/Scripts/Core/**/*.cs" />
+    <Compile Include="../../Assets/_Project/Tests/EditMode/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+</Project>
