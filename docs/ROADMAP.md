@@ -22,12 +22,13 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 
 - [ ] Một bản đồ graybox làm tay bằng Tilemap, thay khu raid sinh bằng code
 - [x] Fog of war theo hình nón tầm nhìn (bản đầu: lưới tối + ẩn zombie ngoài tầm nhìn)
-- [ ] Lục thùng đồ có thời gian, vật phẩm hiện dần
+- [x] Lục thùng đồ có thời gian, vật phẩm hiện dần
 - [x] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo, thùng và kho
 - [x] Túi an toàn có UI riêng
 - [ ] Vũ khí: thêm cận chiến và shotgun; độ giật và độ tản đạn
 - [ ] Lăn né và thể lực
-- [ ] Zombie: thêm loại chạy nhanh và loại gào gọi bầy; tìm đường quanh tường (NavMesh 2D hoặc A*)
+- [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
+- [ ] Zombie tìm đường quanh tường (NavMesh 2D hoặc A*)
 - [ ] Đói và khát trong raid; ăn uống từ balo
 - [ ] Xác người chơi để lại trên bản đồ một chuyến để nhặt lại đồ
 - [ ] Âm thanh tạm: bước chân, súng, zombie

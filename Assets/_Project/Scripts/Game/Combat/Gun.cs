@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Bnhon.Game.Combat
 {
     /// <summary>
-    /// Hitscan pistol. Every shot raises <see cref="NoiseEmitted"/>, which
-    /// is how zombies hear the player.
+    /// Hitscan pistol. Every shot emits a <see cref="Noise"/>, which is how
+    /// zombies hear the player.
     /// </summary>
     public sealed class Gun : MonoBehaviour
     {
@@ -24,9 +24,6 @@ namespace Bnhon.Game.Combat
         public int AmmoInMagazine { get; private set; }
         public int MagazineSize => magazineSize;
         public bool IsReloading { get; private set; }
-
-        /// <summary>World position and radius of a loud sound.</summary>
-        public static event Action<Vector2, float> NoiseEmitted;
 
         private void Awake()
         {
@@ -58,7 +55,7 @@ namespace Bnhon.Game.Combat
             }
 
             Tracer.Spawn(origin, end);
-            NoiseEmitted?.Invoke(origin, noiseRadius);
+            Noise.Emit(origin, noiseRadius);
             return true;
         }
 

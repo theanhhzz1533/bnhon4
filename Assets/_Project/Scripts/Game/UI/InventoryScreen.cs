@@ -65,6 +65,17 @@ namespace Bnhon.Game.UI
             if (Player != null) Player.ControlEnabled = false;
         }
 
+        /// <summary>True while the screen is open with <paramref name="grid"/> as the container on the right.</summary>
+        public bool IsShowing(GridInventory grid)
+        {
+            return IsOpen && grid != null && _other == grid;
+        }
+
+        public void SetOtherTitle(string title)
+        {
+            _otherTitle = title;
+        }
+
         public void Close()
         {
             if (!IsOpen) return;

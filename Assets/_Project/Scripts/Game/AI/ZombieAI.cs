@@ -4,9 +4,21 @@ using UnityEngine;
 
 namespace Bnhon.Game.AI
 {
+    public enum ZombieKind
+    {
+        /// <summary>Slow and tough. Pressure in numbers.</summary>
+        Walker,
+
+        /// <summary>Fast and fragile. Outruns a walking player, not a sprinting one.</summary>
+        Runner,
+
+        /// <summary>Never attacks. Screams on sight to call every zombie nearby, then backs away.</summary>
+        Screamer
+    }
+
     /// <summary>
-    /// Basic walker: wanders, investigates gunshots it can hear, chases the
-    /// player on sight and hits at melee range.
+    /// Zombie brain: wanders, investigates noises it can hear, reacts to the
+    /// player on sight. What "reacts" means depends on <see cref="ZombieKind"/>.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Health))]
@@ -26,6 +38,12 @@ namespace Bnhon.Game.AI
         [SerializeField] private float attackDamage = 15f;
         [SerializeField] private float attackInterval = 1f;
         [SerializeField] private float loseInterestTime = 4f;
+        [SerializeField] private float investigateTimeout = 8f;
+
+        [Header("Screamer")]
+        [SerializeField] private float screamRadius = 16f;
+        [SerializeField] private float screamInterval = 8f;
+        [SerializeField] private float keepAwayDistance = 5f;
 
         private Rigidbody2D _body;
         private Health _health;
@@ -36,14 +54,52 @@ namespace Bnhon.Game.AI
         private Vector2 _velocity;
         private Vector2 _wanderDirection;
         private Vector2 _investigatePoint;
+        private float _investigateUntil;
         private float _nextWanderChange;
         private float _nextAttackTime;
+        private float _nextScreamTime;
         private float _lastSeenTime;
 
-        public void Init(Transform target)
+        public ZombieKind Kind { get; private set; } = ZombieKind.Walker;
+
+        public void Init(Transform target, ZombieKind kind)
         {
             _target = target;
             _targetHealth = target != null ? target.GetComponent<Health>() : null;
+            Configure(kind);
+        }
+
+        /// <summary>Applies the stats and placeholder color of a zombie type.</summary>
+        private void Configure(ZombieKind kind)
+        {
+            Kind = kind;
+            Color color;
+
+            switch (kind)
+            {
+                case ZombieKind.Runner:
+                    _health.SetMax(55f);
+                    chaseSpeed = 4.8f;
+                    sightRange = 7.5f;
+                    attackDamage = 10f;
+                    attackInterval = 0.7f;
+                    color = new Color(0.9f, 0.5f, 0.2f);
+                    break;
+
+                case ZombieKind.Screamer:
+                    _health.SetMax(45f);
+                    chaseSpeed = 2.2f;
+                    sightRange = 9f;
+                    color = new Color(0.7f, 0.35f, 0.85f);
+                    break;
+
+                default:
+                    _health.SetMax(100f);
+                    color = new Color(0.45f, 0.65f, 0.3f);
+                    break;
+            }
+
+            if (_renderer != null) _renderer.color = color;
         }
 
         private void Awake()
@@ -55,13 +111,13 @@ namespace Bnhon.Game.AI
 
         private void OnEnable()
         {
-            Gun.NoiseEmitted += OnNoise;
+            Noise.Emitted += OnNoise;
             _health.Died += OnDied;
         }
 
         private void OnDisable()
         {
-            Gun.NoiseEmitted -= OnNoise;
+            Noise.Emitted -= OnNoise;
             _health.Died -= OnDied;
         }
 
@@ -99,20 +155,13 @@ namespace Bnhon.Game.AI
             switch (_state)
             {
                 case State.Chase:
-                    if (distance <= attackRange)
-                    {
-                        _velocity = Vector2.zero;
-                        TryAttack(now);
-                    }
-                    else
-                    {
-                        _velocity = toTarget / distance * chaseSpeed;
-                    }
+                    if (Kind == ZombieKind.Screamer) UpdateScreamer(position, toTarget, distance, now);
+                    else UpdateAttacker(toTarget, distance, now);
                     break;
 
                 case State.Investigate:
                     Vector2 toPoint = _investigatePoint - position;
-                    if (toPoint.sqrMagnitude < 0.25f)
+                    if (toPoint.sqrMagnitude < 0.25f || now > _investigateUntil)
                     {
                         _state = State.Wander;
                         _velocity = Vector2.zero;
@@ -141,19 +190,43 @@ namespace Bnhon.Game.AI
             _body.linearVelocity = _velocity;
         }
 
-        private void TryAttack(float now)
+        private void UpdateAttacker(Vector2 toTarget, float distance, float now)
         {
+            if (distance > attackRange)
+            {
+                _velocity = toTarget / distance * chaseSpeed;
+                return;
+            }
+
+            _velocity = Vector2.zero;
             if (now < _nextAttackTime || _targetHealth == null) return;
             _nextAttackTime = now + attackInterval;
             _targetHealth.Damage(attackDamage);
         }
 
-        private void OnNoise(Vector2 position, float radius)
+        private void UpdateScreamer(Vector2 position, Vector2 toTarget, float distance, float now)
+        {
+            if (now >= _nextScreamTime)
+            {
+                _nextScreamTime = now + screamInterval;
+                // Heard around the screamer, but it sends the pack to where the player is.
+                Noise.Emit(position, screamRadius, _target.position);
+                if (GameRoot.Instance != null) GameRoot.Instance.Notify("Zombie gào đang gọi bầy!", 2.5f);
+            }
+
+            // Back away when the player closes in; otherwise stand and keep screaming.
+            _velocity = distance < keepAwayDistance && distance > 0.01f
+                ? toTarget / distance * -chaseSpeed
+                : Vector2.zero;
+        }
+
+        private void OnNoise(Vector2 source, float radius, Vector2 pointOfInterest)
         {
             if (_state == State.Chase) return;
-            if (((Vector2)transform.position - position).sqrMagnitude > radius * radius) return;
+            if (((Vector2)transform.position - source).sqrMagnitude > radius * radius) return;
 
-            _investigatePoint = position;
+            _investigatePoint = pointOfInterest;
+            _investigateUntil = UnityEngine.Time.time + investigateTimeout;
             _state = State.Investigate;
         }
 

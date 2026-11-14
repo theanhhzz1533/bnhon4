@@ -182,13 +182,15 @@ namespace Bnhon.Game
 
             for (int i = 0; i < zombieCount; i++)
             {
-                BuildZombie(RandomRaidPoint(12f));
+                // Mix per 6: one screamer, two runners, three walkers.
+                ZombieKind kind = i % 6 == 0 ? ZombieKind.Screamer : (i % 3 == 1 ? ZombieKind.Runner : ZombieKind.Walker);
+                BuildZombie(RandomRaidPoint(12f), kind);
             }
         }
 
-        private void BuildZombie(Vector2 position)
+        private void BuildZombie(Vector2 position, ZombieKind kind)
         {
-            GameObject go = PlaceholderArt.Box("Zombie", position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15);
+            GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15);
             go.AddComponent<BoxCollider2D>();
 
             var body = go.AddComponent<Rigidbody2D>();
@@ -196,8 +198,8 @@ namespace Bnhon.Game
             body.freezeRotation = true;
             body.linearDamping = 4f;
 
-            go.AddComponent<Health>().SetMax(100f);
-            go.AddComponent<ZombieAI>().Init(_player.transform);
+            go.AddComponent<Health>();
+            go.AddComponent<ZombieAI>().Init(_player.transform, kind);
         }
 
         /// <summary>A random point inside the raid zone, at least <paramref name="minDistanceFromSpawn"/> away from where the player enters.</summary>
