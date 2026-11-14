@@ -17,11 +17,16 @@ namespace Bnhon.Game
             {
                 if (_square != null) return _square;
 
-                var texture = new Texture2D(1, 1);
+                // A 1x1 texture with the default Tight mesh type can produce a sprite
+                // with no geometry, so use a small texture and a full-rect quad.
+                const int size = 4;
+                var texture = new Texture2D(size, size);
                 texture.filterMode = FilterMode.Point;
-                texture.SetPixel(0, 0, Color.white);
+                var pixels = new Color[size * size];
+                for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.white;
+                texture.SetPixels(pixels);
                 texture.Apply();
-                _square = Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
+                _square = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size, 0, SpriteMeshType.FullRect);
                 return _square;
             }
         }
