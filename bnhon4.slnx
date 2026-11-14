@@ -1,0 +1,5 @@
+﻿<Solution>
+  <Project Path="Bnhon.Core.csproj" />
+  <Project Path="Bnhon.Core.Tests.csproj" />
+  <Project Path="Bnhon.Game.csproj" />
+</Solution>
