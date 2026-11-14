@@ -1,4 +1,7 @@
+using Bnhon.Core.Content;
+using Bnhon.Core.Loot;
 using Bnhon.Game.Combat;
+using Bnhon.Game.Interaction;
 using Bnhon.Game.Vision;
 using UnityEngine;
 
@@ -232,7 +235,28 @@ namespace Bnhon.Game.AI
 
         private void OnDied(Health health)
         {
+            SpawnCorpse();
             Destroy(gameObject);
+        }
+
+        /// <summary>Leaves a searchable body where the zombie fell. It carries zero to two items, by zombie type.</summary>
+        private void SpawnCorpse()
+        {
+            LootTable table;
+            switch (Kind)
+            {
+                case ZombieKind.Runner: table = PrototypeContent.RunnerCorpse; break;
+                case ZombieKind.Screamer: table = PrototypeContent.ScreamerCorpse; break;
+                default: table = PrototypeContent.WalkerCorpse; break;
+            }
+
+            Color color = _renderer != null ? _renderer.color : Color.white;
+            color = Color.Lerp(color, Color.black, 0.55f);
+
+            // Same parent as the zombie, so corpses are cleared with the raid zone.
+            GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3);
+            corpse.AddComponent<BoxCollider2D>().isTrigger = true;
+            corpse.AddComponent<LootContainer>().InitCorpse(table, UnityEngine.Random.Range(0, 3));
         }
     }
 }

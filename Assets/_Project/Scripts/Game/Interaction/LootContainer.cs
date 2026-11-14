@@ -26,6 +26,9 @@ namespace Bnhon.Game.Interaction
         [SerializeField] private float extraSecondsPerRarity = 0.4f;
 
         private LootTable _table;
+        private string _title = "Thùng đồ";
+        private string _searchPrompt = "E: Lục đồ";
+        private string _openPrompt = "E: Mở thùng";
         private GridInventory _contents;
         private List<PlacedItem> _hidden;
         private float _revealElapsed;
@@ -35,15 +38,27 @@ namespace Bnhon.Game.Interaction
         {
             get
             {
-                if (_contents == null) return "E: Lục đồ";
+                if (_contents == null) return _searchPrompt;
                 if (_hidden.Count > 0) return "E: Lục tiếp";
-                return _contents.Items.Count == 0 ? "E: Mở thùng (trống)" : "E: Mở thùng";
+                return _contents.Items.Count == 0 ? _openPrompt + " (trống)" : _openPrompt;
             }
         }
 
         public void Init(LootTable table)
         {
             _table = table;
+        }
+
+        /// <summary>Sets this up as a zombie corpse: its own wording, loot count and a small grid.</summary>
+        public void InitCorpse(LootTable table, int rollCount)
+        {
+            _table = table;
+            rolls = rollCount;
+            gridWidth = 3;
+            gridHeight = 2;
+            _title = "Xác zombie";
+            _searchPrompt = "E: Lục xác";
+            _openPrompt = "E: Xem xác";
         }
 
         public void Interact(PlayerController player)
@@ -62,7 +77,7 @@ namespace Bnhon.Game.Interaction
                 _hidden = new List<PlacedItem>(_contents.Items);
             }
 
-            if (InventoryScreen.Instance != null) InventoryScreen.Instance.Open(_contents, "Thùng đồ", this);
+            if (InventoryScreen.Instance != null) InventoryScreen.Instance.Open(_contents, _title, this);
         }
 
         public bool IsHidden(PlacedItem item)

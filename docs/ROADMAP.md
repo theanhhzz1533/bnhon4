@@ -31,7 +31,7 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
 - [ ] Zombie tìm đường quanh tường (NavMesh 2D hoặc A*)
 - [x] Đói và khát trong raid; ăn uống và băng bó từ balo
-- [ ] Xác người chơi để lại trên bản đồ một chuyến để nhặt lại đồ
+- [x] Xác zombie lục được, đồ rơi theo loại zombie
 - [ ] Âm thanh tạm: bước chân, súng, zombie
 - [ ] Playtest nội bộ, ghi lại thời lượng một chuyến và tỉ lệ chết
 

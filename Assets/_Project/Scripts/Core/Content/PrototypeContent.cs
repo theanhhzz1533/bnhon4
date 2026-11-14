@@ -114,6 +114,26 @@ namespace Bnhon.Core.Content
             .Add(ScrapMetal, 25, 2, 4)
             .Add(CircuitBoard, 15);
 
+        // What zombies carry. Searched on their corpses.
+        public static readonly LootTable WalkerCorpse = new LootTable("corpse_walker")
+            .Add(Cloth, 35, 1, 2)
+            .Add(ScrapMetal, 25, 1, 2)
+            .Add(CannedFood, 15)
+            .Add(PistolAmmo, 15, 2, 5)
+            .Add(Bandage, 10);
+
+        public static readonly LootTable RunnerCorpse = new LootTable("corpse_runner")
+            .Add(WaterBottle, 30)
+            .Add(Bandage, 25)
+            .Add(PistolAmmo, 25, 3, 6)
+            .Add(ShotgunShell, 20, 1, 2);
+
+        public static readonly LootTable ScreamerCorpse = new LootTable("corpse_screamer")
+            .Add(TeaTin, 30)
+            .Add(MugwortSeed, 30, 1, 3)
+            .Add(CircuitBoard, 25)
+            .Add(OldCassette, 15);
+
         public static readonly IReadOnlyList<LootTable> RaidLootTables = new[] { HouseCabinet, MedicalCabinet, SeedStore, WeaponCrate };
 
         public const string NpcLan = "lan";
