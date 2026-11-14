@@ -1,4 +1,5 @@
 using Bnhon.Game.Combat;
+using Bnhon.Game.Vision;
 using UnityEngine;
 
 namespace Bnhon.Game.AI
@@ -28,6 +29,7 @@ namespace Bnhon.Game.AI
 
         private Rigidbody2D _body;
         private Health _health;
+        private SpriteRenderer _renderer;
         private Transform _target;
         private Health _targetHealth;
         private State _state = State.Wander;
@@ -48,6 +50,7 @@ namespace Bnhon.Game.AI
         {
             _body = GetComponent<Rigidbody2D>();
             _health = GetComponent<Health>();
+            _renderer = GetComponent<SpriteRenderer>();
         }
 
         private void OnEnable()
@@ -71,11 +74,19 @@ namespace Bnhon.Game.AI
             }
 
             Vector2 position = transform.position;
+
+            // Fog of war: only drawn while the player can actually see this spot.
+            if (_renderer != null)
+            {
+                VisionSystem vision = VisionSystem.Instance;
+                _renderer.enabled = vision == null || vision.IsVisible(position);
+            }
+
             Vector2 toTarget = (Vector2)_target.position - position;
             float distance = toTarget.magnitude;
             float now = UnityEngine.Time.time;
 
-            if (distance <= sightRange && HasLineOfSight(position, _target.position))
+            if (distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position))
             {
                 _state = State.Chase;
                 _lastSeenTime = now;
@@ -135,16 +146,6 @@ namespace Bnhon.Game.AI
             if (now < _nextAttackTime || _targetHealth == null) return;
             _nextAttackTime = now + attackInterval;
             _targetHealth.Damage(attackDamage);
-        }
-
-        private static bool HasLineOfSight(Vector2 from, Vector2 to)
-        {
-            RaycastHit2D[] hits = Physics2D.LinecastAll(from, to);
-            foreach (RaycastHit2D hit in hits)
-            {
-                if (hit.collider != null && hit.collider.GetComponent<SightBlocker>() != null) return false;
-            }
-            return true;
         }
 
         private void OnNoise(Vector2 position, float radius)

@@ -6,6 +6,7 @@ using Bnhon.Game.Interaction;
 using Bnhon.Game.Player;
 using Bnhon.Game.Raid;
 using Bnhon.Game.UI;
+using Bnhon.Game.Vision;
 using UnityEngine;
 
 namespace Bnhon.Game
@@ -49,6 +50,9 @@ namespace Bnhon.Game
 
             var hud = new GameObject("DebugHud").AddComponent<DebugHud>();
             hud.Player = _player;
+
+            var vision = new GameObject("VisionSystem").AddComponent<VisionSystem>();
+            vision.Init(_player);
 
             var inventory = new GameObject("InventoryScreen").AddComponent<InventoryScreen>();
             inventory.Player = _player;
