@@ -32,7 +32,7 @@ namespace Bnhon.Core
         public GameSession(Gender playerGender, int seed, int farmPlots = 9)
         {
             Clock = new GameClock();
-            Stash = new GridInventory(10, 12);
+            Stash = new GridInventory(10, 8);
             Backpack = new GridInventory(6, 5);
             SecurePouch = new GridInventory(2, 2);
             Wallet = new Wallet();

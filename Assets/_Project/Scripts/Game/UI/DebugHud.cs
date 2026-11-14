@@ -44,12 +44,8 @@ namespace Bnhon.Game.UI
             }
             _text.Append("   Tem phiếu: ").Append(session.Wallet.Money).Append('\n');
 
-            _text.Append("\nBalo (").Append(session.Backpack.Width).Append('x').Append(session.Backpack.Height).Append("):\n");
-            if (session.Backpack.Items.Count == 0) _text.Append("  (trống)\n");
-            foreach (var placed in session.Backpack.Items)
-            {
-                _text.Append("  ").Append(placed.Item.DisplayName).Append(" x").Append(placed.Count).Append('\n');
-            }
+            _text.Append("Balo: ").Append(session.Backpack.Items.Count).Append(" món, giá trị ")
+                .Append(session.Backpack.TotalValue()).Append("  (Tab để mở)\n");
 
             _text.Append("\nNhiệm vụ:\n");
             foreach (DeliveryQuest quest in session.Quests.All)
@@ -60,6 +56,9 @@ namespace Bnhon.Game.UI
             }
 
             GUI.Label(new Rect(12f, 10f, 420f, Screen.height - 20f), _text.ToString(), _style);
+
+            // The inventory screen covers the middle of the view and has its own hint line.
+            if (InventoryScreen.Instance != null && InventoryScreen.Instance.IsOpen) return;
 
             float centerY = Screen.height - 120f;
             if (Player.Focused != null)
@@ -78,7 +77,7 @@ namespace Bnhon.Game.UI
                 GUI.Label(new Rect(0f, centerY + 34f, Screen.width, 30f), root.Message, _centered);
             }
 
-            GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD di chuyển · Chuột ngắm/bắn · R nạp đạn · E tương tác · Shift chạy", _style);
+            GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD di chuyển · Chuột ngắm/bắn · R nạp đạn · E tương tác · Tab balo", _style);
         }
     }
 }

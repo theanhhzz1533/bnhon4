@@ -59,6 +59,12 @@ namespace Bnhon.Core.Inventory
 
         public bool CanPlace(ItemDefinition item, int x, int y, bool rotated)
         {
+            return CanPlace(item, x, y, rotated, null);
+        }
+
+        /// <summary>Like <see cref="CanPlace(ItemDefinition,int,int,bool)"/>, but cells held by <paramref name="ignore"/> count as free.</summary>
+        public bool CanPlace(ItemDefinition item, int x, int y, bool rotated, PlacedItem ignore)
+        {
             if (item == null) return false;
             int w = rotated ? item.Height : item.Width;
             int h = rotated ? item.Width : item.Height;
@@ -68,10 +74,92 @@ namespace Bnhon.Core.Inventory
             {
                 for (int cy = y; cy < y + h; cy++)
                 {
-                    if (_cells[cx, cy] != null) return false;
+                    PlacedItem occupant = _cells[cx, cy];
+                    if (occupant != null && occupant != ignore) return false;
                 }
             }
             return true;
+        }
+
+        public bool Contains(PlacedItem placed)
+        {
+            return placed != null && _items.Contains(placed);
+        }
+
+        /// <summary>
+        /// True if <paramref name="placed"/> (a stack in this grid) can be dropped at a cell of
+        /// <paramref name="target"/>: either onto a stack of the same item that has room, or
+        /// into free space. The target may be this grid.
+        /// </summary>
+        public bool CanMoveTo(PlacedItem placed, GridInventory target, int x, int y, bool rotated)
+        {
+            if (target == null || !Contains(placed)) return false;
+            if (FindMergeTarget(placed, target, x, y) != null) return true;
+            return target.CanPlace(placed.Item, x, y, rotated, target == this ? placed : null);
+        }
+
+        /// <summary>Drag-and-drop move. Merges into a matching stack under the drop cell, else relocates the stack.</summary>
+        public bool MoveTo(PlacedItem placed, GridInventory target, int x, int y, bool rotated)
+        {
+            if (!CanMoveTo(placed, target, x, y, rotated)) return false;
+
+            PlacedItem merge = FindMergeTarget(placed, target, x, y);
+            if (merge != null)
+            {
+                int moved = Math.Min(merge.Item.MaxStack - merge.Count, placed.Count);
+                merge.Count += moved;
+                placed.Count -= moved;
+                if (placed.Count == 0)
+                {
+                    Occupy(placed, null);
+                    _items.Remove(placed);
+                }
+            }
+            else
+            {
+                Occupy(placed, null);
+                _items.Remove(placed);
+                placed.X = x;
+                placed.Y = y;
+                placed.Rotated = rotated;
+                target.Occupy(placed, placed);
+                target._items.Add(placed);
+            }
+
+            Changed?.Invoke();
+            if (target != this) target.Changed?.Invoke();
+            return true;
+        }
+
+        /// <summary>Quick transfer: sends as much of the stack as fits anywhere in <paramref name="target"/>. Returns the number moved.</summary>
+        public int TransferTo(PlacedItem placed, GridInventory target)
+        {
+            if (target == null || target == this || !Contains(placed)) return 0;
+
+            int leftover = target.Add(placed.Item, placed.Count);
+            int moved = placed.Count - leftover;
+            if (moved == 0) return 0;
+
+            if (leftover == 0)
+            {
+                Occupy(placed, null);
+                _items.Remove(placed);
+            }
+            else
+            {
+                placed.Count = leftover;
+            }
+
+            Changed?.Invoke();
+            return moved;
+        }
+
+        private static PlacedItem FindMergeTarget(PlacedItem placed, GridInventory target, int x, int y)
+        {
+            PlacedItem under = target.GetAt(x, y);
+            if (under == null || under == placed) return null;
+            if (under.Item != placed.Item || under.Count >= under.Item.MaxStack) return null;
+            return under;
         }
 
         /// <summary>Places a stack at an exact position. Returns null if it does not fit.</summary>

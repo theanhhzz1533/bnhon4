@@ -13,29 +13,18 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 26 unit test đạt |
-| `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Đã kiểm tra kiểu với API giả lập, **chưa chạy trong Unity Editor** |
-| `Packages/`, `ProjectSettings/`, file `.meta`, scene | Chưa có, Unity sẽ sinh ra ở lần mở đầu tiên (xem bên dưới) |
-
-Lớp `Bnhon.Game` được viết khi không có Unity Editor, nên lần mở đầu tiên có thể cần sửa vài lỗi nhỏ.
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 31 unit test đạt |
+| `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
 
-Repo chưa chứa `Packages/` và `ProjectSettings/` vì hai thư mục này phải do đúng phiên bản Unity sinh ra.
-
-1. Cài Unity 6.3 LTS qua Unity Hub và cài Git LFS (`git lfs install`).
+1. Cài Unity 6.3 LTS (repo đang dùng 6000.3.28f1) qua Unity Hub và cài Git LFS (`git lfs install`).
 2. Clone repo này.
-3. Trong Unity Hub, tạo một project tạm bằng template **Universal 2D** ở thư mục khác, rồi đóng Unity.
-4. Chép `Packages/` và `ProjectSettings/` từ project tạm vào thư mục gốc của repo.
-5. Unity Hub > Add > Add project from disk > chọn thư mục repo, rồi mở.
-6. Mở Window > Package Manager và kiểm tra đã có **Input System** và **Test Framework**. Nếu Unity hỏi bật backend Input System mới thì chọn Yes.
-7. Commit `Packages/`, `ProjectSettings/` và toàn bộ file `.meta` vừa sinh ra.
+3. Unity Hub > Add > Add project from disk > chọn thư mục repo, rồi mở.
 
 ## Chạy prototype
 
-1. File > New Scene, chọn scene 2D trống.
-2. Tạo một GameObject trống, Add Component > `PrototypeBootstrap`.
-3. Nhấn Play. Lưu scene vào `Assets/_Project/Scenes/Prototype.unity`.
+Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 
 `PrototypeBootstrap` dựng toàn bộ màn chơi thử bằng các ô vuông màu, không cần prefab hay asset:
 
@@ -47,8 +36,9 @@ Repo chưa chứa `Packages/` và `ProjectSettings/` vì hai thư mục này ph�
 | WASD | Di chuyển |
 | Shift | Chạy |
 | Chuột | Ngắm, chuột trái bắn |
-| R | Nạp đạn (lấy đạn từ balo) |
-| E | Tương tác: lục đồ, cuốc, gieo, tưới, thu hoạch, nói chuyện, cất đồ, ngủ, ra cổng |
+| R | Nạp đạn (lấy đạn từ balo); xoay vật phẩm khi đang kéo trong balo |
+| E | Tương tác: lục đồ, mở kho, cuốc, gieo, tưới, thu hoạch, nói chuyện, ngủ, ra cổng |
+| Tab | Mở hoặc đóng balo. Kéo chuột trái để xếp đồ, chuột phải để chuyển nhanh, Esc để đóng |
 
 Một vòng chơi thử: nói chuyện với cư dân để nhận nhiệm vụ, cuốc đất và gieo khoai, ra cổng để raid, lục thùng, đứng trong vùng xanh 3 giây để rút lui, cất đồ, trả nhiệm vụ, ngủ sang ngày mới. Chết trong raid thì mất đồ trong balo. Khi nói chuyện, cư dân tự nhận món quà đầu tiên có trong balo.
 

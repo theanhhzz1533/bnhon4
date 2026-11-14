@@ -1,28 +1,18 @@
 using Bnhon.Game.Player;
+using Bnhon.Game.UI;
 using UnityEngine;
 
 namespace Bnhon.Game.Interaction
 {
-    /// <summary>Prototype stash: one press moves the whole backpack into the base stash.</summary>
+    /// <summary>The base stash. Opens the inventory screen with the stash next to the backpack.</summary>
     public sealed class StashCrate : MonoBehaviour, IInteractable
     {
-        public string Prompt => "E: Cất hết đồ trong balo vào kho";
+        public string Prompt => "E: Mở kho";
 
         public void Interact(PlayerController player)
         {
-            var root = GameRoot.Instance;
-            var session = root.Session;
-            if (session.Backpack.Items.Count == 0)
-            {
-                root.Notify("Balo đang trống.");
-                return;
-            }
-
-            int value = session.Backpack.TotalValue();
-            int leftBehind = session.Backpack.MoveAllTo(session.Stash);
-            root.Notify(leftBehind == 0
-                ? "Đã cất đồ vào kho (giá trị " + value + ")."
-                : "Kho đầy, còn " + leftBehind + " món trong balo.");
+            if (InventoryScreen.Instance == null) return;
+            InventoryScreen.Instance.Open(GameRoot.Instance.Session.Stash, "Kho căn cứ");
         }
     }
 }

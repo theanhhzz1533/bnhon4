@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Bnhon.Core.Loot;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
+using Bnhon.Game.UI;
 using UnityEngine;
 
 namespace Bnhon.Game.Raid
@@ -115,6 +116,7 @@ namespace Bnhon.Game.Raid
 
         private void MovePlayer(Vector2 position)
         {
+            if (InventoryScreen.Instance != null) InventoryScreen.Instance.Close();
             _player.Teleport(position);
             if (_camera != null) _camera.SnapToTarget();
         }

@@ -10,9 +10,9 @@ Xong khi: mở được project trong Unity và test Core chạy xanh.
 - [x] Repo git: `.gitignore`, `.gitattributes` (LFS), cấu trúc thư mục
 - [x] `Bnhon.Core`: inventory lưới, bảng loot, lịch, ruộng, quan hệ, nhiệm vụ, phiên raid, kèm unit test
 - [x] `Bnhon.Game`: điều khiển, súng, zombie, thùng đồ, vùng rút lui, ruộng, NPC, HUD debug, `PrototypeBootstrap`
-- [ ] Đẩy repo lên GitHub
-- [ ] Sinh `Packages/` và `ProjectSettings/` bằng Unity 6.3 LTS, commit cùng file `.meta`
-- [ ] Mở project, sửa lỗi biên dịch nếu có, chạy được scene prototype
+- [x] Đẩy repo lên GitHub
+- [x] Sinh `Packages/` và `ProjectSettings/` bằng Unity 6.3 LTS, commit cùng file `.meta`
+- [x] Mở project, sửa lỗi biên dịch nếu có, chạy được scene prototype
 - [ ] Chạy test EditMode trong Unity và workflow `core-tests` trên GitHub
 - [ ] Chốt các câu hỏi mở trong GDD mục 12
 
@@ -23,8 +23,8 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [ ] Một bản đồ graybox làm tay bằng Tilemap, thay khu raid sinh bằng code
 - [ ] Fog of war theo hình nón tầm nhìn
 - [ ] Lục thùng đồ có thời gian, vật phẩm hiện dần
-- [ ] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo và thùng
-- [ ] Túi an toàn có UI riêng
+- [x] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo, thùng và kho
+- [x] Túi an toàn có UI riêng
 - [ ] Vũ khí: thêm cận chiến và shotgun; độ giật và độ tản đạn
 - [ ] Lăn né và thể lực
 - [ ] Zombie: thêm loại chạy nhanh và loại gào gọi bầy; tìm đường quanh tường (NavMesh 2D hoặc A*)

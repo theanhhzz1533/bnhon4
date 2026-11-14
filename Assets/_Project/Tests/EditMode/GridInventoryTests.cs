@@ -98,5 +98,78 @@ namespace Bnhon.Core.Tests
             Assert.That(stash.CountOf("crate"), Is.EqualTo(1));
             Assert.That(backpack.CountOf("crate"), Is.EqualTo(1));
         }
+
+        [Test]
+        public void MoveTo_CanShiftAnItemOverItsOwnCells()
+        {
+            var grid = new GridInventory(3, 2);
+            var crate = grid.TryPlace(Crate, 1, 0, 0, false);
+
+            Assert.That(grid.MoveTo(crate, grid, 1, 0, false), Is.True);
+
+            Assert.That(crate.X, Is.EqualTo(1));
+            Assert.That(grid.GetAt(0, 0) == null, Is.True);
+            Assert.That(grid.GetAt(2, 1) == crate, Is.True);
+            Assert.That(grid.Items.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void MoveTo_OtherGridWithRotation()
+        {
+            var backpack = new GridInventory(3, 3);
+            var stash = new GridInventory(3, 1);
+            var plank = backpack.TryPlace(Plank, 1, 0, 0, false);
+
+            Assert.That(backpack.MoveTo(plank, stash, 0, 0, false), Is.False);
+            Assert.That(backpack.MoveTo(plank, stash, 0, 0, true), Is.True);
+
+            Assert.That(backpack.Items.Count, Is.EqualTo(0));
+            Assert.That(backpack.CanPlace(Crate, 0, 0, false), Is.True);
+            Assert.That(stash.Items.Count, Is.EqualTo(1));
+            Assert.That(stash.GetAt(2, 0) == plank, Is.True);
+        }
+
+        [Test]
+        public void MoveTo_RejectsOccupiedCellsAndLeavesItemInPlace()
+        {
+            var grid = new GridInventory(4, 2);
+            var a = grid.TryPlace(Crate, 1, 0, 0, false);
+            grid.TryPlace(Crate, 1, 2, 0, false);
+
+            Assert.That(grid.MoveTo(a, grid, 1, 0, false), Is.False);
+            Assert.That(a.X, Is.EqualTo(0));
+            Assert.That(grid.GetAt(0, 0) == a, Is.True);
+        }
+
+        [Test]
+        public void MoveTo_MergesIntoMatchingStackAndKeepsRemainder()
+        {
+            var backpack = new GridInventory(2, 1);
+            var stash = new GridInventory(2, 1);
+            var small = backpack.TryPlace(Ammo, 20, 0, 0, false);
+            var big = stash.TryPlace(Ammo, 25, 1, 0, false);
+
+            Assert.That(backpack.MoveTo(small, stash, 1, 0, false), Is.True);
+
+            Assert.That(big.Count, Is.EqualTo(30));
+            Assert.That(small.Count, Is.EqualTo(15));
+            Assert.That(backpack.CountOf("ammo"), Is.EqualTo(15));
+
+            Assert.That(backpack.MoveTo(small, stash, 1, 0, false), Is.False);
+        }
+
+        [Test]
+        public void TransferTo_MovesWhatFits()
+        {
+            var backpack = new GridInventory(2, 1);
+            var pouch = new GridInventory(1, 1);
+            var stack = backpack.TryPlace(Ammo, 30, 0, 0, false);
+            pouch.TryPlace(Ammo, 20, 0, 0, false);
+
+            Assert.That(backpack.TransferTo(stack, pouch), Is.EqualTo(10));
+            Assert.That(stack.Count, Is.EqualTo(20));
+            Assert.That(backpack.TransferTo(stack, pouch), Is.EqualTo(0));
+            Assert.That(pouch.CountOf("ammo"), Is.EqualTo(30));
+        }
     }
 }

@@ -49,6 +49,9 @@ namespace Bnhon.Game
 
             var hud = new GameObject("DebugHud").AddComponent<DebugHud>();
             hud.Player = _player;
+
+            var inventory = new GameObject("InventoryScreen").AddComponent<InventoryScreen>();
+            inventory.Player = _player;
         }
 
         private PlayerController BuildPlayer()
