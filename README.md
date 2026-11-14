@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 45 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 49 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -29,7 +29,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 `PrototypeBootstrap` dựng toàn bộ màn chơi thử bằng các ô vuông màu, không cần prefab hay asset:
 
 - **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, giường, cổng ra ngoài.
-- **Khu raid:** thùng đồ, zombie, tường chắn tầm nhìn, vùng rút lui màu xanh lá.
+- **Khu raid:** dựng từ bản đồ file chữ: nhà, phòng khám, cửa hàng, nhà kho, với thùng đồ, zombie và hai vùng rút lui màu xanh lá.
 
 | Phím | Hành động |
 | --- | --- |
@@ -46,6 +46,36 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 Đói và khát chỉ giảm khi đang raid; về 0 thì mất máu dần và thể lực hồi chậm. Ngủ hồi đầy nước và một phần no.
 
 Một vòng chơi thử: nói chuyện với cư dân để nhận nhiệm vụ, cuốc đất và gieo khoai, ra cổng để raid, lục thùng, đứng trong vùng xanh 3 giây để rút lui, cất đồ, trả nhiệm vụ, ngủ sang ngày mới. Chết trong raid thì mất đồ trong balo. Khi nói chuyện, cư dân tự nhận món quà đầu tiên có trong balo.
+
+## Sửa bản đồ raid
+
+Khu raid được dựng từ file chữ `Assets/_Project/Resources/Maps/outskirts.txt`, mỗi ký tự là một ô rộng 1 đơn vị. Mở bằng Notepad, sửa, lưu, rồi Play.
+
+| Ký tự | Ý nghĩa |
+| --- | --- |
+| `#` | Tường (chặn đường đi, đạn và tầm nhìn) |
+| `.` | Sàn |
+| `P` | Chỗ người chơi vào (đúng một cái) |
+| `E` | Điểm rút lui, vùng 3×3 quanh ô đó (ít nhất một cái) |
+| `C` `M` `S` `W` | Tủ nhà, tủ thuốc, kho hạt giống, hòm vũ khí |
+| `Z` `R` `G` | Zombie thường, zombie chạy, zombie gào |
+
+Dòng bắt đầu bằng `;` là ghi chú. Nếu file sai định dạng, game báo lỗi trên màn hình và dùng một bản đồ dự phòng nhỏ. Nếu có thùng đồ hay điểm rút lui bị tường bít kín, game cũng cảnh báo khi bắt đầu. Để dùng bản đồ khác, tạo file mới cùng thư mục và đổi ô `Map Name` trên `PrototypeBootstrap`.
+
+## Thay ô vuông màu bằng hình thật
+
+Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dưới đây. Món nào có file thì dùng hình, món nào chưa có vẫn là ô vuông màu.
+
+| Tên file | Dùng cho | Cách đặt |
+| --- | --- | --- |
+| `floor.png`, `wall.png` | Sàn và tường khu raid | Kéo giãn vừa một ô (nên là ảnh vuông) |
+| `extraction.png` | Vùng rút lui | Kéo giãn vừa 3×3 ô |
+| `crate_house.png`, `crate_medical.png`, `crate_seed.png`, `crate_weapon.png` | Bốn loại thùng đồ | Co theo bề ngang, giữ tỉ lệ |
+| `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |
+| `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |
+| `bed.png`, `stash.png`, `gate.png` | Đồ trong căn cứ | Co theo bề ngang, giữ tỉ lệ |
+
+Sau khi thả ảnh vào, chọn ảnh trong Unity và đặt ở Inspector: Texture Type **Sprite (2D and UI)**, Sprite Mode **Single**, Filter Mode **Point (no filter)**, Compression **None**, rồi Apply. Ảnh được co giãn theo kích thước vật thể nên Pixels Per Unit không ảnh hưởng. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.
 
 ## Cấu trúc
 

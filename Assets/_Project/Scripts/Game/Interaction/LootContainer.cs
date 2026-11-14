@@ -109,7 +109,7 @@ namespace Bnhon.Game.Interaction
             if (!_markedEmpty && _contents.Items.Count == 0)
             {
                 _markedEmpty = true;
-                PlaceholderArt.SetColor(gameObject, EmptyColor);
+                PlaceholderArt.MarkSpent(gameObject, EmptyColor);
             }
         }
 

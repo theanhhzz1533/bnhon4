@@ -118,14 +118,15 @@ namespace Bnhon.Game.AI
                     break;
             }
 
-            if (_renderer != null) _renderer.color = color;
+            // Real art keeps its own colors; only the placeholder square is tinted by type.
+            if (PlaceholderArt.IsPlaceholder(_renderer)) _renderer.color = color;
         }
 
         private void Awake()
         {
             _body = GetComponent<Rigidbody2D>();
             _health = GetComponent<Health>();
-            _renderer = GetComponent<SpriteRenderer>();
+            _renderer = GetComponentInChildren<SpriteRenderer>();
         }
 
         private void OnEnable()
@@ -342,11 +343,11 @@ namespace Bnhon.Game.AI
                 default: table = PrototypeContent.WalkerCorpse; break;
             }
 
-            Color color = _renderer != null ? _renderer.color : Color.white;
+            Color color = PlaceholderArt.IsPlaceholder(_renderer) ? _renderer.color : Color.white;
             color = Color.Lerp(color, Color.black, 0.55f);
 
             // Same parent as the zombie, so corpses are cleared with the raid zone.
-            GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3);
+            GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", false);
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
             corpse.AddComponent<LootContainer>().InitCorpse(table, UnityEngine.Random.Range(0, 3));
         }

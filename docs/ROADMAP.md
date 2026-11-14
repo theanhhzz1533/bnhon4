@@ -20,7 +20,8 @@ Xong khi: mở được project trong Unity và test Core chạy xanh.
 
 Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 
-- [ ] Một bản đồ graybox làm tay bằng Tilemap, thay khu raid sinh bằng code
+- [x] Một bản đồ graybox có bố cục, đọc từ file chữ `Resources/Maps/outskirts.txt`
+- [x] Hình ảnh thay được từng món bằng cách thả file PNG vào `Resources/Sprites`
 - [x] Fog of war theo hình nón tầm nhìn (bản đầu: lưới tối + ẩn zombie ngoài tầm nhìn)
 - [x] Lục thùng đồ có thời gian, vật phẩm hiện dần
 - [x] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo, thùng và kho
