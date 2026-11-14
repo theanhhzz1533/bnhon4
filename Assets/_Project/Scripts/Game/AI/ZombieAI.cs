@@ -46,6 +46,10 @@ namespace Bnhon.Game.AI
         [SerializeField] private float loseInterestTime = 4f;
         [SerializeField] private float investigateTimeout = 8f;
 
+        [Header("Crowding")]
+        [SerializeField] private float separationRadius = 1.25f;
+        [SerializeField] private float separationStrength = 2.4f;
+
         [Header("Screamer")]
         [SerializeField] private float screamRadius = 16f;
         [SerializeField] private float screamInterval = 8f;
@@ -67,6 +71,8 @@ namespace Bnhon.Game.AI
         private float _lastSeenTime;
         private Vector2 _lastSeenPosition;
         private bool _seesTarget;
+
+        private static readonly List<ZombieAI> Active = new List<ZombieAI>();
 
         private const float BodyRadius = 0.42f;
         private readonly List<Vector2> _path = new List<Vector2>();
@@ -124,12 +130,14 @@ namespace Bnhon.Game.AI
 
         private void OnEnable()
         {
+            Active.Add(this);
             Noise.Emitted += OnNoise;
             _health.Died += OnDied;
         }
 
         private void OnDisable()
         {
+            Active.Remove(this);
             Noise.Emitted -= OnNoise;
             _health.Died -= OnDied;
         }
@@ -199,6 +207,40 @@ namespace Bnhon.Game.AI
                     _velocity = _wanderDirection * wanderSpeed;
                     break;
             }
+
+            _velocity = SpreadOut(position, _velocity);
+        }
+
+        /// <summary>
+        /// Pushes this zombie away from others standing too close, so a pack fans out around
+        /// its target and files through gaps instead of piling onto one spot.
+        /// </summary>
+        private Vector2 SpreadOut(Vector2 position, Vector2 velocity)
+        {
+            Vector2 push = Vector2.zero;
+            foreach (ZombieAI other in Active)
+            {
+                if (other == this) continue;
+
+                Vector2 away = position - (Vector2)other.transform.position;
+                float distance = away.magnitude;
+                if (distance >= separationRadius) continue;
+
+                if (distance < 0.01f)
+                {
+                    // Exactly on top of each other: pick any direction to break the tie.
+                    away = UnityEngine.Random.insideUnitCircle;
+                    distance = Mathf.Max(0.01f, away.magnitude);
+                }
+                push += away / distance * (1f - distance / separationRadius);
+            }
+
+            if (push.sqrMagnitude < 0.0001f) return velocity;
+
+            Vector2 result = velocity + push * separationStrength;
+            float limit = Mathf.Max(chaseSpeed, wanderSpeed) * 1.15f;
+            float speed = result.magnitude;
+            return speed > limit ? result / speed * limit : result;
         }
 
         private void FixedUpdate()

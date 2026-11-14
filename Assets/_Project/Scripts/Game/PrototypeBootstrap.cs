@@ -197,7 +197,8 @@ namespace Bnhon.Game
         private void BuildZombie(Vector2 position, ZombieKind kind)
         {
             GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15);
-            go.AddComponent<BoxCollider2D>();
+            // Round bodies slide past each other and around wall corners; boxes lock together.
+            go.AddComponent<CircleCollider2D>().radius = 0.5f;
 
             var body = go.AddComponent<Rigidbody2D>();
             body.gravityScale = 0f;
