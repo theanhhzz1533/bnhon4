@@ -38,8 +38,10 @@ namespace Bnhon.Game
             {
                 if (_unlit != null) return _unlit;
 
-                Shader shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
-                if (shader == null) shader = Shader.Find("Sprites/Default");
+                // Built-in unlit sprite shader: present in every project and drawn by
+                // both the built-in pipeline and URP (2D and Universal renderers).
+                Shader shader = Shader.Find("Sprites/Default");
+                if (shader == null) shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
                 _unlit = new Material(shader);
                 return _unlit;
             }
