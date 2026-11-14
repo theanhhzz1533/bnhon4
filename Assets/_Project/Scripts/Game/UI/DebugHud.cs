@@ -30,19 +30,36 @@ namespace Bnhon.Game.UI
 
             var session = root.Session;
             var health = Player.GetComponent<Health>();
-            Gun gun = Player.Gun;
+            PlayerWeapons weapons = Player.Weapons;
 
             _text.Length = 0;
             _text.Append("Ngày ").Append(session.Clock.Day).Append(", ")
                 .Append(RaidDirector.SeasonName(session.Clock.Season)).Append(", năm ").Append(session.Clock.Year)
                 .Append(session.IsInRaid ? "  [ĐANG RAID]" : "  [CĂN CỨ]").Append('\n');
-            _text.Append("Máu: ").Append(Mathf.CeilToInt(health.Current)).Append('/').Append(Mathf.CeilToInt(health.Max));
-            if (gun != null)
+
+            _text.Append("Máu: ").Append(Mathf.CeilToInt(health.Current)).Append('/').Append(Mathf.CeilToInt(health.Max))
+                .Append("   Thể lực: ").Append(Mathf.CeilToInt(session.Stamina.Current));
+            if (session.Stamina.IsExhausted) _text.Append(" (kiệt sức)");
+            _text.Append('\n');
+
+            _text.Append("Đói: ").Append(Mathf.CeilToInt(session.Needs.Hunger))
+                .Append("   Khát: ").Append(Mathf.CeilToInt(session.Needs.Thirst));
+            if (session.Needs.IsStarving || session.Needs.IsDehydrated) _text.Append("  (đang mất máu!)");
+            _text.Append('\n');
+
+            if (weapons != null)
             {
-                _text.Append("   Đạn: ").Append(gun.AmmoInMagazine).Append('/').Append(gun.MagazineSize);
-                if (gun.IsReloading) _text.Append(" (đang nạp)");
+                WeaponDefinition weapon = weapons.Current;
+                _text.Append('[').Append(weapons.CurrentSlot).Append("] ").Append(weapon.Name);
+                if (weapon.Kind == WeaponKind.Firearm)
+                {
+                    _text.Append("  ").Append(weapons.AmmoInMagazine).Append('/').Append(weapon.MagazineSize)
+                        .Append("  (dự trữ ").Append(session.Backpack.CountOf(weapon.AmmoItemId)).Append(')');
+                    if (weapons.IsReloading) _text.Append("  đang nạp");
+                }
+                _text.Append('\n');
             }
-            _text.Append("   Tem phiếu: ").Append(session.Wallet.Money).Append('\n');
+            _text.Append("Tem phiếu: ").Append(session.Wallet.Money).Append('\n');
 
             _text.Append("Balo: ").Append(session.Backpack.Items.Count).Append(" món, giá trị ")
                 .Append(session.Backpack.TotalValue()).Append("  (Tab để mở)\n");
@@ -77,7 +94,7 @@ namespace Bnhon.Game.UI
                 GUI.Label(new Rect(0f, centerY + 34f, Screen.width, 30f), root.Message, _centered);
             }
 
-            GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD di chuyển · Chuột ngắm/bắn · R nạp đạn · E tương tác · Tab balo", _style);
+            GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD · Chuột bắn · 1-3 vũ khí · R nạp · Space lăn · Q hồi máu · E · Tab", _style);
         }
     }
 }

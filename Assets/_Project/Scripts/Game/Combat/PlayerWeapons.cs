@@ -1,0 +1,185 @@
+using System;
+using System.Collections;
+using Bnhon.Core.Content;
+using Bnhon.Core.Inventory;
+using Bnhon.Core.Vitals;
+using Bnhon.Game.AI;
+using UnityEngine;
+
+namespace Bnhon.Game.Combat
+{
+    /// <summary>
+    /// The player's weapons and which one is in hand. Slot 1 is a silent
+    /// melee weapon, slot 2 a pistol, slot 3 a loud shotgun. Every use emits
+    /// a <see cref="Noise"/> sized to the weapon, which is how zombies hear
+    /// the player.
+    /// </summary>
+    public sealed class PlayerWeapons : MonoBehaviour
+    {
+        [SerializeField] private float swapDelay = 0.3f;
+
+        private WeaponDefinition[] _weapons;
+        private int[] _ammo;
+        private int _current = 1;
+        private float _nextUseTime;
+
+        public WeaponDefinition Current => _weapons[_current];
+        public int CurrentSlot => _current + 1;
+        public int SlotCount => _weapons.Length;
+        public int AmmoInMagazine => _ammo[_current];
+        public bool IsReloading { get; private set; }
+
+        private void Awake()
+        {
+            _weapons = new[]
+            {
+                new WeaponDefinition
+                {
+                    Name = "Dao", Kind = WeaponKind.Melee, Damage = 40f, Range = 1.6f, Interval = 0.45f,
+                    NoiseRadius = 1.5f, ArcDegrees = 110f, StaminaCost = 10f
+                },
+                new WeaponDefinition
+                {
+                    Name = "Súng ngắn", Kind = WeaponKind.Firearm, Damage = 34f, Range = 12f, Interval = 0.25f,
+                    NoiseRadius = 10f, MagazineSize = 8, ReloadTime = 1.2f, Pellets = 1, SpreadDegrees = 2f,
+                    AmmoItemId = PrototypeContent.PistolAmmo.Id
+                },
+                new WeaponDefinition
+                {
+                    Name = "Shotgun", Kind = WeaponKind.Firearm, Damage = 18f, Range = 7f, Interval = 0.9f,
+                    NoiseRadius = 17f, MagazineSize = 2, ReloadTime = 1.8f, Pellets = 7, SpreadDegrees = 24f,
+                    AmmoItemId = PrototypeContent.ShotgunShell.Id
+                }
+            };
+
+            _ammo = new int[_weapons.Length];
+            for (int i = 0; i < _weapons.Length; i++) _ammo[i] = _weapons[i].MagazineSize;
+        }
+
+        /// <summary>Switches to a weapon slot (0-based). Interrupts a reload in progress.</summary>
+        public void Select(int index)
+        {
+            if (index < 0 || index >= _weapons.Length || index == _current) return;
+
+            StopAllCoroutines();
+            IsReloading = false;
+            _current = index;
+            _nextUseTime = UnityEngine.Time.time + swapDelay;
+        }
+
+        /// <summary>Attacks with the weapon in hand. Returns true if a shot or swing happened.</summary>
+        public bool TryUse(Vector2 origin, Vector2 direction, Stamina stamina)
+        {
+            if (IsReloading || UnityEngine.Time.time < _nextUseTime) return false;
+            if (direction.sqrMagnitude < 0.0001f) return false;
+            direction.Normalize();
+
+            WeaponDefinition weapon = Current;
+            if (weapon.Kind == WeaponKind.Melee)
+            {
+                if (stamina != null && !stamina.TryUse(weapon.StaminaCost)) return false;
+                Swing(weapon, origin, direction);
+            }
+            else
+            {
+                if (_ammo[_current] <= 0) return false;
+                _ammo[_current]--;
+                for (int i = 0; i < weapon.Pellets; i++)
+                {
+                    float offset = UnityEngine.Random.Range(-weapon.SpreadDegrees * 0.5f, weapon.SpreadDegrees * 0.5f);
+                    FireRay(weapon, origin, Rotate(direction, offset));
+                }
+            }
+
+            _nextUseTime = UnityEngine.Time.time + weapon.Interval;
+            Noise.Emit(origin, weapon.NoiseRadius);
+            return true;
+        }
+
+        /// <summary>Refills the magazine of the weapon in hand from matching ammo in <paramref name="ammoSource"/>.</summary>
+        public void Reload(GridInventory ammoSource)
+        {
+            WeaponDefinition weapon = Current;
+            if (weapon.Kind != WeaponKind.Firearm || IsReloading || ammoSource == null) return;
+            if (_ammo[_current] >= weapon.MagazineSize) return;
+
+            if (ammoSource.CountOf(weapon.AmmoItemId) <= 0)
+            {
+                if (GameRoot.Instance != null) GameRoot.Instance.Notify("Hết đạn cho " + weapon.Name + ".", 1.5f);
+                return;
+            }
+            StartCoroutine(ReloadRoutine(weapon, _current, ammoSource));
+        }
+
+        private IEnumerator ReloadRoutine(WeaponDefinition weapon, int slot, GridInventory ammoSource)
+        {
+            IsReloading = true;
+            yield return new WaitForSeconds(weapon.ReloadTime);
+
+            int needed = weapon.MagazineSize - _ammo[slot];
+            int loaded = Mathf.Min(needed, ammoSource.CountOf(weapon.AmmoItemId));
+            if (loaded > 0 && ammoSource.TryConsume(weapon.AmmoItemId, loaded)) _ammo[slot] += loaded;
+            IsReloading = false;
+        }
+
+        private void FireRay(WeaponDefinition weapon, Vector2 origin, Vector2 direction)
+        {
+            Vector2 end = origin + direction * weapon.Range;
+            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, weapon.Range);
+            Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (RaycastHit2D hit in hits)
+            {
+                Collider2D other = hit.collider;
+                if (other == null || other.isTrigger || other.gameObject == gameObject) continue;
+
+                var health = other.GetComponent<Health>();
+                if (health != null) health.Damage(weapon.Damage);
+                end = hit.point;
+                break;
+            }
+
+            Tracer.Spawn(origin, end, 0.04f, new Color(1f, 0.9f, 0.5f));
+        }
+
+        private void Swing(WeaponDefinition weapon, Vector2 origin, Vector2 direction)
+        {
+            float halfArc = weapon.ArcDegrees * 0.5f;
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(origin, weapon.Range);
+
+            foreach (Collider2D other in nearby)
+            {
+                if (other == null || other.isTrigger || other.gameObject == gameObject) continue;
+
+                var health = other.GetComponent<Health>();
+                if (health == null) continue;
+
+                Vector2 target = other.ClosestPoint(origin);
+                Vector2 toTarget = target - origin;
+                if (toTarget.sqrMagnitude > 0.0001f && Vector2.Angle(direction, toTarget) > halfArc) continue;
+                if (SightBlocker.IsBlocked(origin, target)) continue;
+
+                health.Damage(weapon.Damage);
+            }
+
+            // Show the reach of the swing: its two edges and its middle.
+            var color = new Color(0.9f, 0.95f, 1f);
+            Tracer.Spawn(origin, origin + Rotate(direction, -halfArc) * weapon.Range, 0.05f, color);
+            Tracer.Spawn(origin, origin + direction * weapon.Range, 0.08f, color);
+            Tracer.Spawn(origin, origin + Rotate(direction, halfArc) * weapon.Range, 0.05f, color);
+        }
+
+        private static Vector2 Rotate(Vector2 v, float degrees)
+        {
+            float radians = degrees * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(radians);
+            float sin = Mathf.Sin(radians);
+            return new Vector2(v.x * cos - v.y * sin, v.x * sin + v.y * cos);
+        }
+
+        private void OnDisable()
+        {
+            IsReloading = false;
+        }
+    }
+}

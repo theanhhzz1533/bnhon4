@@ -1,3 +1,4 @@
+using Bnhon.Core.Vitals;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Interaction;
 using UnityEngine;
@@ -6,28 +7,42 @@ using UnityEngine.InputSystem;
 namespace Bnhon.Game.Player
 {
     /// <summary>
-    /// Top-down twin-stick style control: WASD to move, mouse to aim,
-    /// left click to fire, R to reload, E to interact, Shift to sprint.
+    /// Top-down control: WASD to move, mouse to aim, left click to attack,
+    /// 1-3 to pick a weapon, R to reload, Shift to sprint and Space to roll
+    /// (both cost stamina), Q to use a healing item, E to interact.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class PlayerController : MonoBehaviour
     {
         [SerializeField] private float walkSpeed = 4f;
         [SerializeField] private float sprintSpeed = 6.5f;
+        [SerializeField] private float sprintStaminaPerSecond = 16f;
         [SerializeField] private float interactRadius = 1.3f;
         [SerializeField] private Transform aimPivot;
 
+        [Header("Dodge roll")]
+        [SerializeField] private float rollSpeed = 11f;
+        [SerializeField] private float rollDuration = 0.28f;
+        [SerializeField] private float rollCooldown = 0.25f;
+        [SerializeField] private float rollStaminaCost = 25f;
+
         private Rigidbody2D _body;
         private Camera _camera;
-        private Gun _gun;
+        private Health _health;
+        private PlayerWeapons _weapons;
+        private PlayerVitals _vitals;
         private Vector2 _move;
         private bool _sprinting;
+        private Vector2 _rollDirection;
+        private float _rollUntil;
+        private float _nextRollTime;
 
         public Vector2 AimDirection { get; private set; } = Vector2.right;
         public IInteractable Focused { get; private set; }
-        public Gun Gun => _gun;
+        public PlayerWeapons Weapons => _weapons;
+        public bool IsRolling => UnityEngine.Time.time < _rollUntil;
 
-        /// <summary>False while the player is being moved by the game (teleport, death).</summary>
+        /// <summary>False while the player is being moved by the game or a screen is open.</summary>
         public bool ControlEnabled { get; set; } = true;
 
         public void SetAimPivot(Transform pivot)
@@ -38,32 +53,66 @@ namespace Bnhon.Game.Player
         private void Awake()
         {
             _body = GetComponent<Rigidbody2D>();
-            _gun = GetComponent<Gun>();
+            _health = GetComponent<Health>();
+            _weapons = GetComponent<PlayerWeapons>();
+            _vitals = GetComponent<PlayerVitals>();
         }
 
         private void Update()
         {
+            // A roll cannot be hurt; this also ends the protection on the frame the roll ends.
+            if (_health != null) _health.Invulnerable = IsRolling;
+
             Keyboard keyboard = Keyboard.current;
             Mouse mouse = Mouse.current;
-            if (keyboard == null || mouse == null || !ControlEnabled)
+            if (keyboard == null || mouse == null || !ControlEnabled || GameRoot.Instance == null)
             {
                 _move = Vector2.zero;
+                _sprinting = false;
                 return;
             }
+
+            var session = GameRoot.Instance.Session;
+            Stamina stamina = session.Stamina;
 
             float x = (keyboard.dKey.isPressed ? 1f : 0f) - (keyboard.aKey.isPressed ? 1f : 0f);
             float y = (keyboard.wKey.isPressed ? 1f : 0f) - (keyboard.sKey.isPressed ? 1f : 0f);
             _move = new Vector2(x, y);
             if (_move.sqrMagnitude > 1f) _move.Normalize();
-            _sprinting = keyboard.leftShiftKey.isPressed;
 
             UpdateAim(mouse);
 
-            if (_gun != null)
+            if (IsRolling)
             {
-                if (mouse.leftButton.isPressed) _gun.TryFire(transform.position, AimDirection);
-                if (keyboard.rKey.wasPressedThisFrame) _gun.Reload(GameRoot.Instance.Session.Backpack);
+                _sprinting = false;
+                return;
             }
+
+            bool moving = _move.sqrMagnitude > 0.01f;
+            _sprinting = moving
+                && keyboard.leftShiftKey.isPressed
+                && stamina.Drain(sprintStaminaPerSecond * UnityEngine.Time.deltaTime);
+
+            if (keyboard.spaceKey.wasPressedThisFrame && UnityEngine.Time.time >= _nextRollTime && stamina.TryUse(rollStaminaCost))
+            {
+                _rollDirection = moving ? _move.normalized : AimDirection;
+                _rollUntil = UnityEngine.Time.time + rollDuration;
+                _nextRollTime = _rollUntil + rollCooldown;
+                if (_health != null) _health.Invulnerable = true;
+                return;
+            }
+
+            if (_weapons != null)
+            {
+                if (keyboard.digit1Key.wasPressedThisFrame) _weapons.Select(0);
+                if (keyboard.digit2Key.wasPressedThisFrame) _weapons.Select(1);
+                if (keyboard.digit3Key.wasPressedThisFrame) _weapons.Select(2);
+
+                if (mouse.leftButton.isPressed) _weapons.TryUse(transform.position, AimDirection, stamina);
+                if (keyboard.rKey.wasPressedThisFrame) _weapons.Reload(session.Backpack);
+            }
+
+            if (_vitals != null && keyboard.qKey.wasPressedThisFrame) _vitals.QuickHeal();
 
             Focused = FindInteractable();
             if (Focused != null && keyboard.eKey.wasPressedThisFrame) Focused.Interact(this);
@@ -71,11 +120,17 @@ namespace Bnhon.Game.Player
 
         private void FixedUpdate()
         {
+            if (IsRolling)
+            {
+                _body.linearVelocity = _rollDirection * rollSpeed;
+                return;
+            }
             _body.linearVelocity = _move * (_sprinting ? sprintSpeed : walkSpeed);
         }
 
         public void Teleport(Vector2 position)
         {
+            _rollUntil = 0f;
             _body.linearVelocity = Vector2.zero;
             _body.position = position;
             transform.position = position;

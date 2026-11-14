@@ -70,7 +70,8 @@ namespace Bnhon.Game
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
             go.AddComponent<Health>();
-            go.AddComponent<Gun>();
+            go.AddComponent<PlayerWeapons>();
+            go.AddComponent<PlayerVitals>();
             var player = go.AddComponent<PlayerController>();
 
             var pivot = new GameObject("AimPivot").transform;

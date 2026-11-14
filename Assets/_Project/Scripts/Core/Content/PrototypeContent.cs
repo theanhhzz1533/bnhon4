@@ -4,6 +4,7 @@ using Bnhon.Core.Items;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Vitals;
 
 namespace Bnhon.Core.Content
 {
@@ -24,6 +25,9 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition Bandage = new ItemDefinition("bandage", "Băng gạc", ItemCategory.Medicine, ItemRarity.Common, 1, 1, 5, 12);
         public static readonly ItemDefinition PistolAmmo = new ItemDefinition("pistol_ammo", "Đạn súng ngắn", ItemCategory.Ammo, ItemRarity.Common, 1, 1, 30, 2);
 
+        public static readonly ItemDefinition ShotgunShell = new ItemDefinition("shotgun_shell", "Đạn shotgun", ItemCategory.Ammo, ItemRarity.Uncommon, 1, 1, 12, 5);
+        public static readonly ItemDefinition WaterBottle = new ItemDefinition("water_bottle", "Chai nước", ItemCategory.Food, ItemRarity.Common, 1, 2, 1, 10);
+
         // Seeds and produce
         public static readonly ItemDefinition SweetPotatoSeed = new ItemDefinition("seed_sweet_potato", "Dây khoai lang", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 4);
         public static readonly ItemDefinition CornSeed = new ItemDefinition("seed_corn", "Hạt ngô", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 6);
@@ -38,7 +42,7 @@ namespace Bnhon.Core.Content
 
         public static readonly IReadOnlyList<ItemDefinition> Items = new[]
         {
-            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo,
+            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle,
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette
         };
 
@@ -47,6 +51,25 @@ namespace Bnhon.Core.Content
             foreach (var item in Items)
             {
                 if (item.Id == itemId) return item;
+            }
+            return null;
+        }
+
+        public static readonly IReadOnlyList<ConsumableDefinition> Consumables = new[]
+        {
+            new ConsumableDefinition(CannedFood.Id, hunger: 40f, thirst: 5f),
+            new ConsumableDefinition(WaterBottle.Id, thirst: 50f),
+            new ConsumableDefinition(SweetPotato.Id, hunger: 25f),
+            new ConsumableDefinition(Corn.Id, hunger: 20f, thirst: 5f),
+            new ConsumableDefinition(Bandage.Id, heal: 35f),
+            new ConsumableDefinition(Mugwort.Id, heal: 15f)
+        };
+
+        public static ConsumableDefinition FindConsumable(string itemId)
+        {
+            foreach (var consumable in Consumables)
+            {
+                if (consumable.ItemId == itemId) return consumable;
             }
             return null;
         }
@@ -69,6 +92,7 @@ namespace Bnhon.Core.Content
             .Add(Wood, 20, 1, 2)
             .Add(Cloth, 25, 1, 3)
             .Add(CannedFood, 20)
+            .Add(WaterBottle, 18)
             .Add(ScrapMetal, 20, 1, 3)
             .Add(TeaTin, 8)
             .Add(OldCassette, 3)
@@ -86,6 +110,7 @@ namespace Bnhon.Core.Content
 
         public static readonly LootTable WeaponCrate = new LootTable("weapon_crate")
             .Add(PistolAmmo, 60, 6, 14)
+            .Add(ShotgunShell, 35, 2, 5)
             .Add(ScrapMetal, 25, 2, 4)
             .Add(CircuitBoard, 15);
 
@@ -129,7 +154,10 @@ namespace Bnhon.Core.Content
             session.Wallet.Add(50);
             session.Stash.Add(SweetPotatoSeed, 4);
             session.Backpack.Add(PistolAmmo, 16);
+            session.Backpack.Add(ShotgunShell, 4);
             session.Backpack.Add(Bandage, 1);
+            session.Backpack.Add(CannedFood, 1);
+            session.Backpack.Add(WaterBottle, 1);
             return session;
         }
     }

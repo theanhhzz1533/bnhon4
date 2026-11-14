@@ -223,6 +223,21 @@ namespace Bnhon.Core.Inventory
             return true;
         }
 
+        /// <summary>Removes <paramref name="count"/> items from one specific stack. Fails if the stack is smaller.</summary>
+        public bool TakeFromStack(PlacedItem placed, int count)
+        {
+            if (count < 1 || !Contains(placed) || placed.Count < count) return false;
+
+            placed.Count -= count;
+            if (placed.Count == 0)
+            {
+                Occupy(placed, null);
+                _items.Remove(placed);
+            }
+            Changed?.Invoke();
+            return true;
+        }
+
         public int CountOf(string itemId)
         {
             int total = 0;

@@ -25,11 +25,12 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Lục thùng đồ có thời gian, vật phẩm hiện dần
 - [x] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo, thùng và kho
 - [x] Túi an toàn có UI riêng
-- [ ] Vũ khí: thêm cận chiến và shotgun; độ giật và độ tản đạn
-- [ ] Lăn né và thể lực
+- [x] Vũ khí: cận chiến và shotgun, đổi vũ khí bằng phím 1-3, độ tản đạn
+- [ ] Độ giật khi bắn; vũ khí là vật phẩm trong balo thay vì có sẵn
+- [x] Lăn né và thể lực
 - [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
 - [ ] Zombie tìm đường quanh tường (NavMesh 2D hoặc A*)
-- [ ] Đói và khát trong raid; ăn uống từ balo
+- [x] Đói và khát trong raid; ăn uống và băng bó từ balo
 - [ ] Xác người chơi để lại trên bản đồ một chuyến để nhặt lại đồ
 - [ ] Âm thanh tạm: bước chân, súng, zombie
 - [ ] Playtest nội bộ, ghi lại thời lượng một chuyến và tỉ lệ chết

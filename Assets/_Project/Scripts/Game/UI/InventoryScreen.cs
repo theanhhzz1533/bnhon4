@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Bnhon.Core.Content;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Items;
+using Bnhon.Core.Vitals;
 using Bnhon.Game.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -34,6 +36,8 @@ namespace Bnhon.Game.UI
         private PlacedItem _dragItem;
         private GridInventory _dragSource;
         private bool _dragRotated;
+        private PlacedItem _hoverItem;
+        private GridInventory _hoverGrid;
         private int _grabX;
         private int _grabY;
 
@@ -89,6 +93,8 @@ namespace Bnhon.Game.UI
         {
             if (!IsOpen) return;
             CancelDrag();
+            _hoverItem = null;
+            _hoverGrid = null;
             _other = null;
             _concealer = null;
             IsOpen = false;
@@ -112,6 +118,17 @@ namespace Bnhon.Game.UI
             if (keyboard.escapeKey.wasPressedThisFrame)
             {
                 Close();
+                return;
+            }
+
+            if (_dragItem == null && _hoverItem != null && keyboard.fKey.wasPressedThisFrame)
+            {
+                if (PlayerVitals.Instance != null && _hoverGrid.Contains(_hoverItem))
+                {
+                    PlayerVitals.Instance.UseItem(_hoverGrid, _hoverItem);
+                }
+                _hoverItem = null;
+                _hoverGrid = null;
                 return;
             }
 
@@ -148,21 +165,29 @@ namespace Bnhon.Game.UI
             Fill(new Rect(0f, 0f, Screen.width, Screen.height), new Color(0f, 0f, 0f, 0.65f));
 
             PlacedItem hovered = null;
+            GridInventory hoveredGrid = null;
             foreach (Panel panel in _panels)
             {
                 DrawPanel(panel);
                 if (_dragItem == null && TryGetCell(panel, mouse, out int cx, out int cy))
                 {
                     PlacedItem under = panel.Grid.GetAt(cx, cy);
-                    if (under != null && !IsConcealed(panel.Grid, under)) hovered = under;
+                    if (under != null && !IsConcealed(panel.Grid, under))
+                    {
+                        hovered = under;
+                        hoveredGrid = panel.Grid;
+                    }
                 }
             }
+
+            _hoverItem = hovered;
+            _hoverGrid = hoveredGrid;
 
             if (_dragItem != null) DrawDragGhost(mouse);
 
             string hint = hovered != null
                 ? Describe(hovered)
-                : "Kéo chuột trái: di chuyển · R: xoay khi đang kéo · Chuột phải: chuyển nhanh · Tab/Esc: đóng";
+                : "Kéo chuột trái: di chuyển · R: xoay khi đang kéo · Chuột phải: chuyển nhanh · F: dùng · Tab/Esc: đóng";
             GUI.Label(new Rect(0f, Screen.height - _cell * 1.1f, Screen.width, _cell), hint, _hintStyle);
         }
 
@@ -394,7 +419,20 @@ namespace Bnhon.Game.UI
             return definition.DisplayName + " x" + item.Count
                 + " · " + CategoryName(definition.Category)
                 + " · " + definition.Width + "x" + definition.Height + " ô"
-                + " · giá trị " + definition.BaseValue * item.Count;
+                + " · giá trị " + definition.BaseValue * item.Count
+                + EffectText(definition);
+        }
+
+        private static string EffectText(ItemDefinition definition)
+        {
+            ConsumableDefinition effect = PrototypeContent.FindConsumable(definition.Id);
+            if (effect == null) return string.Empty;
+
+            string text = " · F để dùng:";
+            if (effect.Heal > 0f) text += " +" + effect.Heal + " máu";
+            if (effect.Hunger > 0f) text += " +" + effect.Hunger + " no";
+            if (effect.Thirst > 0f) text += " +" + effect.Thirst + " nước";
+            return text;
         }
 
         private static void Fill(Rect rect, Color color)

@@ -5,6 +5,7 @@ using Bnhon.Core.Inventory;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Raid;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Vitals;
 using Bnhon.Core.Calendar;
 
 namespace Bnhon.Core
@@ -15,6 +16,8 @@ namespace Bnhon.Core
     /// </summary>
     public sealed class GameSession
     {
+        public const float SleepMeal = 30f;
+
         public GameClock Clock { get; }
         public GridInventory Stash { get; }
         public GridInventory Backpack { get; }
@@ -24,6 +27,8 @@ namespace Bnhon.Core
         public RelationshipTracker Relationships { get; }
         public QuestLog Quests { get; }
         public Random Rng { get; }
+        public Stamina Stamina { get; }
+        public Needs Needs { get; }
 
         public RaidSession CurrentRaid { get; private set; }
         public bool RaidedToday { get; private set; }
@@ -40,6 +45,8 @@ namespace Bnhon.Core
             Relationships = new RelationshipTracker(playerGender);
             Quests = new QuestLog();
             Rng = new Random(seed);
+            Stamina = new Stamina();
+            Needs = new Needs();
         }
 
         /// <summary>Starts today's raid. Returns null if one was already started today.</summary>
@@ -61,6 +68,27 @@ namespace Bnhon.Core
             Clock.AdvanceDay();
             Farm.OnNewDay(Clock.Season);
             Relationships.OnNewDay(Clock);
+
+            // A night at the base: water is on hand, and there is a modest meal.
+            Needs.Drink(Needs.Max);
+            Needs.Eat(SleepMeal);
+            Stamina.Refill();
+            return true;
+        }
+
+        /// <summary>
+        /// Uses one unit of a consumable from a stack: removes it and applies hunger and thirst.
+        /// Healing is returned through <paramref name="effect"/>'s Heal for the caller to apply,
+        /// because health lives with the character in the scene.
+        /// </summary>
+        public bool Consume(GridInventory grid, PlacedItem placed, ConsumableDefinition effect)
+        {
+            if (grid == null || placed == null || effect == null) return false;
+            if (effect.ItemId != placed.Item.Id) return false;
+            if (!grid.TakeFromStack(placed, 1)) return false;
+
+            Needs.Eat(effect.Hunger);
+            Needs.Drink(effect.Thirst);
             return true;
         }
     }

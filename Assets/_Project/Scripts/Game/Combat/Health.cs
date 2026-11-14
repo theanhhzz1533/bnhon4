@@ -11,6 +11,9 @@ namespace Bnhon.Game.Combat
         public float Current { get; private set; }
         public bool IsDead => Current <= 0f;
 
+        /// <summary>While true, <see cref="Damage"/> does nothing (dodge roll).</summary>
+        public bool Invulnerable { get; set; }
+
         public event Action<Health> Damaged;
         public event Action<Health> Died;
 
@@ -27,7 +30,7 @@ namespace Bnhon.Game.Combat
 
         public void Damage(float amount)
         {
-            if (IsDead || amount <= 0f) return;
+            if (IsDead || Invulnerable || amount <= 0f) return;
 
             Current = Mathf.Max(0f, Current - amount);
             Damaged?.Invoke(this);
@@ -42,6 +45,7 @@ namespace Bnhon.Game.Combat
 
         public void ResetFull()
         {
+            Invulnerable = false;
             Current = maxHealth;
         }
     }
