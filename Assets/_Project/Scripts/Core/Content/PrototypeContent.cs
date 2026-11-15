@@ -57,12 +57,12 @@ namespace Bnhon.Core.Content
 
         public static readonly IReadOnlyList<ConsumableDefinition> Consumables = new[]
         {
-            new ConsumableDefinition(CannedFood.Id, hunger: 40f, thirst: 5f),
+            new ConsumableDefinition(CannedFood.Id, hunger: 40f, thirst: 5f, useSeconds: 3f),
             new ConsumableDefinition(WaterBottle.Id, thirst: 50f),
             new ConsumableDefinition(SweetPotato.Id, hunger: 25f),
             new ConsumableDefinition(Corn.Id, hunger: 20f, thirst: 5f),
-            new ConsumableDefinition(Bandage.Id, heal: 35f),
-            new ConsumableDefinition(Mugwort.Id, heal: 15f)
+            new ConsumableDefinition(Bandage.Id, heal: 30f, useSeconds: 3.5f),
+            new ConsumableDefinition(Mugwort.Id, heal: 15f, useSeconds: 2.5f)
         };
 
         public static ConsumableDefinition FindConsumable(string itemId)
@@ -99,9 +99,9 @@ namespace Bnhon.Core.Content
             .Add(SweetPotatoSeed, 12, 1, 3);
 
         public static readonly LootTable MedicalCabinet = new LootTable("medical_cabinet")
-            .Add(Bandage, 60, 1, 2)
-            .Add(Cloth, 25, 1, 2)
-            .Add(MugwortSeed, 15, 1, 2);
+            .Add(Bandage, 32)
+            .Add(Cloth, 43, 1, 2)
+            .Add(MugwortSeed, 25, 1, 2);
 
         public static readonly LootTable SeedStore = new LootTable("seed_store")
             .Add(SweetPotatoSeed, 40, 2, 4)
@@ -119,14 +119,15 @@ namespace Bnhon.Core.Content
             .Add(Cloth, 35, 1, 2)
             .Add(ScrapMetal, 25, 1, 2)
             .Add(CannedFood, 15)
-            .Add(PistolAmmo, 15, 2, 5)
-            .Add(Bandage, 10);
+            .Add(PistolAmmo, 15, 2, 4)
+            .Add(Bandage, 4);
 
         public static readonly LootTable RunnerCorpse = new LootTable("corpse_runner")
-            .Add(WaterBottle, 30)
-            .Add(Bandage, 25)
-            .Add(PistolAmmo, 25, 3, 6)
-            .Add(ShotgunShell, 20, 1, 2);
+            .Add(WaterBottle, 28)
+            .Add(Cloth, 30, 1, 2)
+            .Add(Bandage, 8)
+            .Add(PistolAmmo, 20, 2, 5)
+            .Add(ShotgunShell, 14, 1, 2);
 
         public static readonly LootTable ScreamerCorpse = new LootTable("corpse_screamer")
             .Add(TeaTin, 30)

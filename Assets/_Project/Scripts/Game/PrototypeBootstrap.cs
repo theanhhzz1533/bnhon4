@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Bnhon.Core.Pathfinding;
 using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Maps;
@@ -44,6 +46,7 @@ namespace Bnhon.Game
         [SerializeField] private float cameraSize = 7f;
 
         private RaidMap _map;
+        private readonly List<GridPoint> _openCells = new List<GridPoint>();
         private Vector2 _raidSize;
         private Transform _raidRoot;
         private PlayerController _player;
@@ -63,6 +66,8 @@ namespace Bnhon.Game
             var director = new GameObject("RaidDirector").AddComponent<RaidDirector>();
             director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), BuildRaidZone);
             BuildRaidZone();
+
+            new GameObject("RaidPressure").AddComponent<RaidPressure>().Init(SpawnReinforcements);
 
             var hud = new GameObject("DebugHud").AddComponent<DebugHud>();
             hud.Player = _player;
@@ -97,6 +102,18 @@ namespace Bnhon.Game
 
             if (_map == null) _map = RaidMap.Parse(FallbackMap);
             _raidSize = new Vector2(_map.Width, _map.Height);
+
+            // Floor cells with nothing placed on them: where reinforcements may appear.
+            var occupied = new HashSet<int>();
+            foreach (MapMarker marker in _map.Markers) occupied.Add(marker.Y * _map.Width + marker.X);
+            _openCells.Clear();
+            for (int y = 0; y < _map.Height; y++)
+            {
+                for (int x = 0; x < _map.Width; x++)
+                {
+                    if (!_map.IsWall(x, y) && !occupied.Contains(y * _map.Width + x)) _openCells.Add(new GridPoint(x, y));
+                }
+            }
 
             int unreachable = _map.FindUnreachableMarkers().Count;
             if (unreachable > 0)
@@ -345,7 +362,34 @@ namespace Bnhon.Game
             container.AddComponent<LootContainer>().Init(table);
         }
 
-        private void BuildZombie(Vector2 position, ZombieKind kind)
+        /// <summary>
+        /// Adds zombies on open floor far from the player and outside their view, and sends
+        /// them toward where the player is now. Returns how many were placed.
+        /// </summary>
+        private int SpawnReinforcements(int count)
+        {
+            if (_raidRoot == null || _openCells.Count == 0) return 0;
+
+            Vector2 playerPosition = _player.transform.position;
+            VisionSystem vision = VisionSystem.Instance;
+            int placed = 0;
+
+            for (int attempt = 0; attempt < count * 25 && placed < count; attempt++)
+            {
+                GridPoint cell = _openCells[UnityEngine.Random.Range(0, _openCells.Count)];
+                Vector2 position = CellCenter(cell.X, cell.Y);
+                if ((position - playerPosition).sqrMagnitude < 15f * 15f) continue;
+                if (vision != null && vision.IsActive && vision.IsVisible(position)) continue;
+
+                float roll = UnityEngine.Random.value;
+                ZombieKind kind = roll < 0.6f ? ZombieKind.Walker : (roll < 0.9f ? ZombieKind.Runner : ZombieKind.Screamer);
+                BuildZombie(position, kind).Investigate(playerPosition, 45f);
+                placed++;
+            }
+            return placed;
+        }
+
+        private ZombieAI BuildZombie(Vector2 position, ZombieKind kind)
         {
             string spriteKey = "zombie_" + kind.ToString().ToLowerInvariant();
             GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15, spriteKey, SpriteFit.Character);
@@ -360,7 +404,9 @@ namespace Bnhon.Game
             go.AddComponent<YSort>();
             var health = go.AddComponent<Health>();
             Hurtbox.Attach(go, health);
-            go.AddComponent<ZombieAI>().Init(_player.transform, kind);
+            var zombie = go.AddComponent<ZombieAI>();
+            zombie.Init(_player.transform, kind);
+            return zombie;
         }
 
         /// <summary>A solid block that stops movement, bullets and sight.</summary>

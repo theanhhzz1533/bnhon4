@@ -42,10 +42,10 @@ namespace Bnhon.Game.AI
         [SerializeField] private float chaseSpeed = 2.7f;
         [SerializeField] private float sightRange = 6f;
         [SerializeField] private float attackRange = 1f;
-        [SerializeField] private float attackDamage = 15f;
+        [SerializeField] private float attackDamage = 18f;
         [SerializeField] private float attackInterval = 1f;
         [SerializeField] private float loseInterestTime = 4f;
-        [SerializeField] private float investigateTimeout = 8f;
+        [SerializeField] private float investigateTimeout = 14f;
 
         [Header("Crowding")]
         [SerializeField] private float separationRadius = 1.25f;
@@ -82,6 +82,17 @@ namespace Bnhon.Game.AI
         private float _nextRepathTime;
 
         public ZombieKind Kind { get; private set; } = ZombieKind.Walker;
+
+        public static int AliveCount => Active.Count;
+
+        /// <summary>Sends this zombie to look at a place for a while, unless it is already chasing.</summary>
+        public void Investigate(Vector2 point, float seconds)
+        {
+            if (_state == State.Chase) return;
+            _investigatePoint = point;
+            _investigateUntil = UnityEngine.Time.time + seconds;
+            _state = State.Investigate;
+        }
 
         public void Init(Transform target, ZombieKind kind)
         {
@@ -329,14 +340,20 @@ namespace Bnhon.Game.AI
                 : Vector2.zero;
         }
 
+        /// <summary>Half of all corpses are empty; a few carry two items.</summary>
+        private static int RollCorpseItems()
+        {
+            float roll = UnityEngine.Random.value;
+            if (roll < 0.5f) return 0;
+            return roll < 0.87f ? 1 : 2;
+        }
+
         private void OnNoise(Vector2 source, float radius, Vector2 pointOfInterest)
         {
             if (_state == State.Chase) return;
             if (((Vector2)transform.position - source).sqrMagnitude > radius * radius) return;
 
-            _investigatePoint = pointOfInterest;
-            _investigateUntil = UnityEngine.Time.time + investigateTimeout;
-            _state = State.Investigate;
+            Investigate(pointOfInterest, investigateTimeout);
         }
 
         private void OnDamaged(Health health)
@@ -368,7 +385,7 @@ namespace Bnhon.Game.AI
             // Same parent as the zombie, so corpses are cleared with the raid zone.
             GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", SpriteFit.Centered(1.5f, 1.2f));
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
-            corpse.AddComponent<LootContainer>().InitCorpse(table, UnityEngine.Random.Range(0, 3));
+            corpse.AddComponent<LootContainer>().InitCorpse(table, RollCorpseItems());
         }
     }
 }

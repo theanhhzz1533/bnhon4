@@ -36,7 +36,7 @@ namespace Bnhon.Game.UI
             _text.Length = 0;
             _text.Append("Ngày ").Append(session.Clock.Day).Append(", ")
                 .Append(RaidDirector.SeasonName(session.Clock.Season)).Append(", năm ").Append(session.Clock.Year)
-                .Append(session.IsInRaid ? "  [ĐANG RAID]" : "  [CĂN CỨ]").Append('\n');
+                .Append(session.IsInRaid ? "  [ĐANG RAID " + RaidClock() + "]" : "  [CĂN CỨ]").Append('\n');
 
             _text.Append("Máu: ").Append(Mathf.CeilToInt(health.Current)).Append('/').Append(Mathf.CeilToInt(health.Max))
                 .Append("   Thể lực: ").Append(Mathf.CeilToInt(session.Stamina.Current));
@@ -92,12 +92,30 @@ namespace Bnhon.Game.UI
                 GUI.Label(new Rect(0f, centerY - 34f, Screen.width, 30f), "Đang rút lui... " + zone.Remaining.ToString("0.0") + "s", _centered);
             }
 
+            PlayerVitals vitals = PlayerVitals.Instance;
+            if (vitals != null && vitals.IsUsing)
+            {
+                var bar = new Rect(Screen.width * 0.5f - 110f, centerY - 68f, 220f, 10f);
+                GUI.color = new Color(0f, 0f, 0f, 0.7f);
+                GUI.DrawTexture(bar, Texture2D.whiteTexture);
+                GUI.color = new Color(0.95f, 0.85f, 0.4f, 1f);
+                GUI.DrawTexture(new Rect(bar.x, bar.y, bar.width * vitals.UseProgress, bar.height), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+                GUI.Label(new Rect(0f, bar.y - 30f, Screen.width, 28f), "Đang dùng " + vitals.UsingName + "... (bấm chuột để hủy)", _centered);
+            }
+
             if (root.HasMessage)
             {
                 GUI.Label(new Rect(0f, centerY + 34f, Screen.width, 30f), root.Message, _centered);
             }
 
             GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD · Chuột bắn · 1-3 vũ khí · R nạp · Space lăn · Q hồi máu · E · Tab", _style);
+        }
+
+        private static string RaidClock()
+        {
+            int seconds = RaidPressure.Instance != null ? (int)RaidPressure.Instance.RaidSeconds : 0;
+            return (seconds / 60) + ":" + (seconds % 60).ToString("00");
         }
 
         /// <summary>

@@ -8,12 +8,13 @@ namespace Bnhon.Game.AI
     /// Walkability map of the raid zone for enemy pathfinding. A cell is
     /// blocked when an agent standing on its centre would touch a static
     /// obstacle: any non-trigger collider without a Rigidbody2D (walls,
-    /// crates). Rebuilt one frame after <see cref="RequestBuild"/>, so that
+    /// crates). Cells are one map cell wide and line up with the map, so a doorway one cell
+    /// wide is a walkable cell; a finer grid would see it as too narrow. Rebuilt one frame after <see cref="RequestBuild"/>, so that
     /// objects destroyed and created in the same frame are settled.
     /// </summary>
     public sealed class NavGrid : MonoBehaviour
     {
-        [SerializeField] private float cellSize = 0.5f;
+        [SerializeField] private float cellSize = 1f;
         [SerializeField] private float agentSize = 0.86f;
 
         private static readonly Collider2D[] OverlapBuffer = new Collider2D[16];

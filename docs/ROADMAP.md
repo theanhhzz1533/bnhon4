@@ -36,7 +36,9 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Đói và khát trong raid; ăn uống và băng bó từ balo
 - [x] Xác zombie lục được, đồ rơi theo loại zombie
 - [x] Âm thanh tạm: 17 hiệu ứng sinh bằng code, thay được bằng file trong `Resources/Audio`
-- [ ] Playtest nội bộ, ghi lại thời lượng một chuyến và tỉ lệ chết
+- [x] Playtest lần 1: chuyến đi dưới 5 phút, dọn sạch được bản đồ, hồi máu quá dễ, zombie kẹt ở cửa
+- [x] Sau playtest 1: sửa tìm đường qua cửa, zombie tăng viện theo thời gian, dùng vật phẩm mất thời gian, giảm đồ hồi máu, lục đồ chậm hơn
+- [ ] Playtest lần 2: kiểm tra lại thời lượng và độ khó
 
 ## M2 - Vertical slice
 

@@ -49,8 +49,12 @@ namespace Bnhon.Core.Vitals
         public float Hunger { get; }
         public float Thirst { get; }
 
-        public ConsumableDefinition(string itemId, float heal = 0f, float hunger = 0f, float thirst = 0f)
+        /// <summary>How long the player is busy using it. They cannot attack meanwhile, and being hit interrupts it.</summary>
+        public float UseSeconds { get; }
+
+        public ConsumableDefinition(string itemId, float heal = 0f, float hunger = 0f, float thirst = 0f, float useSeconds = 2f)
         {
+            UseSeconds = useSeconds;
             ItemId = itemId;
             Heal = heal;
             Hunger = hunger;

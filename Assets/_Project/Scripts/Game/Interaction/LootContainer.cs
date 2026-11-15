@@ -23,8 +23,8 @@ namespace Bnhon.Game.Interaction
         [SerializeField] private int rolls = 3;
         [SerializeField] private int gridWidth = 5;
         [SerializeField] private int gridHeight = 4;
-        [SerializeField] private float baseRevealSeconds = 0.6f;
-        [SerializeField] private float extraSecondsPerRarity = 0.4f;
+        [SerializeField] private float baseRevealSeconds = 1.1f;
+        [SerializeField] private float extraSecondsPerRarity = 0.6f;
 
         private LootTable _table;
         private string _title = "Thùng đồ";

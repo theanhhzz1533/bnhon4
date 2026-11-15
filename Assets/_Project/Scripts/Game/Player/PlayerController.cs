@@ -17,6 +17,7 @@ namespace Bnhon.Game.Player
     {
         [SerializeField] private float walkSpeed = 4f;
         [SerializeField] private float sprintSpeed = 6.5f;
+        [SerializeField] private float usingItemSpeedFactor = 0.45f;
         [SerializeField] private float sprintStaminaPerSecond = 16f;
         [SerializeField] private float interactRadius = 1.3f;
         [SerializeField] private float sprintNoiseRadius = 5.5f;
@@ -40,6 +41,7 @@ namespace Bnhon.Game.Player
         private float _rollUntil;
         private float _nextRollTime;
         private float _stepTimer;
+        private bool _slowed;
 
         public Vector2 AimDirection { get; private set; } = Vector2.right;
         public IInteractable Focused { get; private set; }
@@ -73,6 +75,7 @@ namespace Bnhon.Game.Player
             {
                 _move = Vector2.zero;
                 _sprinting = false;
+                _slowed = false;
                 return;
             }
 
@@ -93,7 +96,17 @@ namespace Bnhon.Game.Player
             }
 
             bool moving = _move.sqrMagnitude > 0.01f;
+            bool busy = _vitals != null && _vitals.IsUsing;
+            // A click or a roll abandons the bandage or meal in progress, so the player can react.
+            if (busy && (mouse.leftButton.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame))
+            {
+                _vitals.CancelUse("Hủy");
+                busy = false;
+            }
+            _slowed = busy;
+
             _sprinting = moving
+                && !busy
                 && keyboard.leftShiftKey.isPressed
                 && stamina.Drain(sprintStaminaPerSecond * UnityEngine.Time.deltaTime);
 
@@ -124,7 +137,7 @@ namespace Bnhon.Game.Player
                 return;
             }
 
-            if (_weapons != null)
+            if (_weapons != null && !busy)
             {
                 if (keyboard.digit1Key.wasPressedThisFrame) _weapons.Select(0);
                 if (keyboard.digit2Key.wasPressedThisFrame) _weapons.Select(1);
@@ -147,7 +160,9 @@ namespace Bnhon.Game.Player
                 _body.linearVelocity = _rollDirection * rollSpeed;
                 return;
             }
-            _body.linearVelocity = _move * (_sprinting ? sprintSpeed : walkSpeed);
+            float speed = _sprinting ? sprintSpeed : walkSpeed;
+            if (_slowed) speed *= usingItemSpeedFactor;
+            _body.linearVelocity = _move * speed;
         }
 
         public void Teleport(Vector2 position)
