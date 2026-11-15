@@ -1,4 +1,5 @@
 using System;
+using Bnhon.Core.Combat;
 using Bnhon.Core.Economy;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Inventory;
@@ -28,6 +29,7 @@ namespace Bnhon.Core
         public QuestLog Quests { get; }
         public Random Rng { get; }
         public Stamina Stamina { get; }
+        public Loadout Loadout { get; }
         public Needs Needs { get; }
 
         public RaidSession CurrentRaid { get; private set; }
@@ -46,6 +48,7 @@ namespace Bnhon.Core
             Quests = new QuestLog();
             Rng = new Random(seed);
             Stamina = new Stamina();
+            Loadout = new Loadout();
             Needs = new Needs();
         }
 
@@ -54,7 +57,7 @@ namespace Bnhon.Core
         {
             if (RaidedToday || IsInRaid) return null;
             RaidedToday = true;
-            CurrentRaid = new RaidSession(Backpack, SecurePouch);
+            CurrentRaid = new RaidSession(Backpack, SecurePouch, Loadout);
             return CurrentRaid;
         }
 

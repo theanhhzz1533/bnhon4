@@ -29,7 +29,7 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Vũ khí: cận chiến và shotgun, đổi vũ khí bằng phím 1-3, độ tản đạn
 - [x] Độ giật khi bắn: đạn tản rộng dần, tâm ngắm mở ra, camera giật
 - [x] Chạy và lăn gây tiếng động thu hút zombie ở gần; đi bộ thì im lặng
-- [ ] Vũ khí là vật phẩm trong balo thay vì có sẵn
+- [x] Vũ khí là vật phẩm: hai ô trang bị, loot được trong hòm vũ khí, mất khi chết
 - [x] Lăn né và thể lực
 - [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
 - [x] Zombie tìm đường quanh tường (A* trên lưới), đi tới vị trí cuối cùng nhìn thấy người chơi
@@ -38,7 +38,7 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Âm thanh tạm: 17 hiệu ứng sinh bằng code, thay được bằng file trong `Resources/Audio`
 - [x] Playtest lần 1: chuyến đi dưới 5 phút, dọn sạch được bản đồ, hồi máu quá dễ, zombie kẹt ở cửa
 - [x] Sau playtest 1: sửa tìm đường qua cửa, zombie tăng viện theo thời gian, dùng vật phẩm mất thời gian, giảm đồ hồi máu, lục đồ chậm hơn
-- [ ] Playtest lần 2: kiểm tra lại thời lượng và độ khó
+- [x] Playtest lần 2 trên bản đồ lớn: một chuyến khoảng 10 phút, có căng thẳng
 
 ## M2 - Vertical slice
 

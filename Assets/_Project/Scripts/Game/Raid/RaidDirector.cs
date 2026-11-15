@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
 using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
@@ -114,7 +115,9 @@ namespace Bnhon.Game.Raid
             Sfx.PlayUi(SoundId.PlayerDeath);
             _playerHealth.ResetFull();
             MovePlayer(_baseSpawn);
-            root.Notify("Bạn đã gục ngã và mất " + lostCount + " món trong balo. Túi an toàn vẫn còn.", 6f);
+            string message = "Bạn đã gục ngã, mất " + lostCount + " món trong balo và vũ khí đang mang. Túi an toàn vẫn còn.";
+            if (PrototypeContent.GrantFallbackWeapon(session)) message += " Minh để lại trong kho một khẩu súng ngắn cũ.";
+            root.Notify(message, 8f);
         }
 
         private void MovePlayer(Vector2 position)

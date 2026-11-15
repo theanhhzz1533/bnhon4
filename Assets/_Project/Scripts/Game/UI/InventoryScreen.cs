@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Bnhon.Core.Combat;
 using Bnhon.Core.Content;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Items;
 using Bnhon.Core.Vitals;
+using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,6 +30,7 @@ namespace Bnhon.Game.UI
         private const int BackpackColumnCells = 6;
 
         private readonly List<Panel> _panels = new List<Panel>();
+        private readonly Rect[] _weaponSlots = new Rect[Loadout.SlotCount];
         private GridInventory _other;
         private string _otherTitle;
         private IItemConcealer _concealer;
@@ -123,9 +126,17 @@ namespace Bnhon.Game.UI
 
             if (_dragItem == null && _hoverItem != null && keyboard.fKey.wasPressedThisFrame)
             {
-                if (PlayerVitals.Instance != null && _hoverGrid.Contains(_hoverItem))
+                if (_hoverGrid.Contains(_hoverItem))
                 {
-                    PlayerVitals.Instance.UseItem(_hoverGrid, _hoverItem);
+                    // F on a weapon equips it; on anything else it uses it.
+                    if (_hoverItem.Item.Category == ItemCategory.Weapon)
+                    {
+                        if (Player != null && Player.Weapons != null) Player.Weapons.EquipFrom(_hoverGrid, _hoverItem);
+                    }
+                    else if (PlayerVitals.Instance != null)
+                    {
+                        PlayerVitals.Instance.UseItem(_hoverGrid, _hoverItem);
+                    }
                 }
                 _hoverItem = null;
                 _hoverGrid = null;
@@ -183,11 +194,15 @@ namespace Bnhon.Game.UI
             _hoverItem = hovered;
             _hoverGrid = hoveredGrid;
 
+            DrawWeaponSlots(mouse);
             if (_dragItem != null) DrawDragGhost(mouse);
 
+            int hoverSlot = _dragItem == null ? WeaponSlotAt(mouse) : -1;
             string hint = hovered != null
                 ? Describe(hovered)
-                : "Kéo chuột trái: di chuyển · R: xoay khi đang kéo · Chuột phải: chuyển nhanh · F: dùng · Tab/Esc: đóng";
+                : hoverSlot >= 0
+                ? "Ô vũ khí " + (hoverSlot + 2) + ": kéo một khẩu súng vào đây để trang bị · bấm vào súng đang trang bị để cất về balo"
+                : "Kéo chuột trái: di chuyển · R: xoay khi đang kéo · Chuột phải: chuyển nhanh · F: dùng/trang bị · Tab/Esc: đóng";
             GUI.Label(new Rect(0f, Screen.height - _cell * 1.1f, Screen.width, _cell), hint, _hintStyle);
         }
 
@@ -219,11 +234,62 @@ namespace Bnhon.Game.UI
             AddPanel(session.Backpack, "Balo", x0, backpackY);
 
             float pouchY = backpackY + session.Backpack.Height * _cell + _cell * 0.9f;
-            AddPanel(session.SecurePouch, "Túi an toàn (không mất khi chết)", x0, pouchY);
+            AddPanel(session.SecurePouch, "Túi an toàn", x0, pouchY);
 
             if (_other != null)
             {
                 AddPanel(_other, _otherTitle, x0 + (BackpackColumnCells + 1) * _cell, backpackY);
+            }
+
+            // Two firearm slots, stacked to the right of the secure pouch.
+            float slotX = x0 + (session.SecurePouch.Width + 0.5f) * _cell;
+            float slotWidth = (BackpackColumnCells - session.SecurePouch.Width - 0.5f) * _cell;
+            for (int i = 0; i < _weaponSlots.Length; i++)
+            {
+                _weaponSlots[i] = new Rect(slotX, pouchY + i * _cell, slotWidth, _cell - 2f);
+            }
+        }
+
+        private int WeaponSlotAt(Vector2 mouse)
+        {
+            for (int i = 0; i < _weaponSlots.Length; i++)
+            {
+                if (_weaponSlots[i].Contains(mouse)) return i;
+            }
+            return -1;
+        }
+
+        private void DrawWeaponSlots(Vector2 mouse)
+        {
+            var session = GameRoot.Instance.Session;
+            PlayerWeapons weapons = Player != null ? Player.Weapons : null;
+            bool draggingWeapon = _dragItem != null && _dragItem.Item.Category == ItemCategory.Weapon;
+
+            Rect first = _weaponSlots[0];
+            GUI.Label(new Rect(first.x, first.y - _cell * 0.8f, first.width, _cell * 0.8f), "Vũ khí (mất khi chết)", _titleStyle);
+
+            for (int i = 0; i < _weaponSlots.Length; i++)
+            {
+                Rect rect = _weaponSlots[i];
+                ItemDefinition weapon = session.Loadout.GetWeapon(i);
+                bool hot = rect.Contains(mouse);
+
+                Color frame = draggingWeapon && hot ? new Color(0.3f, 0.9f, 0.4f, 1f) : new Color(0.05f, 0.05f, 0.06f, 0.95f);
+                Fill(new Rect(rect.x - 2f, rect.y - 2f, rect.width + 4f, rect.height + 4f), frame);
+                Fill(rect, weapon != null ? CategoryColor(ItemCategory.Weapon) : new Color(0.2f, 0.21f, 0.23f, 1f));
+
+                string label = (i + 2) + ": ";
+                if (weapon == null)
+                {
+                    label += "(trống)";
+                }
+                else
+                {
+                    WeaponDefinition definition = weapons != null ? weapons.DefinitionFor(weapon) : null;
+                    label += weapon.DisplayName;
+                    if (definition != null) label += "  " + session.Loadout.GetLoaded(i) + "/" + definition.MagazineSize;
+                }
+                GUI.Label(new Rect(rect.x + 6f, rect.y, rect.width - 8f, rect.height), label, _titleStyle);
             }
         }
 
@@ -243,6 +309,15 @@ namespace Bnhon.Game.UI
             if (_dragItem != null)
             {
                 Drop(mouse);
+                current.Use();
+                return;
+            }
+
+            int slot = WeaponSlotAt(mouse);
+            if (slot >= 0)
+            {
+                // Clicking an equipped weapon puts it back in the backpack.
+                if (current.button == 0 && Player != null && Player.Weapons != null) Player.Weapons.Unequip(slot);
                 current.Use();
                 return;
             }
@@ -284,6 +359,17 @@ namespace Bnhon.Game.UI
 
         private void Drop(Vector2 mouse)
         {
+            int slot = WeaponSlotAt(mouse);
+            if (slot >= 0)
+            {
+                if (_dragItem.Item.Category == ItemCategory.Weapon && Player != null && Player.Weapons != null)
+                {
+                    Player.Weapons.EquipFrom(_dragSource, _dragItem, slot);
+                }
+                CancelDrag();
+                return;
+            }
+
             foreach (Panel panel in _panels)
             {
                 if (!TryGetCell(panel, mouse, out int cx, out int cy)) continue;
@@ -425,6 +511,8 @@ namespace Bnhon.Game.UI
 
         private static string EffectText(ItemDefinition definition)
         {
+            if (definition.Category == ItemCategory.Weapon) return " · F để trang bị (hoặc kéo vào ô vũ khí)";
+
             ConsumableDefinition effect = PrototypeContent.FindConsumable(definition.Id);
             if (effect == null) return string.Empty;
 

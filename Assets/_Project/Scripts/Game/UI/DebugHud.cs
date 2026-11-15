@@ -1,4 +1,5 @@
 using System.Text;
+using Bnhon.Core.Combat;
 using Bnhon.Core.Quests;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
@@ -57,6 +58,14 @@ namespace Bnhon.Game.UI
                     _text.Append("  ").Append(weapons.AmmoInMagazine).Append('/').Append(weapon.MagazineSize)
                         .Append("  (dự trữ ").Append(session.Backpack.CountOf(weapon.AmmoItemId)).Append(')');
                     if (weapons.IsReloading) _text.Append("  đang nạp");
+                }
+                _text.Append('\n');
+
+                _text.Append("    1 Dao");
+                for (int slot = 0; slot < Loadout.SlotCount; slot++)
+                {
+                    var equipped = session.Loadout.GetWeapon(slot);
+                    _text.Append(" · ").Append(slot + 2).Append(' ').Append(equipped != null ? equipped.DisplayName : "(trống)");
                 }
                 _text.Append('\n');
             }

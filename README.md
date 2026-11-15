@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 53 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 61 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -37,11 +37,11 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 | Shift | Chạy (tốn thể lực) |
 | Space | Lăn né theo hướng đang đi, không bị thương khi đang lăn (tốn 25 thể lực) |
 | Chuột | Ngắm, chuột trái tấn công |
-| 1 / 2 / 3 | Dao (im lặng, tốn thể lực) / súng ngắn / shotgun (rất ồn) |
+| 1 / 2 / 3 | Dao (luôn có, im lặng, tốn thể lực) / hai ô súng đang trang bị |
 | R | Nạp đạn từ balo; xoay vật phẩm khi đang kéo trong balo |
 | Q | Dùng nhanh một món hồi máu trong balo |
 | E | Tương tác: lục đồ, mở kho, cuốc, gieo, tưới, thu hoạch, nói chuyện, ngủ, ra cổng |
-| Tab | Mở hoặc đóng balo. Kéo chuột trái để xếp đồ, chuột phải để chuyển nhanh, F để dùng món đang rê chuột, Esc để đóng |
+| Tab | Mở hoặc đóng balo. Kéo chuột trái để xếp đồ, chuột phải để chuyển nhanh, F để dùng hoặc trang bị món đang rê chuột, Esc để đóng. Kéo súng vào ô vũ khí để trang bị, bấm vào súng đang trang bị để cất về balo |
 
 Đói và khát chỉ giảm khi đang raid; về 0 thì mất máu dần và thể lực hồi chậm. Ngủ hồi đầy nước và một phần no.
 

@@ -28,6 +28,11 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition ShotgunShell = new ItemDefinition("shotgun_shell", "Đạn shotgun", ItemCategory.Ammo, ItemRarity.Uncommon, 1, 1, 12, 5);
         public static readonly ItemDefinition WaterBottle = new ItemDefinition("water_bottle", "Chai nước", ItemCategory.Food, ItemRarity.Common, 1, 2, 1, 10);
 
+        // Weapons. Their combat stats live with the game layer, keyed by these ids.
+        public static readonly ItemDefinition Pistol = new ItemDefinition("pistol", "Súng ngắn", ItemCategory.Weapon, ItemRarity.Uncommon, 2, 1, 1, 120);
+        public static readonly ItemDefinition Shotgun = new ItemDefinition("shotgun", "Shotgun", ItemCategory.Weapon, ItemRarity.Rare, 3, 1, 1, 260);
+        public const int PistolMagazine = 8;
+
         // Seeds and produce
         public static readonly ItemDefinition SweetPotatoSeed = new ItemDefinition("seed_sweet_potato", "Dây khoai lang", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 4);
         public static readonly ItemDefinition CornSeed = new ItemDefinition("seed_corn", "Hạt ngô", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 6);
@@ -42,7 +47,7 @@ namespace Bnhon.Core.Content
 
         public static readonly IReadOnlyList<ItemDefinition> Items = new[]
         {
-            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle,
+            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun,
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette
         };
 
@@ -111,6 +116,8 @@ namespace Bnhon.Core.Content
         public static readonly LootTable WeaponCrate = new LootTable("weapon_crate")
             .Add(PistolAmmo, 60, 6, 14)
             .Add(ShotgunShell, 35, 2, 5)
+            .Add(Pistol, 9)
+            .Add(Shotgun, 6)
             .Add(ScrapMetal, 25, 2, 4)
             .Add(CircuitBoard, 15);
 
@@ -172,6 +179,7 @@ namespace Bnhon.Core.Content
             foreach (var npc in CreateNpcs()) session.Relationships.Register(npc);
             foreach (var quest in CreateQuests()) session.Quests.Add(quest);
 
+            session.Loadout.Set(0, Pistol, PistolMagazine);
             session.Wallet.Add(50);
             session.Stash.Add(SweetPotatoSeed, 4);
             session.Backpack.Add(PistolAmmo, 16);
@@ -180,6 +188,27 @@ namespace Bnhon.Core.Content
             session.Backpack.Add(CannedFood, 1);
             session.Backpack.Add(WaterBottle, 1);
             return session;
+        }
+
+        /// <summary>
+        /// Keeps a death from leaving the player with only a knife forever: if they own no
+        /// firearm anywhere, an old pistol and one magazine of ammo appear in the stash.
+        /// Returns true if it granted one.
+        /// </summary>
+        public static bool GrantFallbackWeapon(GameSession session)
+        {
+            if (session.Loadout.HasAny) return false;
+            foreach (var grid in new[] { session.Backpack, session.Stash, session.SecurePouch })
+            {
+                foreach (var placed in grid.Items)
+                {
+                    if (placed.Item.Category == ItemCategory.Weapon) return false;
+                }
+            }
+
+            if (session.Stash.Add(Pistol, 1) != 0) return false;
+            session.Stash.Add(PistolAmmo, PistolMagazine);
+            return true;
         }
     }
 }
