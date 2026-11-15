@@ -27,7 +27,9 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] UI inventory dạng lưới: kéo thả, xoay vật phẩm, chuyển giữa balo, thùng và kho
 - [x] Túi an toàn có UI riêng
 - [x] Vũ khí: cận chiến và shotgun, đổi vũ khí bằng phím 1-3, độ tản đạn
-- [ ] Độ giật khi bắn; vũ khí là vật phẩm trong balo thay vì có sẵn
+- [x] Độ giật khi bắn: đạn tản rộng dần, tâm ngắm mở ra, camera giật
+- [x] Chạy và lăn gây tiếng động thu hút zombie ở gần; đi bộ thì im lặng
+- [ ] Vũ khí là vật phẩm trong balo thay vì có sẵn
 - [x] Lăn né và thể lực
 - [x] Zombie: thêm loại chạy nhanh và loại gào gọi bầy
 - [x] Zombie tìm đường quanh tường (A* trên lưới), đi tới vị trí cuối cùng nhìn thấy người chơi

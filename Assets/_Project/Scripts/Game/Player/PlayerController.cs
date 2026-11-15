@@ -19,6 +19,8 @@ namespace Bnhon.Game.Player
         [SerializeField] private float sprintSpeed = 6.5f;
         [SerializeField] private float sprintStaminaPerSecond = 16f;
         [SerializeField] private float interactRadius = 1.3f;
+        [SerializeField] private float sprintNoiseRadius = 5.5f;
+        [SerializeField] private float rollNoiseRadius = 4f;
         [SerializeField] private Transform aimPivot;
 
         [Header("Dodge roll")]
@@ -106,6 +108,8 @@ namespace Bnhon.Game.Player
                 {
                     _stepTimer = _sprinting ? 0.26f : 0.38f;
                     Sfx.PlayUi(SoundId.Footstep, _sprinting ? 0.45f : 0.28f);
+                    // Running is loud enough for nearby zombies to come looking. Walking is silent.
+                    if (_sprinting) Noise.Emit(transform.position, sprintNoiseRadius);
                 }
             }
 
@@ -116,6 +120,7 @@ namespace Bnhon.Game.Player
                 _nextRollTime = _rollUntil + rollCooldown;
                 if (_health != null) _health.Invulnerable = true;
                 Sfx.PlayUi(SoundId.Roll, 0.7f);
+                Noise.Emit(transform.position, rollNoiseRadius);
                 return;
             }
 

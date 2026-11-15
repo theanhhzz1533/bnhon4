@@ -32,6 +32,14 @@ namespace Bnhon.Game.Combat
         public float SpreadDegrees;
         public string AmmoItemId;
 
+        /// <summary>Degrees of extra spread added by each shot, the most it can build up to, and how fast it fades per second.</summary>
+        public float RecoilPerShot;
+        public float MaxRecoil;
+        public float RecoilRecovery = 18f;
+
+        /// <summary>How far the camera is knocked back by a shot, in world units.</summary>
+        public float CameraKick;
+
         // Melee only
         public float ArcDegrees;
         public float StaminaCost;

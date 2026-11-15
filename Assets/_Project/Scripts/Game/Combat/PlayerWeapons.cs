@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Bnhon.Core.Combat;
 using Bnhon.Core.Content;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Vitals;
@@ -24,6 +25,13 @@ namespace Bnhon.Game.Combat
         private int _current = 1;
         private float _nextUseTime;
         private Health _ownHealth;
+        private readonly SpreadBloom _bloom = new SpreadBloom();
+
+        /// <summary>Raised with the aim direction and strength of each shot, for camera kick.</summary>
+        public event Action<Vector2, float> Fired;
+
+        /// <summary>Total cone of fire right now, in degrees: the weapon's own spread plus recoil. 0 for melee.</summary>
+        public float CurrentSpread => Current.Kind == WeaponKind.Firearm ? Current.SpreadDegrees + _bloom.Degrees : 0f;
 
         public WeaponDefinition Current => _weapons[_current];
         public int CurrentSlot => _current + 1;
@@ -45,18 +53,25 @@ namespace Bnhon.Game.Combat
                 {
                     Name = "Súng ngắn", Sound = SoundId.PistolShot, Kind = WeaponKind.Firearm, Damage = 34f, Range = 12f, Interval = 0.25f,
                     NoiseRadius = 10f, MagazineSize = 8, ReloadTime = 1.2f, Pellets = 1, SpreadDegrees = 2f,
-                    AmmoItemId = PrototypeContent.PistolAmmo.Id
+                    AmmoItemId = PrototypeContent.PistolAmmo.Id,
+                    RecoilPerShot = 3.5f, MaxRecoil = 14f, RecoilRecovery = 20f, CameraKick = 0.12f
                 },
                 new WeaponDefinition
                 {
                     Name = "Shotgun", Sound = SoundId.ShotgunShot, Kind = WeaponKind.Firearm, Damage = 18f, Range = 7f, Interval = 0.9f,
                     NoiseRadius = 17f, MagazineSize = 2, ReloadTime = 1.8f, Pellets = 7, SpreadDegrees = 24f,
-                    AmmoItemId = PrototypeContent.ShotgunShell.Id
+                    AmmoItemId = PrototypeContent.ShotgunShell.Id,
+                    RecoilPerShot = 7f, MaxRecoil = 12f, RecoilRecovery = 14f, CameraKick = 0.38f
                 }
             };
 
             _ammo = new int[_weapons.Length];
             for (int i = 0; i < _weapons.Length; i++) _ammo[i] = _weapons[i].MagazineSize;
+        }
+
+        private void Update()
+        {
+            _bloom.Tick(UnityEngine.Time.deltaTime, Current.RecoilRecovery);
         }
 
         /// <summary>Switches to a weapon slot (0-based). Interrupts a reload in progress.</summary>
@@ -93,11 +108,14 @@ namespace Bnhon.Game.Combat
                     return false;
                 }
                 _ammo[_current]--;
+                float spread = weapon.SpreadDegrees + _bloom.Degrees;
                 for (int i = 0; i < weapon.Pellets; i++)
                 {
-                    float offset = UnityEngine.Random.Range(-weapon.SpreadDegrees * 0.5f, weapon.SpreadDegrees * 0.5f);
+                    float offset = UnityEngine.Random.Range(-spread * 0.5f, spread * 0.5f);
                     FireRay(weapon, origin, Rotate(direction, offset));
                 }
+                _bloom.Kick(weapon.RecoilPerShot, weapon.MaxRecoil);
+                Fired?.Invoke(direction, weapon.CameraKick);
             }
 
             _nextUseTime = UnityEngine.Time.time + weapon.Interval;

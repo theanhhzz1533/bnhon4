@@ -4,6 +4,7 @@ using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
 using Bnhon.Game.Raid;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Bnhon.Game.UI
 {
@@ -77,6 +78,8 @@ namespace Bnhon.Game.UI
             // The inventory screen covers the middle of the view and has its own hint line.
             if (InventoryScreen.Instance != null && InventoryScreen.Instance.IsOpen) return;
 
+            DrawCrosshair(weapons);
+
             float centerY = Screen.height - 120f;
             if (Player.Focused != null)
             {
@@ -95,6 +98,35 @@ namespace Bnhon.Game.UI
             }
 
             GUI.Label(new Rect(Screen.width - 432f, 10f, 420f, 24f), "WASD · Chuột bắn · 1-3 vũ khí · R nạp · Space lăn · Q hồi máu · E · Tab", _style);
+        }
+
+        /// <summary>
+        /// Four ticks around the mouse pointer. The gap between them is how wide the shots can
+        /// land at that distance, so it opens with recoil and closes as the aim settles.
+        /// </summary>
+        private void DrawCrosshair(PlayerWeapons weapons)
+        {
+            Mouse mouse = Mouse.current;
+            Camera cam = Camera.main;
+            if (weapons == null || mouse == null || cam == null || weapons.Current.Kind != WeaponKind.Firearm) return;
+
+            Vector2 pointer = mouse.position.ReadValue();
+            Vector3 origin = cam.WorldToScreenPoint(Player.transform.position);
+            float distance = new Vector2(pointer.x - origin.x, pointer.y - origin.y).magnitude;
+            float radius = Mathf.Max(5f, distance * Mathf.Tan(weapons.CurrentSpread * 0.5f * Mathf.Deg2Rad));
+
+            // GUI space has its origin at the top left; screen space at the bottom left.
+            float x = pointer.x;
+            float y = Screen.height - pointer.y;
+            const float length = 7f;
+            const float thickness = 2f;
+
+            GUI.color = new Color(1f, 1f, 1f, 0.9f);
+            GUI.DrawTexture(new Rect(x - radius - length, y - thickness * 0.5f, length, thickness), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(x + radius, y - thickness * 0.5f, length, thickness), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(x - thickness * 0.5f, y - radius - length, thickness, length), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(x - thickness * 0.5f, y + radius, thickness, length), Texture2D.whiteTexture);
+            GUI.color = Color.white;
         }
     }
 }
