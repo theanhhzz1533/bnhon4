@@ -82,6 +82,7 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 | `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |
 | `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |
 | `bed.png`, `stash.png`, `gate.png`, `workbench.png`, `shop.png` | Đồ trong căn cứ | Co vừa khung, giữ tỉ lệ |
+| `item_<id>.png` (ví dụ `item_pistol.png`, `item_bandage.png`) | Icon vật phẩm trong balo, kho, hòm | Co vừa các ô của vật phẩm; chưa có hình thì hiện tên |
 
 Ảnh trong thư mục này được Unity tự đặt thành sprite pixel art (lọc Point, không nén) nhờ `Assets/_Project/Scripts/Editor/SpriteImportSettings.cs`, nên không cần chỉnh Inspector. Ảnh được co giãn theo kích thước vật thể nên độ phân giải nào cũng chạy, nhưng nên giữ mật độ điểm ảnh đồng đều giữa các món. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.
 

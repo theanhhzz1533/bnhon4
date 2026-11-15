@@ -40,6 +40,8 @@ CANDIDATES = os.path.join(REPO, "Tools", "ComfyUI", "candidates")
 STYLE = ("pixel art, top-down 3/4 view, post-apocalyptic Vietnamese small town, muted palette, "
          "simple, flat colors, clean outlines")
 OBJECT_STYLE = STYLE + ", single object centered, plain white background, game asset"
+ITEM_STYLE = ("pixel art, game inventory icon, single item centered, muted palette, clean outlines, "
+              "simple, flat colors, plain white background")
 TILE_STYLE = STYLE + ", seamless tileable texture, top-down, flat, no objects, fills the whole image"
 NEGATIVE = ("photo, photorealistic, realistic, 3d render, blurry, gradient, depth of field, soft shading, "
             "text, watermark, signature, side view, multiple objects, frame, border")
@@ -67,6 +69,48 @@ ASSETS = [
     ("workbench", "sturdy wooden workbench with a vise, tools and scrap metal on top", False),
     ("shop", "small market stall with a tarp roof, crates and canned goods on the counter", False),
 ]
+
+# Inventory icons: item id -> (subject, slot shape, backdrop).
+# The slot shape matches the item's size in the grid, so the icon fills its cells.
+# White items get a dark backdrop, otherwise background removal would erase them.
+DARK = "plain solid dark blue background"
+ITEMS = [
+    ("wood", "bundle of wooden planks tied with rope, upright", "tall", None),
+    ("scrap_metal", "pile of rusty scrap metal pieces and bolts", None, None),
+    ("cloth", "folded piece of grey-brown cloth fabric", None, DARK),
+    ("circuit_board", "green electronic circuit board", None, None),
+    ("canned_food", "tin can of food with a paper label", None, None),
+    ("bandage", "roll of white medical gauze bandage", None, DARK),
+    ("med_kit", "red first aid kit bag with a white cross, upright", "tall", None),
+    ("water_bottle", "clear plastic water bottle with a blue cap, upright", "tall", DARK),
+    ("pistol_ammo", "small cardboard box of pistol ammunition with brass bullets beside it", None, None),
+    ("shotgun_shell", "three red shotgun shells standing together", None, None),
+    ("pistol", "black semi-automatic pistol, side view, pointing right", "wide", None),
+    ("shotgun", "pump-action shotgun with a wooden stock, side view, horizontal, pointing right", "wide", None),
+    ("bp_pistol", "rolled blue blueprint paper showing a technical drawing of a pistol", None, None),
+    ("bp_shotgun", "rolled blue blueprint paper showing a technical drawing of a shotgun", None, None),
+    ("bp_med_kit", "rolled blue blueprint paper showing a technical drawing of a first aid kit", None, None),
+    ("seed_sweet_potato", "small burlap seed bag with a purple sweet potato drawn on it", None, None),
+    ("seed_corn", "small burlap seed bag with a yellow corn cob drawn on it", None, None),
+    ("seed_mugwort", "small burlap seed bag with a green herb leaf drawn on it", None, None),
+    ("sweet_potato", "purple-skinned sweet potato", None, None),
+    ("corn", "ear of yellow corn with green husk", None, None),
+    ("mugwort", "bunch of green mugwort herb leaves tied together", None, None),
+    ("tea_tin", "small decorated metal tea tin", None, None),
+    ("old_cassette", "old audio cassette tape", None, None),
+]
+
+
+def all_jobs():
+    """Every sprite as (file key, positive prompt, negative prompt, is_tile, orient)."""
+    jobs = []
+    for key, subject, is_tile in ASSETS:
+        style = TILE_STYLE if is_tile else OBJECT_STYLE
+        jobs.append((key, subject + ", " + style, TILE_NEGATIVE if is_tile else NEGATIVE, is_tile, None))
+    for item_id, subject, orient, backdrop in ITEMS:
+        style = ITEM_STYLE if backdrop is None else ITEM_STYLE.replace("plain white background", backdrop)
+        jobs.append(("item_" + item_id, subject + ", " + style, NEGATIVE, False, orient))
+    return jobs
 
 
 class ComfyError(Exception):
@@ -196,7 +240,7 @@ def score(sprite, is_tile):
 
 def contact_sheet(rows, path):
     """One row per sprite: its candidates on the raid floor colour, the chosen one outlined."""
-    cell, label_width = 136, 150
+    cell, label_width = 136, 190
     columns = max(len(candidates) for _, candidates, _ in rows)
     sheet = Image.new("RGBA", (label_width + columns * cell, len(rows) * cell), (64, 66, 71, 255))
     draw = ImageDraw.Draw(sheet)
@@ -251,7 +295,8 @@ def main():
 
     os.makedirs(SPRITES, exist_ok=True)
     os.makedirs(CANDIDATES, exist_ok=True)
-    known = [key for key, _, _ in ASSETS]
+    jobs = all_jobs()
+    known = [job[0] for job in jobs]
 
     try:
         if args.pick:
@@ -264,16 +309,16 @@ def main():
                 raise ComfyError("Khong co sprite ten '%s'. Cac ten hop le: %s" % (key, ", ".join(known)))
 
         todo = []
-        for key, subject, is_tile in ASSETS:
+        for key, positive, negative, is_tile, orient in jobs:
             exists = os.path.exists(os.path.join(SPRITES, key + ".png"))
             if args.list:
-                print("%-16s %s" % (key, "co roi" if exists else "THIEU"))
+                print("%-24s %s" % (key, "co roi" if exists else "THIEU"))
                 continue
             if args.only and key not in args.only and key not in (args.redo or []):
                 continue
             if exists and key not in (args.redo or []):
                 continue
-            todo.append((key, subject, is_tile))
+            todo.append((key, positive, negative, is_tile, orient))
         if args.list:
             return 0
         if not todo:
@@ -284,14 +329,12 @@ def main():
         checkpoint = choose(options_of(server, "CheckpointLoaderSimple", "ckpt_name"), args.checkpoint, ["xl"], "checkpoint")
         lora = choose(options_of(server, "LoraLoader", "lora_name"), args.lora, ["pixel"], "LoRA")
         print("ComfyUI: %s\ncheckpoint: %s\nLoRA: %s\nse tao %d sprite: %s\n" % (
-            server, checkpoint, lora, len(todo), ", ".join(key for key, _, _ in todo)))
+            server, checkpoint, lora, len(todo), ", ".join(job[0] for job in todo)))
 
         rows = []
         failed = []
-        for number, (key, subject, is_tile) in enumerate(todo, 1):
+        for number, (key, positive, negative, is_tile, orient) in enumerate(todo, 1):
             seed = args.seed if args.seed is not None else random.randrange(1, 2 ** 31)
-            positive = subject + ", " + (TILE_STYLE if is_tile else OBJECT_STYLE)
-            negative = TILE_NEGATIVE if is_tile else NEGATIVE
             print("[%d/%d] %s (seed %d) ..." % (number, len(todo), key, seed), flush=True)
 
             try:
@@ -301,7 +344,7 @@ def main():
                 if not images:
                     raise ComfyError("ComfyUI khong tra ve anh nao.")
 
-                candidates = [sprite_prep.process(image, tile=is_tile) for image in images]
+                candidates = [sprite_prep.process(image, tile=is_tile, orient=orient) for image in images]
                 for index, sprite in enumerate(candidates):
                     Image.fromarray(sprite, "RGBA").save(candidate_path(key, index))
                 scores = [score(sprite, is_tile) for sprite in candidates]

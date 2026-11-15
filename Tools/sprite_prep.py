@@ -29,39 +29,54 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPRITES = os.path.join(REPO, "Assets", "_Project", "Resources", "Sprites")
 
 
-def remove_background(rgba, keep_shadow):
-    """Flood fill from the border through light, low-saturation pixels and make them transparent."""
-    rgb = rgba[:, :, :3].astype(int)
-    brightness = rgb.mean(axis=2)
-    saturation = rgb.max(axis=2) - rgb.min(axis=2)
-
-    near_white = (brightness > 225) & (saturation < 30)
-    light_grey = (brightness > 140) & (saturation < 22)
-    background = near_white if keep_shadow else (near_white | light_grey)
-
-    height, width = background.shape
-    seen = np.zeros_like(background)
+def flood_from_border(mask):
+    """Cells of `mask` connected to the image border."""
+    height, width = mask.shape
+    seen = np.zeros_like(mask)
     queue = deque()
     for x in range(width):
         for y in (0, height - 1):
-            if background[y, x] and not seen[y, x]:
+            if mask[y, x] and not seen[y, x]:
                 seen[y, x] = True
                 queue.append((y, x))
     for y in range(height):
         for x in (0, width - 1):
-            if background[y, x] and not seen[y, x]:
+            if mask[y, x] and not seen[y, x]:
                 seen[y, x] = True
                 queue.append((y, x))
 
     while queue:
         y, x = queue.popleft()
         for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
-            if 0 <= ny < height and 0 <= nx < width and background[ny, nx] and not seen[ny, nx]:
+            if 0 <= ny < height and 0 <= nx < width and mask[ny, nx] and not seen[ny, nx]:
                 seen[ny, nx] = True
                 queue.append((ny, nx))
+    return seen
+
+
+def remove_background(rgba, keep_shadow):
+    """
+    Makes the plain background transparent. The background colour is read from the image
+    border, so it works for white as well as coloured backdrops (a coloured backdrop is how
+    white objects such as bandages are generated without being erased).
+    """
+    rgb = rgba[:, :, :3].astype(int)
+    border = np.concatenate([rgb[0], rgb[-1], rgb[:, 0], rgb[:, -1]])
+    background_colour = np.median(border, axis=0)
+    brightness = rgb.mean(axis=2)
+    saturation = rgb.max(axis=2) - rgb.min(axis=2)
+
+    if background_colour.mean() > 200 and background_colour.max() - background_colour.min() < 40:
+        # White backdrop: also clear the soft grey shadow models like to draw under objects.
+        near_white = (brightness > 225) & (saturation < 30)
+        light_grey = (brightness > 140) & (saturation < 22)
+        background = near_white if keep_shadow else (near_white | light_grey)
+    else:
+        distance = np.abs(rgb - background_colour).sum(axis=2)
+        background = distance < 90
 
     out = rgba.copy()
-    out[seen, 3] = 0
+    out[flood_from_border(background), 3] = 0
     return out
 
 
@@ -133,13 +148,25 @@ def make_tile(small, cells):
     return np.concatenate([top, top[::-1]], axis=0)
 
 
-def process(rgba, tile=False, block=8, keep_shadow=False, tile_cells=64):
-    """Full pipeline on an RGBA array; returns the finished sprite as an RGBA array."""
+def process(rgba, tile=False, block=8, keep_shadow=False, tile_cells=64, orient=None):
+    """
+    Full pipeline on an RGBA array; returns the finished sprite as an RGBA array.
+    `orient` is "wide" or "tall" for inventory icons whose slot is not square: if the model
+    drew the item the other way round, it is turned 90 degrees to match.
+    """
     rgba = rgba.copy()
     if tile:
         return make_tile(downsample(rgba, block), tile_cells)
+
     rgba = remove_background(rgba, keep_shadow)
-    return crop_to_content(downsample(rgba, block))
+    sprite = crop_to_content(downsample(rgba, block))
+
+    height, width = sprite.shape[:2]
+    if orient == "wide" and height > width * 1.15:
+        sprite = np.rot90(sprite, k=-1).copy()
+    elif orient == "tall" and width > height * 1.15:
+        sprite = np.rot90(sprite, k=1).copy()
+    return sprite
 
 
 def main():

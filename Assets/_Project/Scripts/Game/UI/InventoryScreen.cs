@@ -38,6 +38,7 @@ namespace Bnhon.Game.UI
 
         private PlacedItem _dragItem;
         private GridInventory _dragSource;
+        private static readonly System.Collections.Generic.Dictionary<string, Texture> Icons = new System.Collections.Generic.Dictionary<string, Texture>();
         private bool _dragRotated;
         private PlacedItem _hoverItem;
         private GridInventory _hoverGrid;
@@ -293,6 +294,9 @@ namespace Bnhon.Game.UI
                     if (definition != null) label += "  " + session.Loadout.GetLoaded(i) + "/" + definition.MagazineSize;
                 }
                 GUI.Label(new Rect(rect.x + 6f, rect.y, rect.width - 8f, rect.height), label, _titleStyle);
+
+                Texture icon = weapon != null ? IconFor(weapon) : null;
+                if (icon != null) DrawIcon(new Rect(rect.xMax - rect.height * 2.2f, rect.y + 2f, rect.height * 2.1f, rect.height - 4f), icon, false);
             }
         }
 
@@ -464,10 +468,54 @@ namespace Bnhon.Game.UI
             body.a = alpha;
             Fill(new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, rect.height - 4f), body);
 
-            string label = item.Count > 1 ? item.Item.DisplayName + "\nx" + item.Count : item.Item.DisplayName;
             GUI.color = new Color(1f, 1f, 1f, alpha);
-            GUI.Label(new Rect(rect.x + 3f, rect.y + 2f, rect.width - 6f, rect.height - 4f), label, _itemStyle);
+            Texture icon = IconFor(item.Item);
+            if (icon == null)
+            {
+                string label = item.Count > 1 ? item.Item.DisplayName + "\nx" + item.Count : item.Item.DisplayName;
+                GUI.Label(new Rect(rect.x + 3f, rect.y + 2f, rect.width - 6f, rect.height - 4f), label, _itemStyle);
+            }
+            else
+            {
+                // With a picture, the cell shows only the picture and the stack size; the name is in the hint line.
+                DrawIcon(new Rect(rect.x + 3f, rect.y + 3f, rect.width - 6f, rect.height - 6f), icon, item.Rotated);
+                if (item.Count > 1)
+                {
+                    var corner = new Rect(rect.x + 3f, rect.y + rect.height - _cell * 0.42f, rect.width - 6f, _cell * 0.4f);
+                    GUI.color = new Color(0f, 0f, 0f, alpha);
+                    GUI.Label(new Rect(corner.x + 1f, corner.y + 1f, corner.width, corner.height), "x" + item.Count, _itemStyle);
+                    GUI.color = new Color(1f, 1f, 1f, alpha);
+                    GUI.Label(corner, "x" + item.Count, _itemStyle);
+                }
+            }
             GUI.color = Color.white;
+        }
+
+        /// <summary>The inventory picture for an item (Resources/Sprites/item_&lt;id&gt;.png), or null to fall back to its name.</summary>
+        private static Texture IconFor(ItemDefinition item)
+        {
+            if (Icons.TryGetValue(item.Id, out Texture known)) return known;
+
+            Sprite sprite = PlaceholderArt.FindSprite("item_" + item.Id);
+            Texture icon = sprite != null ? sprite.texture : null;
+            Icons[item.Id] = icon;
+            return icon;
+        }
+
+        /// <summary>Draws a picture as large as fits in the rectangle, turned a quarter when the item lies rotated.</summary>
+        private static void DrawIcon(Rect rect, Texture icon, bool rotated)
+        {
+            if (!rotated)
+            {
+                GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit);
+                return;
+            }
+
+            Matrix4x4 previous = GUI.matrix;
+            GUIUtility.RotateAroundPivot(90f, rect.center);
+            var turned = new Rect(rect.center.x - rect.height * 0.5f, rect.center.y - rect.width * 0.5f, rect.height, rect.width);
+            GUI.DrawTexture(turned, icon, ScaleMode.ScaleToFit);
+            GUI.matrix = previous;
         }
 
         private void DrawDragGhost(Vector2 mouse)
