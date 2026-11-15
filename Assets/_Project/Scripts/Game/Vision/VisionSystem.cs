@@ -45,7 +45,7 @@ namespace Bnhon.Game.Vision
             var material = new Material(PlaceholderArt.UnlitMaterial);
             material.color = new Color(0f, 0f, 0f, fogAlpha);
             _renderer.sharedMaterial = material;
-            _renderer.sortingOrder = 40;
+            _renderer.sortingOrder = YSort.AboveEverything;
             _renderer.enabled = false;
 
             _mesh = new Mesh();

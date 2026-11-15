@@ -113,7 +113,7 @@ namespace Bnhon.Game
 
         private PlayerController BuildPlayer()
         {
-            GameObject go = PlaceholderArt.Box("Player", BaseSpawn, new Vector2(0.8f, 0.8f), new Color(0.25f, 0.55f, 0.95f), null, 20, "player", false);
+            GameObject go = PlaceholderArt.Box("Player", BaseSpawn, new Vector2(0.8f, 0.8f), new Color(0.25f, 0.55f, 0.95f), null, 20, "player", SpriteFit.Character);
             go.AddComponent<BoxCollider2D>();
 
             var body = go.AddComponent<Rigidbody2D>();
@@ -122,6 +122,7 @@ namespace Bnhon.Game
             body.sleepMode = RigidbodySleepMode2D.NeverSleep;
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
+            go.AddComponent<YSort>();
             go.AddComponent<Health>();
             go.AddComponent<PlayerWeapons>();
             go.AddComponent<PlayerVitals>();
@@ -185,16 +186,19 @@ namespace Bnhon.Game
                 }
             }
 
-            GameObject bed = PlaceholderArt.Box("Bed", new Vector2(7f, 4.5f), new Vector2(1.2f, 2f), new Color(0.7f, 0.3f, 0.3f), root, 2, "bed", false);
+            GameObject bed = PlaceholderArt.Box("Bed", new Vector2(7f, 4.5f), new Vector2(1.2f, 2f), new Color(0.7f, 0.3f, 0.3f), root, 2, "bed", SpriteFit.Centered(1.5f, 2.3f));
             bed.AddComponent<BoxCollider2D>();
+            bed.AddComponent<YSort>();
             bed.AddComponent<Bed>();
 
-            GameObject stash = PlaceholderArt.Box("Stash", new Vector2(4.5f, 5f), new Vector2(1.6f, 1f), new Color(0.6f, 0.45f, 0.2f), root, 2, "stash", false);
+            GameObject stash = PlaceholderArt.Box("Stash", new Vector2(4.5f, 5f), new Vector2(1.6f, 1f), new Color(0.6f, 0.45f, 0.2f), root, 2, "stash", SpriteFit.Standing(1.7f, 1.5f));
             stash.AddComponent<BoxCollider2D>();
+            stash.AddComponent<YSort>();
             stash.AddComponent<StashCrate>();
 
-            GameObject gate = PlaceholderArt.Box("RaidGate", new Vector2(BaseSize.x * 0.5f - 1f, -3f), new Vector2(1f, 2.4f), new Color(0.9f, 0.6f, 0.15f), root, 2, "gate", false);
+            GameObject gate = PlaceholderArt.Box("RaidGate", new Vector2(BaseSize.x * 0.5f - 1f, -3f), new Vector2(1f, 2.4f), new Color(0.9f, 0.6f, 0.15f), root, 2, "gate", SpriteFit.Centered(2.4f, 2.4f));
             gate.AddComponent<BoxCollider2D>();
+            gate.AddComponent<YSort>();
             gate.AddComponent<RaidGate>();
 
             BuildNpc(PrototypeContent.NpcLan, new Vector2(-2f, 4.5f), new Color(0.95f, 0.6f, 0.75f), root);
@@ -204,8 +208,9 @@ namespace Bnhon.Game
 
         private static void BuildNpc(string npcId, Vector2 position, Color color, Transform parent)
         {
-            GameObject npc = PlaceholderArt.Box("Npc_" + npcId, position, new Vector2(0.8f, 0.8f), color, parent, 10, "npc_" + npcId, false);
+            GameObject npc = PlaceholderArt.Box("Npc_" + npcId, position, new Vector2(0.8f, 0.8f), color, parent, 10, "npc_" + npcId, SpriteFit.Character);
             npc.AddComponent<BoxCollider2D>();
+            npc.AddComponent<YSort>();
             npc.AddComponent<NpcView>().Init(npcId);
         }
 
@@ -224,7 +229,7 @@ namespace Bnhon.Game
                 switch (marker.Symbol)
                 {
                     case RaidMap.Extraction:
-                        GameObject extraction = PlaceholderArt.Box("Extraction", position, new Vector2(3f, 3f), new Color(0.2f, 0.8f, 0.35f, 0.45f), _raidRoot, 1, "extraction", true);
+                        GameObject extraction = PlaceholderArt.Box("Extraction", position, new Vector2(3f, 3f), new Color(0.2f, 0.8f, 0.35f, 0.45f), _raidRoot, 1, "extraction", SpriteFit.Tile);
                         extraction.AddComponent<BoxCollider2D>().isTrigger = true;
                         extraction.AddComponent<ExtractionZone>();
                         break;
@@ -260,7 +265,7 @@ namespace Bnhon.Game
                 for (int x = 0; x < _map.Width; x++)
                 {
                     if (_map.IsWall(x, y)) continue;
-                    PlaceholderArt.Box("FloorTile", CellCenter(x, y), Vector2.one, RaidFloorColor, floor, 0, "floor", true);
+                    PlaceholderArt.Box("FloorTile", CellCenter(x, y), Vector2.one, RaidFloorColor, floor, 0, "floor", SpriteFit.Tile);
                 }
             }
         }
@@ -322,22 +327,23 @@ namespace Bnhon.Game
             {
                 for (int x = 0; x < _map.Width; x++)
                 {
-                    if (_map.IsWall(x, y)) PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", true);
+                    if (_map.IsWall(x, y)) PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile);
                 }
             }
         }
 
         private void BuildContainer(Vector2 position, LootTable table, string spriteKey, Color color)
         {
-            GameObject container = PlaceholderArt.Box("Loot_" + table.Id, position, new Vector2(0.9f, 0.8f), color, _raidRoot, 2, spriteKey, false);
+            GameObject container = PlaceholderArt.Box("Loot_" + table.Id, position, new Vector2(0.9f, 0.8f), color, _raidRoot, 2, spriteKey, SpriteFit.Crate);
             container.AddComponent<BoxCollider2D>();
+            container.AddComponent<YSort>();
             container.AddComponent<LootContainer>().Init(table);
         }
 
         private void BuildZombie(Vector2 position, ZombieKind kind)
         {
             string spriteKey = "zombie_" + kind.ToString().ToLowerInvariant();
-            GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15, spriteKey, false);
+            GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15, spriteKey, SpriteFit.Character);
             // Round bodies slide past each other and around wall corners; boxes lock together.
             go.AddComponent<CircleCollider2D>().radius = 0.5f;
 
@@ -346,6 +352,7 @@ namespace Bnhon.Game
             body.freezeRotation = true;
             body.linearDamping = 4f;
 
+            go.AddComponent<YSort>();
             go.AddComponent<Health>();
             go.AddComponent<ZombieAI>().Init(_player.transform, kind);
         }

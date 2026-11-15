@@ -347,7 +347,7 @@ namespace Bnhon.Game.AI
             color = Color.Lerp(color, Color.black, 0.55f);
 
             // Same parent as the zombie, so corpses are cleared with the raid zone.
-            GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", false);
+            GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", SpriteFit.Centered(1.5f, 1.2f));
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
             corpse.AddComponent<LootContainer>().InitCorpse(table, UnityEngine.Random.Range(0, 3));
         }

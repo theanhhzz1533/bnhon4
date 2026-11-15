@@ -20,7 +20,7 @@ namespace Bnhon.Game.Combat
             renderer.sprite = PlaceholderArt.Square;
             renderer.sharedMaterial = PlaceholderArt.UnlitMaterial;
             renderer.color = color;
-            renderer.sortingOrder = 50;
+            renderer.sortingOrder = YSort.AboveEverything + 10;
 
             Object.Destroy(go, 0.06f);
         }
