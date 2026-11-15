@@ -79,6 +79,15 @@ namespace Bnhon.Core.Saving
                 data.quests.Add(new QuestSave { id = quest.Id, state = (int)quest.State });
             }
 
+            data.workbenchLevel = session.Workshop.Level;
+            foreach (string blueprint in session.Workshop.KnownBlueprints) data.blueprints.Add(blueprint);
+
+            data.shopSaved = true;
+            foreach (Trading.ShopEntry entry in session.Shop.Entries)
+            {
+                data.shopStock.Add(new ShopStockSave { id = entry.Item.Id, stock = entry.Stock });
+            }
+
             return data;
         }
 
@@ -159,6 +168,17 @@ namespace Bnhon.Core.Saving
                 {
                     if (saved == null) continue;
                     if (!session.Quests.Restore(saved.id, (QuestState)saved.state)) report.Dropped.Add("quest " + saved.id);
+                }
+            }
+
+            session.Workshop.Restore(data.workbenchLevel, data.blueprints);
+
+            // A save from before the shop existed leaves it as a new game has it: fully stocked.
+            if (data.shopSaved && data.shopStock != null)
+            {
+                foreach (ShopStockSave saved in data.shopStock)
+                {
+                    if (saved != null) session.Shop.RestoreStock(saved.id, saved.stock);
                 }
             }
 

@@ -48,11 +48,11 @@ Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 p
 - [x] Lưu và tải game bằng JSON: tự lưu khi bắt đầu raid, kết thúc raid và khi ngủ; thoát giữa raid tính là chết
 - [ ] Chuyển dữ liệu mẫu trong `PrototypeContent` sang ScriptableObject
 - [ ] Đặt và dời công trình trên lưới: bàn chế tạo, kho, bếp
-- [ ] Chế tạo và bản vẽ
+- [x] Chế tạo kiểu Escape From Duckov: bàn chế tạo 3 cấp, bản vẽ phải mang về đăng ký, tháo dỡ vật phẩm
 - [ ] Farming đầy đủ: dụng cụ, bình tưới, 6 loại cây, nấu ăn có buff
 - [ ] Một NPC hoàn chỉnh: lịch sinh hoạt, hội thoại, quà tặng có UI, 2 cảnh tim
 - [ ] Một chuỗi nhiệm vụ cốt truyện mở đầu
-- [ ] Thương nhân mua bán
+- [x] Quầy mua bán: hàng giới hạn về lại mỗi ngày, bán đồ được nửa giá trị
 - [ ] Pixel art thật cho căn cứ và một khu raid; Pixel Perfect Camera; ánh sáng 2D
 - [ ] HUD và menu bằng UI Toolkit thay cho HUD debug
 

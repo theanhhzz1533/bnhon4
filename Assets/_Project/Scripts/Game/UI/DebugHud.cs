@@ -86,6 +86,7 @@ namespace Bnhon.Game.UI
 
             // The inventory screen covers the middle of the view and has its own hint line.
             if (InventoryScreen.Instance != null && InventoryScreen.Instance.IsOpen) return;
+            if (ModalScreen.Current != null) return;
 
             DrawCrosshair(weapons);
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bnhon.Core.Crafting;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Items;
 using Bnhon.Core.Loot;
@@ -34,6 +35,13 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition Shotgun = new ItemDefinition("shotgun", "Shotgun", ItemCategory.Weapon, ItemRarity.Rare, 3, 1, 1, 260);
         public const int PistolMagazine = 8;
 
+        public static readonly ItemDefinition MedKit = new ItemDefinition("med_kit", "Bộ sơ cứu", ItemCategory.Medicine, ItemRarity.Uncommon, 1, 2, 2, 60);
+
+        // Blueprints: found on raids, registered at the workbench to unlock a recipe for good.
+        public static readonly ItemDefinition BlueprintPistol = new ItemDefinition("bp_pistol", "Bản vẽ: Súng ngắn", ItemCategory.Blueprint, ItemRarity.Rare, 1, 1, 1, 90);
+        public static readonly ItemDefinition BlueprintShotgun = new ItemDefinition("bp_shotgun", "Bản vẽ: Shotgun", ItemCategory.Blueprint, ItemRarity.Epic, 1, 1, 1, 180);
+        public static readonly ItemDefinition BlueprintMedKit = new ItemDefinition("bp_med_kit", "Bản vẽ: Bộ sơ cứu", ItemCategory.Blueprint, ItemRarity.Uncommon, 1, 1, 1, 50);
+
         // Seeds and produce
         public static readonly ItemDefinition SweetPotatoSeed = new ItemDefinition("seed_sweet_potato", "Dây khoai lang", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 4);
         public static readonly ItemDefinition CornSeed = new ItemDefinition("seed_corn", "Hạt ngô", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 6);
@@ -48,7 +56,7 @@ namespace Bnhon.Core.Content
 
         public static readonly IReadOnlyList<ItemDefinition> Items = new[]
         {
-            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun,
+            Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun, MedKit, BlueprintPistol, BlueprintShotgun, BlueprintMedKit,
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette
         };
 
@@ -68,7 +76,8 @@ namespace Bnhon.Core.Content
             new ConsumableDefinition(SweetPotato.Id, hunger: 25f),
             new ConsumableDefinition(Corn.Id, hunger: 20f, thirst: 5f),
             new ConsumableDefinition(Bandage.Id, heal: 30f, useSeconds: 3.5f),
-            new ConsumableDefinition(Mugwort.Id, heal: 15f, useSeconds: 2.5f)
+            new ConsumableDefinition(Mugwort.Id, heal: 15f, useSeconds: 2.5f),
+            new ConsumableDefinition(MedKit.Id, heal: 65f, useSeconds: 5f)
         };
 
         public static ConsumableDefinition FindConsumable(string itemId)
@@ -115,8 +124,9 @@ namespace Bnhon.Core.Content
 
         public static readonly LootTable MedicalCabinet = new LootTable("medical_cabinet")
             .Add(Bandage, 32)
-            .Add(Cloth, 43, 1, 2)
-            .Add(MugwortSeed, 25, 1, 2);
+            .Add(Cloth, 40, 1, 2)
+            .Add(MugwortSeed, 20, 1, 2)
+            .Add(BlueprintMedKit, 8);
 
         public static readonly LootTable SeedStore = new LootTable("seed_store")
             .Add(SweetPotatoSeed, 40, 2, 4)
@@ -128,6 +138,8 @@ namespace Bnhon.Core.Content
             .Add(ShotgunShell, 35, 2, 5)
             .Add(Pistol, 9)
             .Add(Shotgun, 6)
+            .Add(BlueprintPistol, 7)
+            .Add(BlueprintShotgun, 4)
             .Add(ScrapMetal, 25, 2, 4)
             .Add(CircuitBoard, 15);
 
@@ -181,6 +193,51 @@ namespace Bnhon.Core.Content
             };
         }
 
+        private static ItemAmount A(ItemDefinition item, int count)
+        {
+            return new ItemAmount(item, count);
+        }
+
+        /// <summary>Recipes, workbench upgrade costs and what dismantling gives.</summary>
+        public static void SetUpWorkshop(Workshop workshop)
+        {
+            // Level 1: the basics that keep a broke player able to go out again.
+            workshop.AddRecipe(new Recipe("r_bandage", Bandage, 1, 1, null, A(Cloth, 2)));
+            workshop.AddRecipe(new Recipe("r_pistol_ammo", PistolAmmo, 6, 1, null, A(ScrapMetal, 2)));
+
+            // Level 2
+            workshop.AddRecipe(new Recipe("r_shotgun_shell", ShotgunShell, 4, 2, null, A(ScrapMetal, 2), A(Cloth, 1)));
+            workshop.AddRecipe(new Recipe("r_med_kit", MedKit, 1, 2, BlueprintMedKit, A(Bandage, 2), A(Mugwort, 1)));
+            workshop.AddRecipe(new Recipe("r_pistol", Pistol, 1, 2, BlueprintPistol, A(ScrapMetal, 6), A(Wood, 2)));
+
+            // Level 3
+            workshop.AddRecipe(new Recipe("r_shotgun", Shotgun, 1, 3, BlueprintShotgun, A(ScrapMetal, 8), A(Wood, 3), A(CircuitBoard, 1)));
+
+            workshop.SetUpgradeCost(2, A(Wood, 6), A(ScrapMetal, 6), A(Cloth, 4));
+            workshop.SetUpgradeCost(3, A(Wood, 10), A(ScrapMetal, 12), A(CircuitBoard, 3));
+
+            workshop.SetDismantle(Pistol, A(ScrapMetal, 3));
+            workshop.SetDismantle(Shotgun, A(ScrapMetal, 4), A(Wood, 1));
+            workshop.SetDismantle(Bandage, A(Cloth, 1));
+            workshop.SetDismantle(TeaTin, A(ScrapMetal, 1));
+            workshop.SetDismantle(OldCassette, A(ScrapMetal, 1));
+        }
+
+        /// <summary>What the base shop sells. Prices are well above what it pays, so trading is never free money.</summary>
+        public static void SetUpShop(Trading.Shop shop)
+        {
+            shop.AddEntry(PistolAmmo, 10, 30, 4);
+            shop.AddEntry(ShotgunShell, 4, 32, 2);
+            shop.AddEntry(Bandage, 1, 22, 3);
+            shop.AddEntry(CannedFood, 1, 26, 3);
+            shop.AddEntry(WaterBottle, 1, 18, 3);
+            shop.AddEntry(SweetPotatoSeed, 3, 18, 3);
+            shop.AddEntry(CornSeed, 3, 24, 2);
+            shop.AddEntry(MugwortSeed, 2, 28, 2);
+            shop.AddEntry(Pistol, 1, 220, 1, 0.35);
+            shop.AddEntry(BlueprintMedKit, 1, 120, 1, 0.25);
+        }
+
         /// <summary>A new save: NPCs, quests and a small starter kit in the stash and backpack.</summary>
         public static GameSession CreateNewSession(Gender playerGender, int seed)
         {
@@ -189,6 +246,9 @@ namespace Bnhon.Core.Content
             foreach (var npc in CreateNpcs()) session.Relationships.Register(npc);
             foreach (var quest in CreateQuests()) session.Quests.Add(quest);
 
+            SetUpWorkshop(session.Workshop);
+            SetUpShop(session.Shop);
+            session.Shop.FillStock();
             session.Loadout.Set(0, Pistol, PistolMagazine);
             session.Wallet.Add(50);
             session.Stash.Add(SweetPotatoSeed, 4);

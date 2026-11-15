@@ -1,11 +1,13 @@
 using System;
 using Bnhon.Core.Combat;
+using Bnhon.Core.Crafting;
 using Bnhon.Core.Economy;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Raid;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Trading;
 using Bnhon.Core.Vitals;
 using Bnhon.Core.Calendar;
 
@@ -30,6 +32,8 @@ namespace Bnhon.Core
         public Random Rng { get; }
         public Stamina Stamina { get; }
         public Loadout Loadout { get; }
+        public Workshop Workshop { get; }
+        public Shop Shop { get; }
         public Needs Needs { get; }
 
         public RaidSession CurrentRaid { get; private set; }
@@ -49,6 +53,8 @@ namespace Bnhon.Core
             Rng = new Random(seed);
             Stamina = new Stamina();
             Loadout = new Loadout();
+            Workshop = new Workshop();
+            Shop = new Shop();
             Needs = new Needs();
         }
 
@@ -78,6 +84,7 @@ namespace Bnhon.Core
             Clock.AdvanceDay();
             Farm.OnNewDay(Clock.Season);
             Relationships.OnNewDay(Clock);
+            Shop.Restock(Rng);
 
             // A night at the base: water is on hand, and there is a modest meal.
             Needs.Drink(Needs.Max);

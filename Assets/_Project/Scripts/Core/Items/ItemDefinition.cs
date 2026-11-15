@@ -13,7 +13,8 @@ namespace Bnhon.Core.Items
         Produce,
         Gift,
         Key,
-        Quest
+        Quest,
+        Blueprint
     }
 
     public enum ItemRarity

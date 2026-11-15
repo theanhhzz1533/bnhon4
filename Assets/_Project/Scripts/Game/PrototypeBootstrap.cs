@@ -78,6 +78,9 @@ namespace Bnhon.Game
 
             var inventory = new GameObject("InventoryScreen").AddComponent<InventoryScreen>();
             inventory.Player = _player;
+
+            new GameObject("WorkbenchScreen").AddComponent<WorkbenchScreen>().Player = _player;
+            new GameObject("ShopScreen").AddComponent<ShopScreen>().Player = _player;
         }
 
         private void LoadMap()
@@ -223,6 +226,16 @@ namespace Bnhon.Game
             gate.AddComponent<BoxCollider2D>();
             gate.AddComponent<YSort>();
             gate.AddComponent<RaidGate>();
+
+            GameObject workbench = PlaceholderArt.Box("Workbench", new Vector2(2.4f, 5f), new Vector2(1.6f, 1f), new Color(0.5f, 0.42f, 0.33f), root, 2, "workbench", SpriteFit.Standing(1.7f, 1.5f));
+            workbench.AddComponent<BoxCollider2D>();
+            workbench.AddComponent<YSort>();
+            workbench.AddComponent<WorkbenchStation>();
+
+            GameObject shop = PlaceholderArt.Box("Shop", new Vector2(-8f, 5f), new Vector2(1.6f, 1.1f), new Color(0.3f, 0.5f, 0.62f), root, 2, "shop", SpriteFit.Standing(1.8f, 1.7f));
+            shop.AddComponent<BoxCollider2D>();
+            shop.AddComponent<YSort>();
+            shop.AddComponent<ShopStall>();
 
             BuildNpc(PrototypeContent.NpcLan, new Vector2(-2f, 4.5f), new Color(0.95f, 0.6f, 0.75f), root);
             BuildNpc(PrototypeContent.NpcMinh, new Vector2(0.5f, 4.5f), new Color(0.5f, 0.75f, 0.95f), root);

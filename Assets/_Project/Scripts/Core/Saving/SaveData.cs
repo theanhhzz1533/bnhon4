@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -30,6 +30,19 @@ namespace Bnhon.Core.Saving
         public List<PlotSave> farm = new List<PlotSave>();
         public List<RelationshipSave> relationships = new List<RelationshipSave>();
         public List<QuestSave> quests = new List<QuestSave>();
+
+        // Added in version 2. Absent in older saves: the workbench starts at level 1 and the shop fully stocked.
+        public int workbenchLevel = 1;
+        public List<string> blueprints = new List<string>();
+        public bool shopSaved;
+        public List<ShopStockSave> shopStock = new List<ShopStockSave>();
+    }
+
+    [Serializable]
+    public sealed class ShopStockSave
+    {
+        public string id;
+        public int stock;
     }
 
     [Serializable]

@@ -109,6 +109,9 @@ namespace Bnhon.Game.UI
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
 
+            // A workbench or shop menu owns Tab while it is open, and on the frame it closes.
+            if (ModalScreen.Current != null || ModalScreen.ClosedFrame == UnityEngine.Time.frameCount) return;
+
             if (keyboard.tabKey.wasPressedThisFrame)
             {
                 if (IsOpen) Close();
@@ -512,6 +515,7 @@ namespace Bnhon.Game.UI
         private static string EffectText(ItemDefinition definition)
         {
             if (definition.Category == ItemCategory.Weapon) return " · F để trang bị (hoặc kéo vào ô vũ khí)";
+            if (definition.Category == ItemCategory.Blueprint) return " · mang về đăng ký ở bàn chế tạo";
 
             ConsumableDefinition effect = PrototypeContent.FindConsumable(definition.Id);
             if (effect == null) return string.Empty;
@@ -560,6 +564,7 @@ namespace Bnhon.Game.UI
                 case ItemCategory.Seed: return new Color(0.3f, 0.45f, 0.25f);
                 case ItemCategory.Produce: return new Color(0.35f, 0.55f, 0.25f);
                 case ItemCategory.Gift: return new Color(0.55f, 0.32f, 0.55f);
+                case ItemCategory.Blueprint: return new Color(0.2f, 0.4f, 0.7f);
                 default: return new Color(0.3f, 0.4f, 0.5f);
             }
         }
@@ -589,6 +594,7 @@ namespace Bnhon.Game.UI
                 case ItemCategory.Produce: return "Nông sản";
                 case ItemCategory.Gift: return "Quà tặng";
                 case ItemCategory.Key: return "Chìa khóa";
+                case ItemCategory.Blueprint: return "Bản vẽ";
                 default: return "Vật phẩm nhiệm vụ";
             }
         }

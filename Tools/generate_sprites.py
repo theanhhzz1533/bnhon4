@@ -64,6 +64,8 @@ ASSETS = [
     ("bed", "simple camp bed with a red blanket, seen from above", False),
     ("stash", "large wooden storage chest with metal bands", False),
     ("gate", "rusty corrugated metal gate with barbed wire", False),
+    ("workbench", "sturdy wooden workbench with a vise, tools and scrap metal on top", False),
+    ("shop", "small market stall with a tarp roof, crates and canned goods on the counter", False),
 ]
 
 
