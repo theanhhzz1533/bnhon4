@@ -353,7 +353,8 @@ namespace Bnhon.Game
             body.linearDamping = 4f;
 
             go.AddComponent<YSort>();
-            go.AddComponent<Health>();
+            var health = go.AddComponent<Health>();
+            Hurtbox.Attach(go, health);
             go.AddComponent<ZombieAI>().Init(_player.transform, kind);
         }
 

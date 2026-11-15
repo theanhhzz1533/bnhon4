@@ -22,6 +22,7 @@ namespace Bnhon.Game.Combat
         private int[] _ammo;
         private int _current = 1;
         private float _nextUseTime;
+        private Health _ownHealth;
 
         public WeaponDefinition Current => _weapons[_current];
         public int CurrentSlot => _current + 1;
@@ -31,6 +32,7 @@ namespace Bnhon.Game.Combat
 
         private void Awake()
         {
+            _ownHealth = GetComponent<Health>();
             _weapons = new[]
             {
                 new WeaponDefinition
@@ -131,8 +133,23 @@ namespace Bnhon.Game.Combat
             foreach (RaycastHit2D hit in hits)
             {
                 Collider2D other = hit.collider;
-                if (other == null || other.isTrigger || other.gameObject == gameObject) continue;
+                if (other == null) continue;
 
+                // Characters are hit on their hurtbox (the visible body), not on the
+                // small collider at their feet.
+                var hurtbox = other.GetComponent<Hurtbox>();
+                if (hurtbox != null)
+                {
+                    if (hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead) continue;
+                    hurtbox.Owner.Damage(weapon.Damage);
+                    end = hit.point;
+                    break;
+                }
+
+                // Other triggers (zones, corpses) and the feet colliders of characters do not stop bullets.
+                if (other.isTrigger || other.attachedRigidbody != null) continue;
+
+                // A wall or a crate. Something without a hurtbox can still be damaged directly.
                 var health = other.GetComponent<Health>();
                 if (health != null) health.Damage(weapon.Damage);
                 end = hit.point;
@@ -149,17 +166,17 @@ namespace Bnhon.Game.Combat
 
             foreach (Collider2D other in nearby)
             {
-                if (other == null || other.isTrigger || other.gameObject == gameObject) continue;
+                if (other == null) continue;
 
-                var health = other.GetComponent<Health>();
-                if (health == null) continue;
+                var hurtbox = other.GetComponent<Hurtbox>();
+                if (hurtbox == null || hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead) continue;
 
                 Vector2 target = other.ClosestPoint(origin);
                 Vector2 toTarget = target - origin;
                 if (toTarget.sqrMagnitude > 0.0001f && Vector2.Angle(direction, toTarget) > halfArc) continue;
                 if (SightBlocker.IsBlocked(origin, target)) continue;
 
-                health.Damage(weapon.Damage);
+                hurtbox.Owner.Damage(weapon.Damage);
             }
 
             // Show the reach of the swing: its two edges and its middle.
