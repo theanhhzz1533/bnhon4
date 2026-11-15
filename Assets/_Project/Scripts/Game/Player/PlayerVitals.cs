@@ -2,6 +2,7 @@ using Bnhon.Core.Content;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Items;
 using Bnhon.Core.Vitals;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace Bnhon.Game.Player
         [SerializeField] private float weakenedRegenMultiplier = 0.4f;
 
         private Health _health;
+        private float _nextHurtSound;
 
         public static PlayerVitals Instance { get; private set; }
 
@@ -25,11 +27,21 @@ namespace Bnhon.Game.Player
         {
             Instance = this;
             _health = GetComponent<Health>();
+            _health.Damaged += OnDamaged;
         }
 
         private void OnDestroy()
         {
+            if (_health != null) _health.Damaged -= OnDamaged;
             if (Instance == this) Instance = null;
+        }
+
+        private void OnDamaged(Health health)
+        {
+            // Starvation damages every frame; without a gap this would be one continuous noise.
+            if (UnityEngine.Time.time < _nextHurtSound) return;
+            _nextHurtSound = UnityEngine.Time.time + 0.6f;
+            Sfx.PlayUi(SoundId.PlayerHurt, 0.8f);
         }
 
         private void Update()
@@ -73,6 +85,7 @@ namespace Bnhon.Game.Player
             if (!root.Session.Consume(grid, item, effect)) return false;
 
             _health.Heal(effect.Heal);
+            Sfx.PlayUi(SoundId.UseItem, 0.6f);
             root.Notify("Đã dùng " + definition.DisplayName + ".", 1.5f);
             return true;
         }

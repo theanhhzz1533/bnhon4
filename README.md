@@ -86,6 +86,14 @@ python Tools/sprite_prep.py san.png floor --tile
 
 Script xóa nền sáng, thu về lưới pixel thật (mặc định mỗi điểm ảnh 8 px), cắt sát vật thể, lưu thẳng vào `Resources/Sprites/<tên>.png` và tạo một ảnh xem trước phóng to cạnh file gốc. Dùng `--tile` cho sàn và tường (giữ nền, không cắt), `--keep-shadow` nếu muốn giữ bóng dưới chân.
 
+## Thay âm thanh
+
+Mọi hiệu ứng âm thanh hiện được sinh bằng code (`SoundSynth`). Để thay bằng file thật, thả file `.wav` hoặc `.ogg` vào `Assets/_Project/Resources/Audio/` với đúng tên; hiệu ứng nào có file thì dùng file.
+
+Tên hợp lệ: `pistol_shot`, `shotgun_shot`, `knife_swing`, `reload`, `empty_click`, `footstep`, `roll`, `player_hurt`, `player_death`, `zombie_growl`, `zombie_scream`, `zombie_hit`, `zombie_death`, `loot_open`, `item_reveal`, `use_item`, `extract`.
+
+Âm lượng chung chỉnh ở ô `Master Volume` của object `Sfx` khi đang Play.
+
 ## Cấu trúc
 
 ```

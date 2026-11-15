@@ -3,6 +3,7 @@ using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Maps;
 using Bnhon.Game.AI;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Interaction;
 using Bnhon.Game.Player;
@@ -55,6 +56,7 @@ namespace Bnhon.Game
             BuildBase();
             _player = BuildPlayer();
             CameraFollow cameraFollow = SetUpCamera(_player);
+            Sfx.Ensure().Listener = _player.transform;
 
             new GameObject("NavGrid").AddComponent<NavGrid>();
 
@@ -150,6 +152,9 @@ namespace Bnhon.Game
             cam.orthographicSize = cameraSize;
             cam.backgroundColor = new Color(0.06f, 0.07f, 0.08f);
             cam.transform.position = new Vector3(BaseSpawn.x, BaseSpawn.y, -10f);
+
+            // Unity needs exactly one listener in the scene for any audio to be heard.
+            if (cam.GetComponent<AudioListener>() == null) cam.gameObject.AddComponent<AudioListener>();
 
             var follow = cam.GetComponent<CameraFollow>();
             if (follow == null) follow = cam.gameObject.AddComponent<CameraFollow>();

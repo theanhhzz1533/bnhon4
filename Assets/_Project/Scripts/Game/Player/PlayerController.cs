@@ -1,4 +1,5 @@
 using Bnhon.Core.Vitals;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Interaction;
 using UnityEngine;
@@ -36,6 +37,7 @@ namespace Bnhon.Game.Player
         private Vector2 _rollDirection;
         private float _rollUntil;
         private float _nextRollTime;
+        private float _stepTimer;
 
         public Vector2 AimDirection { get; private set; } = Vector2.right;
         public IInteractable Focused { get; private set; }
@@ -93,12 +95,27 @@ namespace Bnhon.Game.Player
                 && keyboard.leftShiftKey.isPressed
                 && stamina.Drain(sprintStaminaPerSecond * UnityEngine.Time.deltaTime);
 
+            if (!moving)
+            {
+                _stepTimer = 0.08f;
+            }
+            else
+            {
+                _stepTimer -= UnityEngine.Time.deltaTime;
+                if (_stepTimer <= 0f)
+                {
+                    _stepTimer = _sprinting ? 0.26f : 0.38f;
+                    Sfx.PlayUi(SoundId.Footstep, _sprinting ? 0.45f : 0.28f);
+                }
+            }
+
             if (keyboard.spaceKey.wasPressedThisFrame && UnityEngine.Time.time >= _nextRollTime && stamina.TryUse(rollStaminaCost))
             {
                 _rollDirection = moving ? _move.normalized : AimDirection;
                 _rollUntil = UnityEngine.Time.time + rollDuration;
                 _nextRollTime = _rollUntil + rollCooldown;
                 if (_health != null) _health.Invulnerable = true;
+                Sfx.PlayUi(SoundId.Roll, 0.7f);
                 return;
             }
 

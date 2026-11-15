@@ -4,6 +4,7 @@ using Bnhon.Core.Content;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Vitals;
 using Bnhon.Game.AI;
+using Bnhon.Game.Audio;
 using UnityEngine;
 
 namespace Bnhon.Game.Combat
@@ -37,18 +38,18 @@ namespace Bnhon.Game.Combat
             {
                 new WeaponDefinition
                 {
-                    Name = "Dao", Kind = WeaponKind.Melee, Damage = 40f, Range = 1.6f, Interval = 0.45f,
+                    Name = "Dao", Sound = SoundId.KnifeSwing, Kind = WeaponKind.Melee, Damage = 40f, Range = 1.6f, Interval = 0.45f,
                     NoiseRadius = 1.5f, ArcDegrees = 110f, StaminaCost = 10f
                 },
                 new WeaponDefinition
                 {
-                    Name = "Súng ngắn", Kind = WeaponKind.Firearm, Damage = 34f, Range = 12f, Interval = 0.25f,
+                    Name = "Súng ngắn", Sound = SoundId.PistolShot, Kind = WeaponKind.Firearm, Damage = 34f, Range = 12f, Interval = 0.25f,
                     NoiseRadius = 10f, MagazineSize = 8, ReloadTime = 1.2f, Pellets = 1, SpreadDegrees = 2f,
                     AmmoItemId = PrototypeContent.PistolAmmo.Id
                 },
                 new WeaponDefinition
                 {
-                    Name = "Shotgun", Kind = WeaponKind.Firearm, Damage = 18f, Range = 7f, Interval = 0.9f,
+                    Name = "Shotgun", Sound = SoundId.ShotgunShot, Kind = WeaponKind.Firearm, Damage = 18f, Range = 7f, Interval = 0.9f,
                     NoiseRadius = 17f, MagazineSize = 2, ReloadTime = 1.8f, Pellets = 7, SpreadDegrees = 24f,
                     AmmoItemId = PrototypeContent.ShotgunShell.Id
                 }
@@ -84,7 +85,13 @@ namespace Bnhon.Game.Combat
             }
             else
             {
-                if (_ammo[_current] <= 0) return false;
+                if (_ammo[_current] <= 0)
+                {
+                    // Dry fire: an audible click, and a short pause so holding the button does not buzz.
+                    Sfx.PlayUi(SoundId.EmptyClick, 0.7f);
+                    _nextUseTime = UnityEngine.Time.time + 0.35f;
+                    return false;
+                }
                 _ammo[_current]--;
                 for (int i = 0; i < weapon.Pellets; i++)
                 {
@@ -95,6 +102,7 @@ namespace Bnhon.Game.Combat
 
             _nextUseTime = UnityEngine.Time.time + weapon.Interval;
             Noise.Emit(origin, weapon.NoiseRadius);
+            Sfx.PlayUi(weapon.Sound);
             return true;
         }
 
@@ -110,6 +118,7 @@ namespace Bnhon.Game.Combat
                 if (GameRoot.Instance != null) GameRoot.Instance.Notify("Hết đạn cho " + weapon.Name + ".", 1.5f);
                 return;
             }
+            Sfx.PlayUi(SoundId.Reload, 0.8f);
             StartCoroutine(ReloadRoutine(weapon, _current, ammoSource));
         }
 

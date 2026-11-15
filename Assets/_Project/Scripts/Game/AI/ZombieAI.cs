@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Interaction;
 using Bnhon.Game.Vision;
@@ -68,6 +69,7 @@ namespace Bnhon.Game.AI
         private float _nextWanderChange;
         private float _nextAttackTime;
         private float _nextScreamTime;
+        private float _nextGrowlTime;
         private float _lastSeenTime;
         private Vector2 _lastSeenPosition;
         private bool _seesTarget;
@@ -86,6 +88,7 @@ namespace Bnhon.Game.AI
             _target = target;
             _targetHealth = target != null ? target.GetComponent<Health>() : null;
             Configure(kind);
+            _nextGrowlTime = UnityEngine.Time.time + UnityEngine.Random.Range(0.5f, 5f);
         }
 
         /// <summary>Applies the stats and placeholder color of a zombie type.</summary>
@@ -134,6 +137,7 @@ namespace Bnhon.Game.AI
             Active.Add(this);
             Noise.Emitted += OnNoise;
             _health.Died += OnDied;
+            _health.Damaged += OnDamaged;
         }
 
         private void OnDisable()
@@ -141,6 +145,7 @@ namespace Bnhon.Game.AI
             Active.Remove(this);
             Noise.Emitted -= OnNoise;
             _health.Died -= OnDied;
+            _health.Damaged -= OnDamaged;
         }
 
         private void Update()
@@ -163,6 +168,13 @@ namespace Bnhon.Game.AI
             Vector2 toTarget = (Vector2)_target.position - position;
             float distance = toTarget.magnitude;
             float now = UnityEngine.Time.time;
+
+            // Heard whether or not it is seen: the main warning of what is in the fog.
+            if (now >= _nextGrowlTime)
+            {
+                _nextGrowlTime = now + UnityEngine.Random.Range(3f, 7f);
+                Sfx.Play(SoundId.ZombieGrowl, position, _state == State.Chase ? 0.9f : 0.55f, 15f);
+            }
 
             _seesTarget = distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position);
             if (_seesTarget)
@@ -307,6 +319,7 @@ namespace Bnhon.Game.AI
                 _nextScreamTime = now + screamInterval;
                 // Heard around the screamer, but it sends the pack to where the player is.
                 Noise.Emit(position, screamRadius, _target.position);
+                Sfx.Play(SoundId.ZombieScream, position, 1f, 30f);
                 if (GameRoot.Instance != null) GameRoot.Instance.Notify("Zombie gào đang gọi bầy!", 2.5f);
             }
 
@@ -326,8 +339,14 @@ namespace Bnhon.Game.AI
             _state = State.Investigate;
         }
 
+        private void OnDamaged(Health health)
+        {
+            if (!health.IsDead) Sfx.Play(SoundId.ZombieHit, transform.position, 0.8f);
+        }
+
         private void OnDied(Health health)
         {
+            Sfx.Play(SoundId.ZombieDeath, transform.position, 0.9f);
             SpawnCorpse();
             Destroy(gameObject);
         }

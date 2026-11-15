@@ -33,7 +33,7 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Zombie tìm đường quanh tường (A* trên lưới), đi tới vị trí cuối cùng nhìn thấy người chơi
 - [x] Đói và khát trong raid; ăn uống và băng bó từ balo
 - [x] Xác zombie lục được, đồ rơi theo loại zombie
-- [ ] Âm thanh tạm: bước chân, súng, zombie
+- [x] Âm thanh tạm: 17 hiệu ứng sinh bằng code, thay được bằng file trong `Resources/Audio`
 - [ ] Playtest nội bộ, ghi lại thời lượng một chuyến và tỉ lệ chết
 
 ## M2 - Vertical slice

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Bnhon.Core.Inventory;
 using Bnhon.Core.Loot;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Player;
 using Bnhon.Game.UI;
 using UnityEngine;
@@ -77,6 +78,7 @@ namespace Bnhon.Game.Interaction
                 _hidden = new List<PlacedItem>(_contents.Items);
             }
 
+            Sfx.PlayUi(SoundId.LootOpen, 0.6f);
             if (InventoryScreen.Instance != null) InventoryScreen.Instance.Open(_contents, _title, this);
         }
 
@@ -103,6 +105,7 @@ namespace Bnhon.Game.Interaction
                 {
                     _hidden.RemoveAt(0);
                     _revealElapsed = 0f;
+                    Sfx.PlayUi(SoundId.ItemReveal, 0.5f);
                 }
             }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Bnhon.Core.Loot;
+using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
 using Bnhon.Game.UI;
@@ -66,6 +67,7 @@ namespace Bnhon.Game.Raid
             if (!session.IsInRaid) return;
 
             session.CurrentRaid.Extract();
+            Sfx.PlayUi(SoundId.Extract, 0.8f);
             MovePlayer(_baseSpawn);
             root.Notify("Rút lui thành công. Giá trị balo: " + session.Backpack.TotalValue() + ".", 5f);
         }
@@ -109,6 +111,7 @@ namespace Bnhon.Game.Raid
                 foreach (LootDrop drop in lost) lostCount += drop.Count;
             }
 
+            Sfx.PlayUi(SoundId.PlayerDeath);
             _playerHealth.ResetFull();
             MovePlayer(_baseSpawn);
             root.Notify("Bạn đã gục ngã và mất " + lostCount + " món trong balo. Túi an toàn vẫn còn.", 6f);

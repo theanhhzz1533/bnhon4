@@ -10,6 +10,9 @@ namespace Bnhon.Game.Combat
     public sealed class WeaponDefinition
     {
         public string Name;
+
+        /// <summary>Sound played on each use (see SoundId).</summary>
+        public string Sound;
         public WeaponKind Kind;
 
         /// <summary>Damage per hit: per swing for melee, per pellet for firearms.</summary>
