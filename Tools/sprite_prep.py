@@ -5,6 +5,8 @@
 Steps:
   1. Remove the plain light background: every near-white or light-grey pixel
      connected to the image border becomes transparent (skipped with --tile).
+     With --tile the result is instead a seamless square tile, made by
+     mirroring a patch from the middle of the image.
   2. Find how the image's big "pixels" line up (block size, default 8, because
      Pixel Art XL draws on roughly a 128x128 grid at 1024x1024) and sample one
      colour per block, which gives a clean pixel-art image at true resolution.
@@ -116,23 +118,43 @@ def crop_to_content(rgba, padding=1):
     return rgba[y0:y1, x0:x1]
 
 
+def make_tile(small, cells):
+    """
+    A square tile that repeats without visible seams: take a clean patch from the middle
+    of the image and mirror it left-right and top-bottom, so every edge meets its own copy.
+    """
+    half = cells // 2
+    height, width = small.shape[:2]
+    y0 = max(0, (height - half) // 2)
+    x0 = max(0, (width - half) // 2)
+    patch = small[y0:y0 + half, x0:x0 + half].copy()
+    patch[:, :, 3] = 255
+    top = np.concatenate([patch, patch[:, ::-1]], axis=1)
+    return np.concatenate([top, top[::-1]], axis=0)
+
+
+def process(rgba, tile=False, block=8, keep_shadow=False, tile_cells=64):
+    """Full pipeline on an RGBA array; returns the finished sprite as an RGBA array."""
+    rgba = rgba.copy()
+    if tile:
+        return make_tile(downsample(rgba, block), tile_cells)
+    rgba = remove_background(rgba, keep_shadow)
+    return crop_to_content(downsample(rgba, block))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("input")
     parser.add_argument("key", help="sprite name, e.g. crate_house")
     parser.add_argument("--block", type=int, default=8, help="size of one art pixel in the input (default 8)")
-    parser.add_argument("--tile", action="store_true", help="floor or wall tile: keep the background, no crop")
+    parser.add_argument("--tile", action="store_true", help="floor or wall: output a seamless square tile")
+    parser.add_argument("--tile-cells", type=int, default=64, help="tile size in art pixels (default 64)")
     parser.add_argument("--keep-shadow", action="store_true", help="keep light-grey ground shadows")
     parser.add_argument("--out-dir", default=SPRITES)
     args = parser.parse_args()
 
-    rgba = np.asarray(Image.open(args.input).convert("RGBA")).copy()
-    if not args.tile:
-        rgba = remove_background(rgba, args.keep_shadow)
-
-    small = downsample(rgba, args.block)
-    if not args.tile:
-        small = crop_to_content(small)
+    rgba = np.asarray(Image.open(args.input).convert("RGBA"))
+    small = process(rgba, args.tile, args.block, args.keep_shadow, args.tile_cells)
 
     os.makedirs(args.out_dir, exist_ok=True)
     out_path = os.path.join(args.out_dir, args.key + ".png")
