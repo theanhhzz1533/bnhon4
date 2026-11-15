@@ -44,3 +44,8 @@
 *.fbx filter=lfs diff=lfs merge=lfs -text
 *.dll filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
+
+# Game sprites are a few KB of pixel art: keep them in plain git so they need
+# no LFS setup and diff as ordinary binary files. Large art (concept art,
+# .aseprite sources, audio) still goes through LFS via the rules above.
+Assets/_Project/Resources/Sprites/*.png -filter -diff -merge binary

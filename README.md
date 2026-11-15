@@ -75,7 +75,16 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 | `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |
 | `bed.png`, `stash.png`, `gate.png` | Đồ trong căn cứ | Co theo bề ngang, giữ tỉ lệ |
 
-Sau khi thả ảnh vào, chọn ảnh trong Unity và đặt ở Inspector: Texture Type **Sprite (2D and UI)**, Sprite Mode **Single**, Filter Mode **Point (no filter)**, Compression **None**, rồi Apply. Ảnh được co giãn theo kích thước vật thể nên Pixels Per Unit không ảnh hưởng. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.
+Ảnh trong thư mục này được Unity tự đặt thành sprite pixel art (lọc Point, không nén) nhờ `Assets/_Project/Scripts/Editor/SpriteImportSettings.cs`, nên không cần chỉnh Inspector. Ảnh được co giãn theo kích thước vật thể nên độ phân giải nào cũng chạy, nhưng nên giữ mật độ điểm ảnh đồng đều giữa các món. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.
+
+Ảnh tạo bằng workflow ComfyUI trong `Tools/ComfyUI/` có thể xử lý tự động bằng `Tools/sprite_prep.py` (cần Python, `pip install pillow numpy`):
+
+```
+python Tools/sprite_prep.py bnhon__00002_.png crate_house
+python Tools/sprite_prep.py san.png floor --tile
+```
+
+Script xóa nền sáng, thu về lưới pixel thật (mặc định mỗi điểm ảnh 8 px), cắt sát vật thể, lưu thẳng vào `Resources/Sprites/<tên>.png` và tạo một ảnh xem trước phóng to cạnh file gốc. Dùng `--tile` cho sàn và tường (giữ nền, không cắt), `--keep-shadow` nếu muốn giữ bóng dưới chân.
 
 ## Cấu trúc
 
