@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 61 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 66 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -46,6 +46,12 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 Đói và khát chỉ giảm khi đang raid; về 0 thì mất máu dần và thể lực hồi chậm. Ngủ hồi đầy nước và một phần no.
 
 Một vòng chơi thử: nói chuyện với cư dân để nhận nhiệm vụ, cuốc đất và gieo khoai, ra cổng để raid, lục thùng, đứng trong vùng xanh 3 giây để rút lui, cất đồ, trả nhiệm vụ, ngủ sang ngày mới. Chết trong raid thì mất đồ trong balo. Khi nói chuyện, cư dân tự nhận món quà đầu tiên có trong balo.
+
+## Lưu game
+
+Game tự lưu vào một file `save.json` tại ba thời điểm: khi bắt đầu raid, khi raid kết thúc (rút lui hoặc chết), và khi ngủ. Mở game lại là tiếp tục từ lần lưu gần nhất. Thoát game giữa chuyến raid được tính như chết ngoài đó: mất đồ trong balo và vũ khí đang mang.
+
+Trong Unity, menu **Bnhon > Save** có hai lệnh: xóa file lưu để chơi lại từ đầu, và mở thư mục chứa file lưu. Nếu file lưu hỏng, game bắt đầu ván mới và giữ file cũ lại với đuôi `.bad`.
 
 ## Sửa bản đồ raid
 

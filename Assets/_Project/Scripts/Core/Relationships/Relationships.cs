@@ -120,6 +120,21 @@ namespace Bnhon.Core.Relationships
             return relationship;
         }
 
+        /// <summary>Sets one relationship from a save. Returns false if the NPC is not registered.</summary>
+        public bool Restore(string npcId, int points, bool talkedToday, bool giftedToday, int giftsThisWeek, RelationshipStatus status)
+        {
+            var relationship = npcId != null ? Get(npcId) : null;
+            if (relationship == null) return false;
+
+            relationship.Status = status;
+            relationship.Points = 0;
+            AddPoints(npcId, Math.Max(0, points));
+            relationship.TalkedToday = talkedToday;
+            relationship.GiftedToday = giftedToday;
+            relationship.GiftsThisWeek = Math.Max(0, giftsThisWeek);
+            return true;
+        }
+
         public static int PointsFor(GiftTaste taste)
         {
             switch (taste)

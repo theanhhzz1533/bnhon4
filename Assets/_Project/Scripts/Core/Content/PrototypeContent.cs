@@ -4,6 +4,7 @@ using Bnhon.Core.Items;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Saving;
 using Bnhon.Core.Vitals;
 
 namespace Bnhon.Core.Content
@@ -92,6 +93,15 @@ namespace Bnhon.Core.Content
             SeasonMask.Spring | SeasonMask.Summer | SeasonMask.Autumn, 0, 1, 2);
 
         public static readonly IReadOnlyList<CropDefinition> Crops = new[] { SweetPotatoCrop, CornCrop, MugwortCrop };
+
+        public static CropDefinition FindCrop(string cropId)
+        {
+            foreach (var crop in Crops)
+            {
+                if (crop.Id == cropId) return crop;
+            }
+            return null;
+        }
 
         public static readonly LootTable HouseCabinet = new LootTable("house_cabinet")
             .Add(Wood, 20, 1, 2)
@@ -209,6 +219,15 @@ namespace Bnhon.Core.Content
             if (session.Stash.Add(Pistol, 1) != 0) return false;
             session.Stash.Add(PistolAmmo, PistolMagazine);
             return true;
+        }
+
+        /// <summary>Rebuilds a session from a save: a new session with the saved progress applied on top.</summary>
+        public static GameSession LoadSession(SaveData data, int seed, out LoadReport report)
+        {
+            var session = CreateNewSession((Gender)data.playerGender, seed);
+            report = SaveMapper.Apply(data, session, FindItem, FindCrop);
+            if (report.AbandonedRaid) GrantFallbackWeapon(session);
+            return session;
         }
     }
 }

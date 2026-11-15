@@ -1,6 +1,7 @@
 using Bnhon.Core;
 using Bnhon.Core.Content;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Saving;
 using UnityEngine;
 
 namespace Bnhon.Game
@@ -8,6 +9,7 @@ namespace Bnhon.Game
     /// <summary>
     /// Owns the <see cref="GameSession"/> for the running game and survives
     /// scene loads. Everything in the scene reads game state through here.
+    /// Loads the save file on start and writes it at the game's save points.
     /// </summary>
     public sealed class GameRoot : MonoBehaviour
     {
@@ -36,7 +38,51 @@ namespace Bnhon.Game
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Session = PrototypeContent.CreateNewSession(Gender.Male, System.Environment.TickCount);
+            Session = LoadOrCreateSession();
+        }
+
+        /// <summary>Continues from the save file if there is a usable one, otherwise starts a new game.</summary>
+        private GameSession LoadOrCreateSession()
+        {
+            int seed = System.Environment.TickCount;
+            SaveData data = SaveSystem.Load(out string problem);
+
+            if (data != null)
+            {
+                try
+                {
+                    GameSession loaded = PrototypeContent.LoadSession(data, seed, out LoadReport report);
+                    if (report.AbandonedRaid)
+                    {
+                        Notify("Bạn đã thoát game giữa chuyến raid: tính như gục ngã, mất đồ trong balo và vũ khí đang mang.", 9f);
+                        // Write the outcome down, so reloading again does not repeat it.
+                        SaveSystem.Save(loaded, false);
+                    }
+                    else
+                    {
+                        Notify("Đã tải game: ngày " + loaded.Clock.Day + ", năm " + loaded.Clock.Year + ".", 4f);
+                    }
+                    if (report.Dropped.Count > 0) Debug.LogWarning("File lưu có mục không còn tồn tại, đã bỏ qua: " + string.Join(", ", report.Dropped));
+                    return loaded;
+                }
+                catch (System.Exception error)
+                {
+                    problem = error.Message;
+                }
+            }
+
+            if (problem != null)
+            {
+                SaveSystem.SetAsideBrokenSave();
+                Notify("File lưu bị lỗi (" + problem + "). Bắt đầu game mới; file cũ được giữ lại với đuôi .bad.", 10f);
+            }
+            return PrototypeContent.CreateNewSession(Gender.Male, seed);
+        }
+
+        /// <summary>Writes the current state to the save file.</summary>
+        public void Save(bool inRaid = false)
+        {
+            if (Session != null) SaveSystem.Save(Session, inRaid);
         }
 
         private void OnDestroy()

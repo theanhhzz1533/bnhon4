@@ -13,6 +13,13 @@ namespace Bnhon.Core.Economy
             Money = Math.Max(0, startingMoney);
         }
 
+        /// <summary>Sets the balance from a save.</summary>
+        public void Restore(int money)
+        {
+            Money = Math.Max(0, money);
+            Changed?.Invoke(Money);
+        }
+
         public void Add(int amount)
         {
             if (amount <= 0) return;

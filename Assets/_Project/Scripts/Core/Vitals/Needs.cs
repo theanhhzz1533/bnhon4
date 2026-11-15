@@ -24,6 +24,13 @@ namespace Bnhon.Core.Vitals
             Thirst = max;
         }
 
+        /// <summary>Sets both needs from a save.</summary>
+        public void Restore(float hunger, float thirst)
+        {
+            Hunger = Math.Max(0f, Math.Min(Max, hunger));
+            Thirst = Math.Max(0f, Math.Min(Max, thirst));
+        }
+
         public void Tick(float deltaSeconds)
         {
             Hunger = Math.Max(0f, Hunger - HungerPerSecond * deltaSeconds);

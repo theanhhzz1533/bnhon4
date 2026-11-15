@@ -35,6 +35,12 @@ namespace Bnhon.Core.Calendar
             TotalDays = totalDays;
         }
 
+        /// <summary>Sets the calendar from a save, without raising <see cref="DayStarted"/>.</summary>
+        public void Restore(int totalDays)
+        {
+            TotalDays = Math.Max(0, totalDays);
+        }
+
         public void AdvanceDay()
         {
             TotalDays++;

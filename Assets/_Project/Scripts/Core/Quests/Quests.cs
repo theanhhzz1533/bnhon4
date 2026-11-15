@@ -58,6 +58,15 @@ namespace Bnhon.Core.Quests
             return quest;
         }
 
+        /// <summary>Sets one quest's progress from a save. Returns false if the quest does not exist.</summary>
+        public bool Restore(string questId, QuestState state)
+        {
+            var quest = questId != null ? Get(questId) : null;
+            if (quest == null) return false;
+            quest.State = state;
+            return true;
+        }
+
         public bool Accept(string questId)
         {
             var quest = Get(questId);

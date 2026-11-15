@@ -56,6 +56,8 @@ namespace Bnhon.Game.Raid
                 return false;
             }
 
+            // Saved as "in a raid": quitting from here on loads as a death.
+            root.Save(true);
             MovePlayer(_raidSpawn);
             root.Notify("Bắt đầu raid. Tìm vùng xanh lá để rút lui.");
             return true;
@@ -69,6 +71,7 @@ namespace Bnhon.Game.Raid
 
             session.CurrentRaid.Extract();
             Sfx.PlayUi(SoundId.Extract, 0.8f);
+            root.Save();
             MovePlayer(_baseSpawn);
             root.Notify("Rút lui thành công. Giá trị balo: " + session.Backpack.TotalValue() + ".", 5f);
         }
@@ -84,6 +87,7 @@ namespace Bnhon.Game.Raid
             }
 
             _playerHealth.ResetFull();
+            root.Save();
             if (_rebuildRaidZone != null) _rebuildRaidZone();
             root.Notify("Ngày " + session.Clock.Day + ", " + SeasonName(session.Clock.Season) + ", năm " + session.Clock.Year + ".", 5f);
             return true;
@@ -117,6 +121,7 @@ namespace Bnhon.Game.Raid
             MovePlayer(_baseSpawn);
             string message = "Bạn đã gục ngã, mất " + lostCount + " món trong balo và vũ khí đang mang. Túi an toàn vẫn còn.";
             if (PrototypeContent.GrantFallbackWeapon(session)) message += " Minh để lại trong kho một khẩu súng ngắn cũ.";
+            root.Save();
             root.Notify(message, 8f);
         }
 

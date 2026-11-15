@@ -83,6 +83,24 @@ namespace Bnhon.Core.Farming
         public int DryDays { get; private set; }
         public bool IsWatered { get; private set; }
 
+        /// <summary>Sets the plot from a save. A growing or ready plot whose crop no longer exists becomes tilled soil.</summary>
+        public void Restore(PlotState state, CropDefinition crop, int growthDays, int dryDays, bool watered)
+        {
+            bool needsCrop = state == PlotState.Growing || state == PlotState.Ready;
+            if (needsCrop && crop == null)
+            {
+                state = PlotState.Tilled;
+                growthDays = 0;
+                dryDays = 0;
+            }
+
+            State = state;
+            Crop = needsCrop ? crop : null;
+            GrowthDays = Math.Max(0, growthDays);
+            DryDays = Math.Max(0, dryDays);
+            IsWatered = watered && state != PlotState.Untilled && state != PlotState.Dead;
+        }
+
         public bool Till()
         {
             if (State != PlotState.Untilled && State != PlotState.Dead) return false;

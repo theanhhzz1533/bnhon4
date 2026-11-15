@@ -2,7 +2,7 @@
 
 Năm mốc, mỗi mốc có một điều kiện xong. Chưa gắn ngày vì chưa chốt quy mô đội. Mốc quan trọng nhất là M1: nếu một chuyến raid graybox chưa vui thì chưa làm tiếp farming hay NPC.
 
-## M0 - Khởi động (đang làm)
+## M0 - Khởi động
 
 Xong khi: mở được project trong Unity và test Core chạy xanh.
 
@@ -16,7 +16,7 @@ Xong khi: mở được project trong Unity và test Core chạy xanh.
 - [ ] Chạy test EditMode trong Unity và workflow `core-tests` trên GitHub
 - [ ] Chốt các câu hỏi mở trong GDD mục 12
 
-## M1 - Prototype lõi
+## M1 - Prototype lõi (xong)
 
 Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 
@@ -40,12 +40,12 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 - [x] Sau playtest 1: sửa tìm đường qua cửa, zombie tăng viện theo thời gian, dùng vật phẩm mất thời gian, giảm đồ hồi máu, lục đồ chậm hơn
 - [x] Playtest lần 2 trên bản đồ lớn: một chuyến khoảng 10 phút, có căng thẳng
 
-## M2 - Vertical slice
+## M2 - Vertical slice (đang làm)
 
 Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 phút.
 
 - [ ] Tách căn cứ và bản đồ raid thành hai scene, có màn chuyển cảnh
-- [ ] Lưu và tải game bằng JSON (lưu khi ngủ và khi kết thúc raid)
+- [x] Lưu và tải game bằng JSON: tự lưu khi bắt đầu raid, kết thúc raid và khi ngủ; thoát giữa raid tính là chết
 - [ ] Chuyển dữ liệu mẫu trong `PrototypeContent` sang ScriptableObject
 - [ ] Đặt và dời công trình trên lưới: bàn chế tạo, kho, bếp
 - [ ] Chế tạo và bản vẽ

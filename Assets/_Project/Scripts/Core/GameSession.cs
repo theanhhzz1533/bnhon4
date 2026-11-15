@@ -52,6 +52,13 @@ namespace Bnhon.Core
             Needs = new Needs();
         }
 
+        /// <summary>Sets whether today's raid has been used, from a save. Any raid object is discarded.</summary>
+        public void RestoreRaidedToday(bool raidedToday)
+        {
+            CurrentRaid = null;
+            RaidedToday = raidedToday;
+        }
+
         /// <summary>Starts today's raid. Returns null if one was already started today.</summary>
         public RaidSession TryStartRaid()
         {
