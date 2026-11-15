@@ -1,7 +1,9 @@
 {
     "name": "Bnhon.Editor",
     "rootNamespace": "Bnhon.EditorTools",
-    "references": [],
+    "references": [
+        "Bnhon.Core"
+    ],
     "includePlatforms": [
         "Editor"
     ],

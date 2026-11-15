@@ -49,7 +49,9 @@ Một vòng chơi thử: nói chuyện với cư dân để nhận nhiệm vụ,
 
 ## Sửa bản đồ raid
 
-Khu raid được dựng từ file chữ `Assets/_Project/Resources/Maps/outskirts.txt`, mỗi ký tự là một ô rộng 1 đơn vị. Mở bằng Notepad, sửa, lưu, rồi Play.
+Khu raid được dựng từ file chữ `Assets/_Project/Resources/Maps/outskirts.txt`, mỗi ký tự là một ô rộng 1 đơn vị.
+
+Cách tiện nhất là dùng trình sửa bản đồ trong Unity: menu **Bnhon > Raid Map Editor**. Nó vẽ bản đồ thành hình có màu, cho chọn ký hiệu rồi kéo chuột trái để vẽ (chuột phải để lấy ký hiệu tại ô đang trỏ), báo ngay nếu bản đồ sai hoặc có chỗ bị bít kín, và bấm Lưu để ghi lại file. Cũng có thể mở file bằng Notepad, sửa, lưu, rồi Play.
 
 | Ký tự | Ý nghĩa |
 | --- | --- |
