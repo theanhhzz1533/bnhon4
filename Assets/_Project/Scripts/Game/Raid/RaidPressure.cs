@@ -6,14 +6,14 @@ using UnityEngine;
 namespace Bnhon.Game.Raid
 {
     /// <summary>
-    /// Makes staying outside progressively more dangerous. After a grace period, groups of
-    /// zombies arrive at intervals and head for the player; each group is bigger than the
-    /// last. A raid can therefore never be fully cleared: the player has to decide when
-    /// to leave.
+    /// Keeps a cleared map from being safe. Nothing happens while any of the zombies placed
+    /// by the map are still alive. Once the last one is dead, groups of zombies start arriving
+    /// at intervals and head for the player; each group is bigger than the last. The player
+    /// can clear the map, but cannot then loot it at leisure.
     /// </summary>
     public sealed class RaidPressure : MonoBehaviour
     {
-        [SerializeField] private float firstWaveAfter = 70f;
+        [SerializeField] private float delayAfterClear = 25f;
         [SerializeField] private float waveInterval = 40f;
         [SerializeField] private int firstWaveSize = 2;
         [SerializeField] private int maxWaveSize = 6;
@@ -22,6 +22,7 @@ namespace Bnhon.Game.Raid
         private Func<int, int> _spawn;
         private bool _wasInRaid;
         private float _nextWaveTime;
+        private bool _mapCleared;
         private int _wavesSent;
 
         /// <summary>Seconds spent in the current raid, or 0 in the base.</summary>
@@ -60,10 +61,19 @@ namespace Bnhon.Game.Raid
                 _wasInRaid = true;
                 RaidSeconds = 0f;
                 _wavesSent = 0;
-                _nextWaveTime = firstWaveAfter;
+                _mapCleared = false;
             }
 
             RaidSeconds += UnityEngine.Time.deltaTime;
+
+            if (!_mapCleared)
+            {
+                if (ZombieAI.AliveCount > 0) return;
+                _mapCleared = true;
+                _nextWaveTime = RaidSeconds + delayAfterClear;
+                GameRoot.Instance.Notify("Khu vực đã yên... nhưng sẽ không lâu.", 4f);
+            }
+
             if (RaidSeconds < _nextWaveTime || _spawn == null) return;
 
             _nextWaveTime += waveInterval;
