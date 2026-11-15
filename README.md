@@ -29,7 +29,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 `PrototypeBootstrap` dựng toàn bộ màn chơi thử bằng các ô vuông màu, không cần prefab hay asset:
 
 - **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, giường, cổng ra ngoài.
-- **Khu raid:** dựng từ bản đồ file chữ: nhà, phòng khám, cửa hàng, nhà kho, với thùng đồ, zombie và hai vùng rút lui màu xanh lá.
+- **Khu raid:** dựng từ bản đồ file chữ 104×64 ô: 21 công trình (nhà, phòng khám, trường học, cửa hàng, nhà kho, bãi xe), 45 thùng đồ, 65 zombie và ba vùng rút lui màu xanh lá.
 
 | Phím | Hành động |
 | --- | --- |

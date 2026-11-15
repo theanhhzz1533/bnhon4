@@ -47,6 +47,9 @@ namespace Bnhon.Game.AI
         [SerializeField] private float loseInterestTime = 4f;
         [SerializeField] private float investigateTimeout = 14f;
 
+        [Tooltip("How much of a noise's reach is left when a wall stands between it and this zombie.")]
+        [SerializeField] private float wallMuffle = 0.5f;
+
         [Header("Crowding")]
         [SerializeField] private float separationRadius = 1.25f;
         [SerializeField] private float separationStrength = 2.4f;
@@ -351,7 +354,11 @@ namespace Bnhon.Game.AI
         private void OnNoise(Vector2 source, float radius, Vector2 pointOfInterest)
         {
             if (_state == State.Chase) return;
-            if (((Vector2)transform.position - source).sqrMagnitude > radius * radius) return;
+
+            // Walls muffle sound: with one in the way, a noise carries only part of the distance.
+            Vector2 position = transform.position;
+            if (SightBlocker.IsBlocked(source, position)) radius *= wallMuffle;
+            if ((position - source).sqrMagnitude > radius * radius) return;
 
             Investigate(pointOfInterest, investigateTimeout);
         }

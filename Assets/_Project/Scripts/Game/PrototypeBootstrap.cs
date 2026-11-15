@@ -49,6 +49,7 @@ namespace Bnhon.Game
         private readonly List<GridPoint> _openCells = new List<GridPoint>();
         private Vector2 _raidSize;
         private Transform _raidRoot;
+        private Transform _raidGeometry;
         private PlayerController _player;
 
         private void Start()
@@ -239,11 +240,17 @@ namespace Bnhon.Game
         /// <summary>Destroys and rebuilds everything in the raid zone from the map. Called on start and after each sleep.</summary>
         private void BuildRaidZone()
         {
+            // Floor and walls never change, so they are built once. Only loot, zombies,
+            // corpses and extraction points are thrown away and rebuilt each day.
+            if (_raidGeometry == null)
+            {
+                _raidGeometry = new GameObject("RaidGeometry").transform;
+                BuildFloor();
+                BuildWalls();
+            }
+
             if (_raidRoot != null) Destroy(_raidRoot.gameObject);
             _raidRoot = new GameObject("RaidZone").transform;
-
-            BuildFloor();
-            BuildWalls();
 
             foreach (MapMarker marker in _map.Markers)
             {
@@ -275,13 +282,13 @@ namespace Bnhon.Game
         {
             if (PlaceholderArt.FindSprite("floor") == null)
             {
-                PlaceholderArt.Box("RaidFloor", RaidCenter, _raidSize, RaidFloorColor, _raidRoot, 0);
+                PlaceholderArt.Box("RaidFloor", RaidCenter, _raidSize, RaidFloorColor, _raidGeometry, 0);
                 return;
             }
 
             // With floor art, lay one tile per open cell.
             Transform floor = new GameObject("Floor").transform;
-            floor.SetParent(_raidRoot, false);
+            floor.SetParent(_raidGeometry, false);
             for (int y = 0; y < _map.Height; y++)
             {
                 for (int x = 0; x < _map.Width; x++)
@@ -301,7 +308,7 @@ namespace Bnhon.Game
         {
             bool hasArt = PlaceholderArt.FindSprite("wall") != null;
             Transform walls = new GameObject("Walls").transform;
-            walls.SetParent(_raidRoot, false);
+            walls.SetParent(_raidGeometry, false);
 
             var merged = new bool[_map.Width, _map.Height];
 
