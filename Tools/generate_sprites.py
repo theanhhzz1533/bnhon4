@@ -56,7 +56,7 @@ ASSETS = [
     ("zombie_walker", "shambling zombie in torn grey clothes, full body, facing the viewer", False),
     ("zombie_runner", "lean fast zombie in a torn orange tracksuit, full body, facing the viewer", False),
     ("zombie_screamer", "thin pale zombie with a wide open screaming mouth, purple rags, full body, facing the viewer", False),
-    ("corpse", "dead zombie lying flat on the ground, seen from above", False),
+    ("corpse", "one dead zombie body lying on its back with arms spread, isolated, nothing around it, no ground, no floor", False),
     ("player", "young male survivor with a backpack and a blue jacket, full body, facing the viewer", False),
     ("npc_lan", "young Vietnamese woman survivor in a pink shirt, full body, facing the viewer", False),
     ("npc_minh", "young Vietnamese man mechanic in light blue overalls, full body, facing the viewer", False),
