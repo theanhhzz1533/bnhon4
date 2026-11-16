@@ -76,7 +76,7 @@ namespace Bnhon.Game
 
             new GameObject("RaidPressure").AddComponent<RaidPressure>().Init(SpawnReinforcements);
 
-            var hud = new GameObject("DebugHud").AddComponent<DebugHud>();
+            var hud = new GameObject("GameHud").AddComponent<GameHud>();
             hud.Player = _player;
 
             var vision = new GameObject("VisionSystem").AddComponent<VisionSystem>();

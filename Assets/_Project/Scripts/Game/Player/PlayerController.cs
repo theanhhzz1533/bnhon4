@@ -71,7 +71,9 @@ namespace Bnhon.Game.Player
 
             Keyboard keyboard = Keyboard.current;
             Mouse mouse = Mouse.current;
-            if (keyboard == null || mouse == null || !ControlEnabled || GameRoot.Instance == null)
+            // The key that closed a menu this frame must not also roll or interact.
+            bool menuJustClosed = Bnhon.Game.UI.ModalScreen.ClosedFrame == UnityEngine.Time.frameCount;
+            if (keyboard == null || mouse == null || !ControlEnabled || menuJustClosed || GameRoot.Instance == null)
             {
                 _move = Vector2.zero;
                 _sprinting = false;

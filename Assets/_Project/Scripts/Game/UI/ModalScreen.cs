@@ -64,30 +64,50 @@ namespace Bnhon.Game.UI
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.escapeKey.wasPressedThisFrame || keyboard.tabKey.wasPressedThisFrame) Close();
+            else OnKeys(keyboard);
         }
+
+        /// <summary>Called every frame the menu is open, for menus with their own keys.</summary>
+        protected virtual void OnKeys(Keyboard keyboard)
+        {
+        }
+
+        /// <summary>Where the panel sits, in layout units (see <see cref="UiScale"/>). The default nearly fills the window.</summary>
+        protected virtual Rect PanelRect(float width, float height)
+        {
+            float panelWidth = Mathf.Min(920f, width - 40f);
+            return new Rect((width - panelWidth) * 0.5f, 30f, panelWidth, height - 60f);
+        }
+
+        /// <summary>How dark the game behind the panel gets.</summary>
+        protected virtual float BackdropAlpha => 0.7f;
 
         private void OnGUI()
         {
             if (!IsOpen || GameRoot.Instance == null) return;
             EnsureStyles();
 
-            GUI.color = new Color(0f, 0f, 0f, 0.7f);
+            GUI.color = new Color(0f, 0f, 0f, BackdropAlpha);
             GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            float width = Mathf.Min(920f, Screen.width - 40f);
-            float height = Screen.height - 60f;
-            var panel = new Rect((Screen.width - width) * 0.5f, 30f, width, height);
+            Matrix4x4 previous = UiScale.Apply();
+            Rect panel = PanelRect(UiScale.Width, UiScale.Height);
 
             GUI.color = new Color(0.1f, 0.11f, 0.13f, 0.97f);
             GUI.DrawTexture(panel, Texture2D.whiteTexture);
+            GUI.color = new Color(0.95f, 0.85f, 0.4f, 0.9f);
+            GUI.DrawTexture(new Rect(panel.x, panel.y, panel.width, 2f), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
-            GUILayout.BeginArea(new Rect(panel.x + 16f, panel.y + 12f, panel.width - 32f, panel.height - 24f));
+            GUILayout.BeginArea(new Rect(panel.x + 18f, panel.y + 14f, panel.width - 36f, panel.height - 26f));
             DrawContents();
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Esc hoặc Tab để đóng", TextStyle);
+            // The HUD is hidden behind a menu, so the latest message is shown here instead.
+            if (GameRoot.Instance.HasMessage) ColoredLabel(GameRoot.Instance.Message, new Color(0.95f, 0.85f, 0.4f));
+            ColoredLabel(FooterHint, new Color(0.6f, 0.6f, 0.63f));
             GUILayout.EndArea();
+            GUI.matrix = previous;
 
             // Lists are drawn from live collections; change them only after drawing is done.
             if (_pending != null)
@@ -99,6 +119,9 @@ namespace Bnhon.Game.UI
         }
 
         protected abstract void DrawContents();
+
+        /// <summary>The line at the bottom of the panel saying how to leave.</summary>
+        protected virtual string FooterHint => "Esc hoặc Tab để đóng";
 
         /// <summary>Runs after this frame's drawing. Use it for anything a button does to the lists being shown.</summary>
         protected void Defer(System.Action action)
@@ -134,7 +157,7 @@ namespace Bnhon.Game.UI
             HeaderStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, fontStyle = FontStyle.Bold };
             HeaderStyle.normal.textColor = new Color(0.95f, 0.85f, 0.4f);
 
-            TextStyle = new GUIStyle(GUI.skin.label) { fontSize = 14, wordWrap = true };
+            TextStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
             TextStyle.normal.textColor = Color.white;
 
             ButtonStyle = new GUIStyle(GUI.skin.button) { fontSize = 14 };

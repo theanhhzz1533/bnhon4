@@ -55,7 +55,8 @@ Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 p
 - [x] Chuỗi cốt truyện mở đầu: tỉnh dậy trong bệnh viện, được Minh cứu về căn cứ, rồi 5 mục tiêu cho những ngày đầu
 - [x] Quầy mua bán: hàng giới hạn về lại mỗi ngày, bán đồ được nửa giá trị
 - [ ] Pixel art thật cho căn cứ và một khu raid; Pixel Perfect Camera; ánh sáng 2D
-- [ ] HUD và menu bằng UI Toolkit thay cho HUD debug
+- [x] HUD dạng khối thay cho HUD debug: thanh máu và thể lực, vũ khí, mục tiêu, nhiệm vụ; giao diện co theo cửa sổ; hộp thoại cốt truyện
+- [ ] Chuyển HUD và menu từ IMGUI sang UI Toolkit
 
 ## M3 - Alpha
 
