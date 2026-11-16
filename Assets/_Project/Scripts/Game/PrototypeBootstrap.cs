@@ -82,6 +82,7 @@ namespace Bnhon.Game
             new GameObject("WorkbenchScreen").AddComponent<WorkbenchScreen>().Player = _player;
             new GameObject("ShopScreen").AddComponent<ShopScreen>().Player = _player;
             new GameObject("KitchenScreen").AddComponent<KitchenScreen>().Player = _player;
+            new GameObject("NpcScreen").AddComponent<NpcScreen>().Player = _player;
         }
 
         private void LoadMap()
@@ -249,17 +250,33 @@ namespace Bnhon.Game
             shop.AddComponent<YSort>();
             shop.AddComponent<ShopStall>();
 
-            BuildNpc(PrototypeContent.NpcLan, new Vector2(-2f, 4.5f), new Color(0.95f, 0.6f, 0.75f), root);
-            BuildNpc(PrototypeContent.NpcMinh, new Vector2(0.5f, 4.5f), new Color(0.5f, 0.75f, 0.95f), root);
-            BuildNpc(PrototypeContent.NpcBaTu, new Vector2(-5f, 4.5f), new Color(0.8f, 0.8f, 0.6f), root);
+            BuildNpc(PrototypeContent.NpcLan, new Color(0.95f, 0.6f, 0.75f), root);
+            BuildNpc(PrototypeContent.NpcMinh, new Color(0.5f, 0.75f, 0.95f), root);
+            BuildNpc(PrototypeContent.NpcBaTu, new Color(0.8f, 0.8f, 0.6f), root);
         }
 
-        private static void BuildNpc(string npcId, Vector2 position, Color color, Transform parent)
+        /// <summary>Where each named spot of the base is. Residents stand at these by their schedules.</summary>
+        private static Vector2 SpotPosition(string spot)
         {
-            GameObject npc = PlaceholderArt.Box("Npc_" + npcId, position, new Vector2(0.8f, 0.8f), color, parent, 10, "npc_" + npcId, SpriteFit.Character);
+            switch (spot)
+            {
+                case PrototypeContent.SpotClinic: return new Vector2(-2f, 4.5f);
+                case PrototypeContent.SpotWorkshop: return new Vector2(0.5f, 4.5f);
+                case PrototypeContent.SpotPorch: return new Vector2(-5f, 4.5f);
+                case PrototypeContent.SpotKitchen: return new Vector2(0.7f, -5.3f);
+                case PrototypeContent.SpotWell: return new Vector2(-4.2f, -3.3f);
+                case PrototypeContent.SpotGate: return new Vector2(7.4f, -5.2f);
+                case PrototypeContent.SpotFarm: return new Vector2(-8.8f, 0.3f);
+                default: return new Vector2(0f, 3f);
+            }
+        }
+
+        private static void BuildNpc(string npcId, Color color, Transform parent)
+        {
+            GameObject npc = PlaceholderArt.Box("Npc_" + npcId, SpotPosition(PrototypeContent.SpotClinic), new Vector2(0.8f, 0.8f), color, parent, 10, "npc_" + npcId, SpriteFit.Character);
             npc.AddComponent<BoxCollider2D>();
             npc.AddComponent<YSort>();
-            npc.AddComponent<NpcView>().Init(npcId);
+            npc.AddComponent<NpcView>().Init(npcId, SpotPosition);
         }
 
         /// <summary>Destroys and rebuilds everything in the raid zone from the map. Called on start and after each sleep.</summary>

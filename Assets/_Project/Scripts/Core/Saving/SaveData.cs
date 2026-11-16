@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -41,6 +41,9 @@ namespace Bnhon.Core.Saving
         public bool canSaved;
         public int canWater;
         public List<BuffSave> buffs = new List<BuffSave>();
+
+        // Added in version 4. Absent in older saves: nobody met, no scenes seen.
+        public List<string> storyFlags = new List<string>();
     }
 
     [Serializable]

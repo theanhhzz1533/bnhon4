@@ -1,100 +1,88 @@
+using System;
+using Bnhon.Core;
 using Bnhon.Core.Content;
-using Bnhon.Core.Items;
+using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Relationships;
 using Bnhon.Game.Player;
+using Bnhon.Game.UI;
 using UnityEngine;
 
 namespace Bnhon.Game.Interaction
 {
     /// <summary>
-    /// A base resident. One key: turn in a finished quest, else accept a new
-    /// one, else give a gift from the backpack, else just talk.
+    /// A base resident. Stands where their schedule puts them for this half of the day,
+    /// and opens the talk screen on E.
     /// </summary>
     public sealed class NpcView : MonoBehaviour, IInteractable
     {
         private string _npcId;
+        private NpcLife _life;
+        private Func<string, Vector2> _spotPosition;
+        private string _spot;
+        private int _placedDay = -1;
+        private DayPhase _placedPhase;
 
         public string Prompt
         {
             get
             {
-                Relationship relationship = GameRoot.Instance.Session.Relationships.Get(_npcId);
+                GameSession session = GameRoot.Instance.Session;
+                Relationship relationship = session.Relationships.Get(_npcId);
                 if (relationship == null) return string.Empty;
-                return "E: Nói chuyện với " + relationship.Npc.DisplayName + " (" + relationship.Hearts + " tim)";
+
+                string prompt = "E: Nói chuyện với " + relationship.Npc.DisplayName + " (" + relationship.Hearts + " tim)";
+                if (_life == null) return prompt;
+
+                if (session.Story.Has(_life.MetFlag) && _life.NextEvent(relationship.Hearts, session.Phase, session.Story) != null)
+                {
+                    return prompt + "  ♥ có chuyện muốn nói";
+                }
+                foreach (DeliveryQuest quest in session.Quests.All)
+                {
+                    if (quest.GiverNpcId != _npcId) continue;
+                    if (quest.State == QuestState.Available) return prompt + "  · có nhiệm vụ";
+                    if (session.Quests.CanTurnIn(quest.Id, session.Backpack)) return prompt + "  · giao được nhiệm vụ";
+                }
+                return prompt;
             }
         }
 
-        public void Init(string npcId)
+        /// <param name="spotPosition">Where in the scene each named spot of the base is.</param>
+        public void Init(string npcId, Func<string, Vector2> spotPosition)
         {
             _npcId = npcId;
+            _life = PrototypeContent.FindNpcLife(npcId);
+            _spotPosition = spotPosition;
+            Place();
+        }
+
+        private void Update()
+        {
+            Place();
+        }
+
+        /// <summary>
+        /// Moves to the scheduled spot when the day or its half changes. Both only change
+        /// while the player is asleep or away on a raid, so nobody is seen jumping.
+        /// </summary>
+        private void Place()
+        {
+            if (_life == null || _spotPosition == null || GameRoot.Instance == null) return;
+
+            GameSession session = GameRoot.Instance.Session;
+            if (session.IsInRaid) return;
+            if (session.Clock.TotalDays == _placedDay && session.Phase == _placedPhase) return;
+
+            _placedDay = session.Clock.TotalDays;
+            _placedPhase = session.Phase;
+            _spot = _life.Schedule.SpotFor(session.Clock.DayOfWeek, session.Phase);
+            transform.position = _spotPosition(_spot);
         }
 
         public void Interact(PlayerController player)
         {
-            var root = GameRoot.Instance;
-            var session = root.Session;
-            Relationship relationship = session.Relationships.Get(_npcId);
-            if (relationship == null) return;
-            string name = relationship.Npc.DisplayName;
-
-            foreach (DeliveryQuest quest in session.Quests.All)
-            {
-                if (quest.GiverNpcId != _npcId || quest.State != QuestState.Active) continue;
-                if (!session.Quests.TurnIn(quest.Id, session.Backpack, session.Wallet, session.Relationships)) continue;
-
-                root.Notify(name + ": Cảm ơn! Xong \"" + quest.Title + "\" (+" + quest.RewardMoney + " tem phiếu).");
-                return;
-            }
-
-            foreach (DeliveryQuest quest in session.Quests.All)
-            {
-                if (quest.GiverNpcId != _npcId || quest.State != QuestState.Available) continue;
-
-                session.Quests.Accept(quest.Id);
-                ItemDefinition item = PrototypeContent.FindItem(quest.ItemId);
-                string itemName = item != null ? item.DisplayName : quest.ItemId;
-                root.Notify(name + ": \"" + quest.Title + "\" - mang cho tôi " + quest.Count + " " + itemName + " (để trong balo).", 6f);
-                return;
-            }
-
-            if (TryGiveGift(relationship)) return;
-
-            bool firstTalk = session.Relationships.Talk(_npcId);
-            string line = firstTalk ? name + ": Hôm nay bên ngoài thế nào?" : name + ": Mình nói chuyện rồi mà.";
-            if (session.Relationships.CanAskOut(_npcId)) line += " (Đã đủ thân để ngỏ lời hẹn hò.)";
-            root.Notify(line);
-        }
-
-        private bool TryGiveGift(Relationship relationship)
-        {
-            var root = GameRoot.Instance;
-            var session = root.Session;
-            if (relationship.GiftedToday || relationship.GiftsThisWeek >= RelationshipTracker.GiftsPerWeek) return false;
-
-            ItemDefinition gift = null;
-            foreach (var placed in session.Backpack.Items)
-            {
-                if (placed.Item.Category == ItemCategory.Gift)
-                {
-                    gift = placed.Item;
-                    break;
-                }
-            }
-            if (gift == null) return false;
-            if (!session.Backpack.TryConsume(gift.Id, 1)) return false;
-
-            session.Relationships.Gift(relationship.Npc.Id, gift.Id, out GiftTaste taste);
-            string reaction;
-            switch (taste)
-            {
-                case GiftTaste.Loved: reaction = "Trời ơi, mình thích lắm!"; break;
-                case GiftTaste.Liked: reaction = "Cảm ơn nhé, đẹp đấy."; break;
-                case GiftTaste.Disliked: reaction = "Ờ... cảm ơn."; break;
-                default: reaction = "Cảm ơn bạn."; break;
-            }
-            root.Notify(relationship.Npc.DisplayName + " nhận " + gift.DisplayName + ": " + reaction);
-            return true;
+            if (NpcScreen.Instance != null) NpcScreen.Instance.Show(_npcId, _spot);
         }
     }
 }

@@ -4,6 +4,7 @@ using Bnhon.Core.Crafting;
 using Bnhon.Core.Economy;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Inventory;
+using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Raid;
 using Bnhon.Core.Relationships;
@@ -35,6 +36,11 @@ namespace Bnhon.Core
         public Workshop Workshop { get; }
         public Shop Shop { get; }
         public Needs Needs { get; }
+        public StoryFlags Story { get; }
+
+        /// <summary>Morning until the day's raid has been used, evening after.</summary>
+        public DayPhase Phase => RaidedToday ? DayPhase.Evening : DayPhase.Morning;
+
         public WateringCan WateringCan { get; }
         public BuffSet Buffs { get; }
 
@@ -61,6 +67,7 @@ namespace Bnhon.Core
             Workshop = new Workshop();
             Shop = new Shop();
             Needs = new Needs();
+            Story = new StoryFlags();
             WateringCan = new WateringCan();
             Buffs = new BuffSet();
             Kitchen = new Workshop();
@@ -99,6 +106,30 @@ namespace Bnhon.Core
             Needs.Drink(Needs.Max);
             Needs.Eat(SleepMeal);
             Stamina.Refill();
+            return true;
+        }
+
+        /// <summary>
+        /// Gives one unit of a stack to a resident. The item is only taken if the gift is
+        /// accepted (one a day, two a week).
+        /// </summary>
+        public GiftResult GiveGift(string npcId, GridInventory grid, PlacedItem placed, out GiftTaste taste)
+        {
+            taste = GiftTaste.Neutral;
+            if (grid == null || placed == null || !grid.Contains(placed)) return GiftResult.UnknownNpc;
+
+            string itemId = placed.Item.Id;
+            GiftResult result = Relationships.Gift(npcId, itemId, out taste);
+            if (result == GiftResult.Accepted) grid.TakeFromStack(placed, 1);
+            return result;
+        }
+
+        /// <summary>Ends a heart scene on the chosen answer: it will not play again, and the answer's points are added.</summary>
+        public bool CompleteEvent(string npcId, HeartEvent heartEvent, SceneChoice choice)
+        {
+            if (heartEvent == null || Story.Has(heartEvent.Id)) return false;
+            Story.Set(heartEvent.Id);
+            if (choice != null) Relationships.AddPoints(npcId, choice.Points);
             return true;
         }
 

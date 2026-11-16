@@ -51,7 +51,7 @@ Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 p
 - [x] Chế tạo kiểu Escape From Duckov: bàn chế tạo 3 cấp, bản vẽ phải mang về đăng ký, tháo dỡ vật phẩm
 - [x] Farming: bình tưới có dung tích và giếng nước, 6 loại cây theo mùa, chọn hạt để gieo, bếp nấu 4 món có buff
 - [ ] Farming, phần còn lại: cuốc và bình tưới nâng cấp được, hình cây lớn dần trên ô ruộng
-- [ ] Một NPC hoàn chỉnh: lịch sinh hoạt, hội thoại, quà tặng có UI, 2 cảnh tim
+- [x] Một NPC hoàn chỉnh (Lan): lịch sinh hoạt theo buổi và ngày trong tuần, hội thoại theo số tim, tặng quà có UI, 2 cảnh tim có lựa chọn
 - [ ] Một chuỗi nhiệm vụ cốt truyện mở đầu
 - [x] Quầy mua bán: hàng giới hạn về lại mỗi ngày, bán đồ được nửa giá trị
 - [ ] Pixel art thật cho căn cứ và một khu raid; Pixel Perfect Camera; ánh sáng 2D

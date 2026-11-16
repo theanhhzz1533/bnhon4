@@ -3,6 +3,7 @@ using Bnhon.Core.Crafting;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Items;
 using Bnhon.Core.Loot;
+using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Relationships;
 using Bnhon.Core.Saving;
@@ -235,6 +236,126 @@ namespace Bnhon.Core.Content
                 new NpcProfile(NpcBaTu, "Bà Tư", Gender.Female, false)
                     .Loves(SweetPotato.Id).Likes(TeaTin.Id, Mugwort.Id)
             };
+        }
+
+        // Places in the base a resident can stand. The scene maps each to a position.
+        public const string SpotClinic = "clinic";
+        public const string SpotWorkshop = "workshop";
+        public const string SpotPorch = "porch";
+        public const string SpotKitchen = "kitchen";
+        public const string SpotWell = "well";
+        public const string SpotGate = "gate";
+        public const string SpotFarm = "farm";
+
+        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm };
+
+        public const string EventLanSupplies = "lan_2_supplies";
+        public const string EventLanTea = "lan_4_tea";
+
+        /// <summary>Lan: the base's medic, a nursing student when the outbreak began. The one fully written resident so far.</summary>
+        private static NpcLife CreateLan()
+        {
+            var schedule = new NpcSchedule(SpotClinic)
+                .On(DayPhase.Evening, SpotKitchen)
+                .OnDay(6, DayPhase.Morning, SpotWell);
+
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Em là Lan, lo tủ thuốc của hợp tác xã. {P} mới tới thì nhớ một điều thôi: bị cắn hay bị xước gì cũng phải báo em, đừng giấu.",
+                AlreadyTalked = "Mình nói chuyện rồi mà. {P} đi làm việc đi, em còn phải kiểm thuốc.",
+                AcceptsDating = "...Em tưởng {p} không bao giờ hỏi. Vâng."
+            };
+            book.SayIn(DayPhase.Morning, "{P} ra ngoài nhớ mang băng gạc. Em không muốn tối nay phải khâu cho ai đâu.", 0, 1)
+                .SayIn(DayPhase.Morning, "Tủ thuốc còn đúng nửa lọ cồn. Thấy tủ y tế ngoài kia thì {p} lục kỹ giúp em.", 0, 1)
+                .SayIn(DayPhase.Evening, "{P} về rồi à. Xoay một vòng em xem có vết thương nào không.", 0, 1)
+                .SayIn(DayPhase.Evening, "Tối nào em cũng đếm người. Đủ thì mới ngủ được.", 0, 1)
+                .SayIn(DayPhase.Morning, "Hồi trước em học điều dưỡng, mới năm ba thì dịch nổ ra. Giờ cả căn cứ gọi em là bác sĩ, nghe mà run.", 2, 3)
+                .SayIn(DayPhase.Morning, "Ngải cứu {p} trồng tốt lắm. Đắp vết bầm còn nhanh hơn thuốc em có.", 2, 3)
+                .SayIn(DayPhase.Evening, "Hôm nay ngoài đó có đông không? {P} kể đi, em nghe.", 2, 3)
+                .SayIn(DayPhase.Evening, "Em nấu dư một bát. Không phải phần của {p} đâu, nhưng {p} ăn đi.", 2, 3)
+                .SayIn(DayPhase.Morning, "Dạo này nghe tiếng cổng mở buổi chiều là em biết {p} về. Lạ ghê.", 4)
+                .SayIn(DayPhase.Morning, "Em để dành cho {p} một gói trà. Uống cho ấm rồi hẵng đi.", 4)
+                .SayIn(DayPhase.Evening, "Ngồi xuống đây một lát đi. Hôm nay em không hỏi vết thương nữa, em hỏi {p} có mệt không.", 4)
+                .SayIn(DayPhase.Evening, "Hồi mới tới đây em sợ buổi tối lắm. Giờ thì buổi tối là lúc em thích nhất.", 4)
+                .SayAt(SpotWell, "Chủ nhật em tự cho mình nghỉ nửa buổi. Ngồi cạnh giếng nghe tiếng nước, đỡ nhớ biển.")
+                .OnGift(GiftTaste.Loved, "Trời, {p} tìm đâu ra vậy? Em thích lắm, cảm ơn {p}!")
+                .OnGift(GiftTaste.Liked, "Cảm ơn {p} nhé, em dùng được đấy.")
+                .OnGift(GiftTaste.Neutral, "Cảm ơn {p}.")
+                .OnGift(GiftTaste.Disliked, "Ờ... em cảm ơn. Chắc em để tạm ở góc kho.");
+
+            var supplies = new HeartEvent(EventLanSupplies, "Nửa lọ cồn", 2, DayPhase.Evening)
+                .Narrate("Buổi tối, Lan ngồi trước tủ thuốc mở toang, đếm đi đếm lại mấy cuộn băng.")
+                .Says("Lan", "Em đếm ba lần rồi mà vẫn ra từng này. Nếu tuần này có ai bị thương nặng, em không biết phải làm sao.")
+                .Says("Lan", "Hồi ở trường, thiếu gì thì chạy xuống kho xin. Giờ kho là mấy cái tủ ngoài kia, giữa bầy zombie.")
+                .Says("Lan", "Em xin lỗi, em không định than với {p}. Chỉ là... ở đây ai cũng nghĩ em biết hết.")
+                .Choice("Em không phải gánh một mình. Thiếu gì cứ viết ra, {p} đi tìm.", 60,
+                    "...{P} nói thật nhé. Vậy em viết danh sách. Mà {p} phải về đủ tay đủ chân thì em mới nhận.")
+                .Choice("Ai ở đây cũng phải cố thôi.", 15,
+                    "Vâng, {p} nói đúng. Em đếm lại lần nữa vậy.");
+
+            var tea = new HeartEvent(EventLanTea, "Hộp trà của mẹ", 4)
+                .Narrate("Lan gọi bạn lại, tay cầm một hộp trà móp méo và hai cái cốc sắt.")
+                .Says("Lan", "Hộp trà này của mẹ em. Em mang theo từ hôm chạy khỏi thị trấn, ba năm rồi chưa dám pha.")
+                .Says("Lan", "Mẹ bảo trà ngon thì phải uống với người mình muốn ngồi lâu. Em nghĩ mãi, thấy giữ thêm nữa cũng chẳng để làm gì.")
+                .Narrate("Nước giếng đun sôi, trà đã cũ nhưng vẫn thơm. Hai người ngồi nhìn ruộng khoai một lúc lâu.")
+                .Says("Lan", "Hết dịch, {p} định làm gì?")
+                .Choice("Ở lại đây, trồng cho kín mấy luống này đã.", 60,
+                    "Em cũng nghĩ vậy. Ở đây có ruộng, có người chờ cửa. Vậy mai {p} nhớ về sớm, em pha ấm nữa.")
+                .Choice("Chưa nghĩ tới. Sống qua từng ngày đã.", 25,
+                    "Ừ, cũng phải. Vậy thì sống qua hôm nay cho tử tế: uống hết cốc này đã.");
+
+            return new NpcLife(NpcLan, schedule, book) { AddressMale = "anh", AddressFemale = "chị" }
+                .Add(supplies)
+                .Add(tea);
+        }
+
+        private static NpcLife CreateMinh()
+        {
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Minh. Tôi lo máy móc với hàng rào. Súng kẹt đạn thì mang lại đây, đừng đập.",
+                AlreadyTalked = "Nói rồi mà. Tôi đang dở tay."
+            };
+            book.SayIn(DayPhase.Morning, "Tôi đang gom sắt vụn dựng lại hàng rào. Ra ngoài thấy thì nhặt giúp.")
+                .SayIn(DayPhase.Morning, "Bàn chế tạo lên cấp thì tôi chỉ cho bạn vài thứ hay hơn băng gạc.")
+                .SayIn(DayPhase.Evening, "Nghe tiếng súng vọng về là tôi biết bạn còn sống.")
+                .SayIn(DayPhase.Evening, "Tối tôi canh cổng. Bạn ngủ đi, mai còn đi.")
+                .OnGift(GiftTaste.Loved, "Cái này mà bạn cũng kiếm được à? Quý đấy. Cảm ơn.")
+                .OnGift(GiftTaste.Liked, "Được đấy, cảm ơn.")
+                .OnGift(GiftTaste.Neutral, "Ừ, cảm ơn.")
+                .OnGift(GiftTaste.Disliked, "Tôi biết làm gì với thứ này bây giờ...");
+
+            return new NpcLife(NpcMinh, new NpcSchedule(SpotWorkshop).On(DayPhase.Evening, SpotGate), book);
+        }
+
+        private static NpcLife CreateBaTu()
+        {
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Bà là bà Tư. Bà ở hợp tác xã này từ hồi nó còn có loa phát thanh. Cháu cứ coi đây như nhà.",
+                AlreadyTalked = "Bà nói rồi đó, cháu đi làm đi kẻo nắng."
+            };
+            book.SayIn(DayPhase.Morning, "Khoai lang phải tưới sáng sớm cháu ạ, tưới trưa là xót rễ.")
+                .SayIn(DayPhase.Morning, "Sang đông chỉ còn bắp cải chịu được rét. Cháu nhớ để dành hạt.")
+                .SayIn(DayPhase.Evening, "Về rồi hả cháu. Ăn gì chưa?")
+                .SayIn(DayPhase.Evening, "Ngày xưa giờ này cả xóm ra sân phơi hóng gió. Giờ còn mấy bà cháu mình.")
+                .OnGift(GiftTaste.Loved, "Ôi, cháu còn nhớ bà thích món này. Bà cảm ơn.")
+                .OnGift(GiftTaste.Liked, "Quý hóa quá, bà cảm ơn cháu.")
+                .OnGift(GiftTaste.Neutral, "Ừ, bà xin.")
+                .OnGift(GiftTaste.Disliked, "Bà già rồi, không dùng tới thứ này đâu cháu.");
+
+            return new NpcLife(NpcBaTu, new NpcSchedule(SpotPorch).On(DayPhase.Morning, SpotFarm), book) { AddressMale = "cháu", AddressFemale = "cháu" };
+        }
+
+        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu() };
+
+        public static NpcLife FindNpcLife(string npcId)
+        {
+            foreach (var life in NpcLives)
+            {
+                if (life.NpcId == npcId) return life;
+            }
+            return null;
         }
 
         public static DeliveryQuest[] CreateQuests()

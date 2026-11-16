@@ -88,6 +88,8 @@ namespace Bnhon.Core.Saving
                 data.shopStock.Add(new ShopStockSave { id = entry.Item.Id, stock = entry.Stock });
             }
 
+            foreach (string flag in session.Story.All) data.storyFlags.Add(flag);
+
             data.canSaved = true;
             data.canWater = session.WateringCan.Water;
             foreach (Vitals.ActiveBuff buff in session.Buffs.Active)
@@ -190,6 +192,7 @@ namespace Bnhon.Core.Saving
                 }
             }
 
+            session.Story.Restore(data.storyFlags);
             if (data.canSaved) session.WateringCan.Restore(data.canWater);
 
             session.Buffs.Clear();
