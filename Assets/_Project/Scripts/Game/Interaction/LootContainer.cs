@@ -27,6 +27,7 @@ namespace Bnhon.Game.Interaction
         [SerializeField] private float extraSecondsPerRarity = 0.6f;
 
         private LootTable _table;
+        private IReadOnlyList<Bnhon.Core.Crafting.ItemAmount> _fixed;
         private string _title = "Thùng đồ";
         private string _searchPrompt = "E: Lục đồ";
         private string _openPrompt = "E: Mở thùng";
@@ -50,6 +51,13 @@ namespace Bnhon.Game.Interaction
             _table = table;
         }
 
+        /// <summary>A container that always holds the same things, for story moments.</summary>
+        public void InitFixed(IReadOnlyList<Bnhon.Core.Crafting.ItemAmount> items, string title)
+        {
+            _fixed = items;
+            _title = title;
+        }
+
         /// <summary>Sets this up as a zombie corpse: its own wording, loot count and a small grid.</summary>
         public void InitCorpse(LootTable table, int rollCount)
         {
@@ -67,6 +75,10 @@ namespace Bnhon.Game.Interaction
             if (_contents == null)
             {
                 _contents = new GridInventory(gridWidth, gridHeight);
+                if (_fixed != null)
+                {
+                    foreach (Bnhon.Core.Crafting.ItemAmount item in _fixed) _contents.Add(item.Item, item.Count);
+                }
                 if (_table != null)
                 {
                     foreach (LootDrop drop in _table.Roll(GameRoot.Instance.Session.Rng, rolls))

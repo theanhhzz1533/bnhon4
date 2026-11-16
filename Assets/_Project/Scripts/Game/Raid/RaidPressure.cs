@@ -30,6 +30,9 @@ namespace Bnhon.Game.Raid
 
         public static RaidPressure Instance { get; private set; }
 
+        /// <summary>While true no reinforcements arrive. Set during the scripted opening.</summary>
+        public static bool Suspended { get; set; }
+
         /// <param name="spawn">Spawns up to N zombies out of the player's sight and returns how many it placed.</param>
         public void Init(Func<int, int> spawn)
         {
@@ -65,6 +68,7 @@ namespace Bnhon.Game.Raid
             }
 
             RaidSeconds += UnityEngine.Time.deltaTime;
+            if (Suspended) return;
 
             if (!_mapCleared)
             {

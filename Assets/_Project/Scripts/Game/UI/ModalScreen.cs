@@ -44,6 +44,12 @@ namespace Bnhon.Game.UI
             Current = null;
             ClosedFrame = UnityEngine.Time.frameCount;
             if (Player != null) Player.ControlEnabled = true;
+            OnClosed();
+        }
+
+        /// <summary>Called after the menu has closed, however it was closed.</summary>
+        protected virtual void OnClosed()
+        {
         }
 
         protected virtual void OnDestroy()

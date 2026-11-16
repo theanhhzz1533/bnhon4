@@ -27,6 +27,12 @@ namespace Bnhon.Core.Maps
     ///   C  house cabinet   M  medical cabinet   S  seed store   W  weapon crate
     ///   Z  walker          R  runner            G  screamer
     /// </code>
+    /// Story maps (the hospital opening) also use:
+    /// <code>
+    ///   K  cabinet with fixed story loot      T  trigger that releases the horde
+    ///   H  where a horde zombie appears       N  the rescuer; reaching them ends the map
+    /// </code>
+    /// A map needs a way out: at least one E, or an N.
     /// Lines starting with ';' are comments. Short rows are padded with wall.
     /// The first text row is the top of the map; X grows right, Y grows down.
     /// </summary>
@@ -38,6 +44,8 @@ namespace Bnhon.Core.Maps
         public const char Extraction = 'E';
         public const string LootSymbols = "CMSW";
         public const string ZombieSymbols = "ZRG";
+        public const string StorySymbols = "KTHN";
+        public const char Rescuer = 'N';
 
         private readonly bool[,] _walls;
         private readonly List<MapMarker> _markers;
@@ -107,9 +115,9 @@ namespace Bnhon.Core.Maps
                         spawn = new GridPoint(x, y);
                         spawnCount++;
                     }
-                    else if (symbol == Extraction || LootSymbols.IndexOf(symbol) >= 0 || ZombieSymbols.IndexOf(symbol) >= 0)
+                    else if (symbol == Extraction || LootSymbols.IndexOf(symbol) >= 0 || ZombieSymbols.IndexOf(symbol) >= 0 || StorySymbols.IndexOf(symbol) >= 0)
                     {
-                        if (symbol == Extraction) extractionCount++;
+                        if (symbol == Extraction || symbol == Rescuer) extractionCount++;
                         markers.Add(new MapMarker(symbol, x, y));
                     }
                     else
@@ -120,7 +128,7 @@ namespace Bnhon.Core.Maps
             }
 
             if (spawnCount != 1) throw new FormatException("The map needs exactly one player spawn 'P', found " + spawnCount + ".");
-            if (extractionCount < 1) throw new FormatException("The map needs at least one extraction point 'E'.");
+            if (extractionCount < 1) throw new FormatException("The map needs at least one extraction point 'E' (or a rescuer 'N' on a story map).");
 
             return new RaidMap(walls, spawn, markers);
         }

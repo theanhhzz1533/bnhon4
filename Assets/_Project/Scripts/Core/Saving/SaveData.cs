@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 4;
+        public const int CurrentVersion = 5;
 
         public int version = CurrentVersion;
         public int playerGender;

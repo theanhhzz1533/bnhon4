@@ -8,6 +8,7 @@ using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Raid;
 using Bnhon.Core.Relationships;
+using Bnhon.Core.Story;
 using Bnhon.Core.Trading;
 using Bnhon.Core.Vitals;
 using Bnhon.Core.Calendar;
@@ -40,6 +41,12 @@ namespace Bnhon.Core
 
         /// <summary>Morning until the day's raid has been used, evening after.</summary>
         public DayPhase Phase => RaidedToday ? DayPhase.Evening : DayPhase.Morning;
+
+        /// <summary>True while the player is still in the hospital opening.</summary>
+        public bool InIntro => !Story.Has(StoryIds.IntroDone);
+
+        /// <summary>The knife is the one weapon that is never lost, but the opening starts without it.</summary>
+        public bool HasKnife => Story.Has(StoryIds.IntroDone) || Story.Has(StoryIds.HasKnife);
 
         public WateringCan WateringCan { get; }
         public BuffSet Buffs { get; }

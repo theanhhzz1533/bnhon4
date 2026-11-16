@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 101 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 108 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -30,6 +30,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 
 - **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, bàn chế tạo, quầy mua bán, giếng nước, bếp, giường, cổng ra ngoài.
 - **Trồng trọt:** 6 loại cây theo mùa (mùa đông chỉ trồng được bắp cải). Bình tưới chứa 6 lần tưới, múc lại ở giếng. Cây không tưới quá 2 ngày liền sẽ chết, và chết khi sang mùa không hợp.
+- **Mở đầu:** game mới bắt đầu trong bệnh viện (`Resources/Maps/hospital.txt`): lục tủ lấy dao găm, tìm đường tới căn tin, chạy khỏi đàn zombie tới chỗ Minh. Chết trong màn này thì làm lại từ giường bệnh, không mất gì. Sau đó dòng "Mục tiêu" trên HUD dẫn qua những ngày đầu ở căn cứ. File lưu cũ bỏ qua màn mở đầu; muốn xem thì xóa file lưu bằng menu **Bnhon > Save**.
 - **Cư dân:** nhấn E để mở màn hình trò chuyện: câu thoại đổi theo số tim, buổi và chỗ đứng; chọn quà từ balo; nhận và giao nhiệm vụ. Cư dân đổi chỗ đứng giữa buổi sáng (trước raid) và buổi tối (sau raid). Lan có hai cảnh tim ở mốc 2 và 4 tim.
 - **Nấu ăn:** bếp nấu 4 món từ nông sản. Mỗi món cho một hiệu ứng (hồi thể lực nhanh, chậm đói khát, hồi máu dần, chạy nhanh); thời gian chỉ chạy khi ở ngoài và hết khi đi ngủ.
 - **Khu raid:** dựng từ bản đồ file chữ 104×64 ô: 21 công trình (nhà, phòng khám, trường học, cửa hàng, nhà kho, bãi xe), 45 thùng đồ, 65 zombie và ba vùng rút lui màu xanh lá.

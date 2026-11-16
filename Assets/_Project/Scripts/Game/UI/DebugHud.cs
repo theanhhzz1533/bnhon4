@@ -52,7 +52,8 @@ namespace Bnhon.Game.UI
             if (weapons != null)
             {
                 WeaponDefinition weapon = weapons.Current;
-                _text.Append('[').Append(weapons.CurrentSlot).Append("] ").Append(weapon.Name);
+                bool bareHanded = weapon.Kind == WeaponKind.Melee && !session.HasKnife;
+                _text.Append('[').Append(weapons.CurrentSlot).Append("] ").Append(bareHanded ? "Tay không" : weapon.Name);
                 if (weapon.Kind == WeaponKind.Firearm)
                 {
                     _text.Append("  ").Append(weapons.AmmoInMagazine).Append('/').Append(weapon.MagazineSize)
@@ -61,7 +62,7 @@ namespace Bnhon.Game.UI
                 }
                 _text.Append('\n');
 
-                _text.Append("    1 Dao");
+                _text.Append(session.HasKnife ? "    1 Dao" : "    1 (chưa có dao)");
                 for (int slot = 0; slot < Loadout.SlotCount; slot++)
                 {
                     var equipped = session.Loadout.GetWeapon(slot);
@@ -98,6 +99,14 @@ namespace Bnhon.Game.UI
             if (ModalScreen.Current != null) return;
 
             DrawCrosshair(weapons);
+
+            string objective = StoryDirector.Instance != null ? StoryDirector.Instance.Objective : null;
+            if (objective != null)
+            {
+                GUI.color = new Color(0.95f, 0.85f, 0.4f, 1f);
+                GUI.Label(new Rect(0f, 40f, Screen.width, 30f), "Mục tiêu: " + objective, _centered);
+                GUI.color = Color.white;
+            }
 
             float centerY = Screen.height - 120f;
             if (Player.Focused != null)

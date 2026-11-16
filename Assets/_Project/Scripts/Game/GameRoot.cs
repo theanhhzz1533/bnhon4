@@ -76,7 +76,7 @@ namespace Bnhon.Game
                 SaveSystem.SetAsideBrokenSave();
                 Notify("File lưu bị lỗi (" + problem + "). Bắt đầu game mới; file cũ được giữ lại với đuôi .bad.", 10f);
             }
-            return PrototypeContent.CreateNewSession(Gender.Male, seed);
+            return PrototypeContent.CreateNewGame(Gender.Male, seed);
         }
 
         /// <summary>Writes the current state to the save file.</summary>

@@ -197,6 +197,8 @@ namespace Bnhon.Game.Combat
             direction.Normalize();
 
             WeaponDefinition weapon = Current;
+            // At the very start of the game the player has not found their knife yet.
+            if (weapon == _knife && !GameRoot.Instance.Session.HasKnife) return false;
             if (weapon.Kind == WeaponKind.Melee)
             {
                 if (stamina != null && !stamina.TryUse(weapon.StaminaCost)) return false;

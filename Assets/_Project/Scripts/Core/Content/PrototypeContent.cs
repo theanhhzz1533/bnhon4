@@ -7,6 +7,7 @@ using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Relationships;
 using Bnhon.Core.Saving;
+using Bnhon.Core.Story;
 using Bnhon.Core.Vitals;
 
 namespace Bnhon.Core.Content
@@ -55,6 +56,9 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition TeaTin = new ItemDefinition("tea_tin", "Hộp trà", ItemCategory.Gift, ItemRarity.Uncommon, 1, 1, 1, 40);
         public static readonly ItemDefinition OldCassette = new ItemDefinition("old_cassette", "Băng cassette cũ", ItemCategory.Gift, ItemRarity.Rare, 1, 1, 1, 70);
 
+        // Found in the cabinet by the hospital bed. Picking it up gives the player their knife for good.
+        public static readonly ItemDefinition Dagger = new ItemDefinition("dagger", "Dao găm", ItemCategory.Quest, ItemRarity.Uncommon, 1, 2, 1, 0);
+
         // More crops, so every season has something to grow.
         public static readonly ItemDefinition TomatoSeed = new ItemDefinition("seed_tomato", "Hạt cà chua", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 7);
         public static readonly ItemDefinition WaterSpinachSeed = new ItemDefinition("seed_water_spinach", "Hạt rau muống", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 4);
@@ -90,7 +94,7 @@ namespace Bnhon.Core.Content
             Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun, MedKit, BlueprintPistol, BlueprintShotgun, BlueprintMedKit,
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette,
             TomatoSeed, WaterSpinachSeed, CabbageSeed, Tomato, WaterSpinach, Cabbage,
-            RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry
+            RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry, Dagger
         };
 
         public static ItemDefinition FindItem(string itemId)
@@ -295,7 +299,7 @@ namespace Bnhon.Core.Content
 
             var tea = new HeartEvent(EventLanTea, "Hộp trà của mẹ", 4)
                 .Narrate("Lan gọi bạn lại, tay cầm một hộp trà móp méo và hai cái cốc sắt.")
-                .Says("Lan", "Hộp trà này của mẹ em. Em mang theo từ hôm chạy khỏi thị trấn, ba năm rồi chưa dám pha.")
+                .Says("Lan", "Hộp trà này của mẹ em. Em mang theo từ hôm chạy khỏi thị trấn, tới giờ vẫn chưa dám pha.")
                 .Says("Lan", "Mẹ bảo trà ngon thì phải uống với người mình muốn ngồi lâu. Em nghĩ mãi, thấy giữ thêm nữa cũng chẳng để làm gì.")
                 .Narrate("Nước giếng đun sôi, trà đã cũ nhưng vẫn thơm. Hai người ngồi nhìn ruộng khoai một lúc lâu.")
                 .Says("Lan", "Hết dịch, {p} định làm gì?")
@@ -425,7 +429,96 @@ namespace Bnhon.Core.Content
             shop.AddEntry(BlueprintMedKit, 1, 120, 1, 0.25);
         }
 
-        /// <summary>A new save: NPCs, quests and a small starter kit in the stash and backpack.</summary>
+        /// <summary>What is in the cabinet by the hospital bed.</summary>
+        public static readonly IReadOnlyList<ItemAmount> IntroCabinet = new[] { A(Dagger, 1), A(Bandage, 2) };
+
+        /// <summary>Narration when the game opens in the hospital ward.</summary>
+        public static readonly IReadOnlyList<SceneLine> IntroWakeScene = new[]
+        {
+            new SceneLine(null, "Bạn mở mắt. Trần nhà loang ố, ống truyền dịch treo bên giường đã cạn từ lúc nào."),
+            new SceneLine(null, "Điều cuối cùng bạn nhớ là ánh đèn pha, tiếng phanh rít và mặt đường lao tới. Một vụ tai nạn. Còn sau đó bao lâu thì bạn không biết."),
+            new SceneLine(null, "Bệnh viện im lặng một cách kỳ lạ. Không tiếng máy, không tiếng người."),
+            new SceneLine(null, "Rồi một tiếng hét dội lại từ cuối hành lang, và tắt ngang."),
+            new SceneLine(null, "Phải ra khỏi đây. Trước hết, tìm thứ gì đó để tự vệ: thử cái tủ cạnh giường.")
+        };
+
+        /// <summary>Minh pulls the player out of the canteen and takes them to the base.</summary>
+        public static readonly IReadOnlyList<SceneLine> IntroRescueScene = new[]
+        {
+            new SceneLine(null, "Một bàn tay túm lấy cổ áo bạn, kéo giật qua cánh cửa sắt. Cửa sập lại ngay trước mặt đàn zombie."),
+            new SceneLine("Minh", "Im. Đừng thở mạnh. Chúng nó nghe đấy."),
+            new SceneLine(null, "Tiếng cào cửa thưa dần. Người đàn ông hạ cây xà beng xuống, nhìn bộ đồ bệnh nhân của bạn."),
+            new SceneLine("Minh", "Ba tháng rồi tôi mới thấy có người đi ra từ cái bệnh viện đó mà còn biết chạy. Tôi là Minh."),
+            new SceneLine("Minh", "Đi được không? Chỗ bọn tôi cách đây nửa buổi đường. Một hợp tác xã cũ, có tường, có ruộng, có người."),
+            new SceneLine(null, "Bạn theo Minh qua những con phố vắng. Trời sập tối thì tới nơi: một cánh cổng tôn, sau đó là ánh lửa bếp."),
+            new SceneLine("Minh", "Tới rồi. Tôi để trong kho cho bạn khẩu súng ngắn cũ với ít đạn. Đi chào mọi người đi, rồi ngủ một giấc. Mai tính.")
+        };
+
+        private static bool HasSownCrop(GameSession session)
+        {
+            foreach (FarmPlot plot in session.Farm.Plots)
+            {
+                if (plot.State == PlotState.Ready) return true;
+                if (plot.State == PlotState.Growing && (plot.IsWatered || plot.GrowthDays > 0)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>The opening chain: out of the hospital, then the first days at the base.</summary>
+        public static readonly Storyline OpeningStory = new Storyline()
+            .Add(new StoryStep("wake", "Tìm thứ gì đó để tự vệ. Lục cái tủ cạnh giường (E).",
+                session => session.HasKnife)
+                .Says("Bạn giắt con dao găm vào thắt lưng. Phím 1 để cầm, chuột trái để chém."))
+            .Add(new StoryStep("escape", "Tìm đường ra khỏi bệnh viện.",
+                session => session.Story.Has(StoryIds.ReachedCanteen) || !session.InIntro))
+            .Add(new StoryStep("run", "CHẠY! Băng qua căn tin, ra cửa phía tây. Đừng đứng lại đánh cả đàn.",
+                session => !session.InIntro))
+            .Add(new StoryStep("meet", "Làm quen với Lan và bà Tư trong căn cứ.",
+                session => session.Story.Has("met_" + NpcLan) && session.Story.Has("met_" + NpcBaTu))
+                .Says("Mọi người đã biết mặt bạn."))
+            .Add(new StoryStep("rest", "Lấy đồ Minh để trong kho, rồi lên giường ngủ một giấc.",
+                session => session.Clock.TotalDays >= 1)
+                .Says("Ngày đầu tiên ở hợp tác xã."))
+            .Add(new StoryStep("farm", "Bà Tư nhờ gieo vụ đầu: cuốc một ô, gieo hạt (có sẵn trong kho) và tưới.",
+                HasSownCrop)
+                .Gives(0, A(MugwortSeed, 2))
+                .Says("Bà Tư dúi cho bạn 2 hạt ngải cứu: \"Trồng lấy mà đắp vết thương.\""))
+            .Add(new StoryStep("first_raid", "Ra cổng đi chuyến đầu tiên, và trở về an toàn.",
+                session => session.Story.Has(StoryIds.Extracted))
+                .Gives(60)
+                .Says("Minh gật đầu: \"Về được là giỏi rồi.\" Nhận 60 tem phiếu."))
+            .Add(new StoryStep("workbench", "Gom vật liệu nâng bàn chế tạo lên cấp 2.",
+                session => session.Workshop.Level >= 2)
+                .Gives(0, A(BlueprintMedKit, 1))
+                .Says("Lan gửi bạn bản vẽ bộ sơ cứu (trong kho). Đăng ký ở bàn chế tạo là dùng được."));
+
+        /// <summary>
+        /// A brand new game: the session of <see cref="CreateNewSession"/>, but the player wakes
+        /// in the hospital with nothing. The starter kit comes with <see cref="FinishIntro"/>.
+        /// </summary>
+        public static GameSession CreateNewGame(Gender playerGender, int seed)
+        {
+            GameSession session = CreateNewSession(playerGender, seed);
+            session.Backpack.Clear();
+            session.Loadout.Clear();
+            return session;
+        }
+
+        /// <summary>Ends the opening: the player now lives at the base, has met Minh, and finds his kit in the stash.</summary>
+        public static void FinishIntro(GameSession session)
+        {
+            if (!session.InIntro) return;
+
+            session.Story.Set(StoryIds.IntroDone);
+            session.Story.Set("met_" + NpcMinh);
+            session.Stash.Add(Pistol, 1);
+            session.Stash.Add(PistolAmmo, 16);
+            session.Stash.Add(Bandage, 1);
+            session.Stash.Add(CannedFood, 1);
+            session.Stash.Add(WaterBottle, 1);
+        }
+
+        /// <summary>A session past the opening with a small starter kit. Tests and loading build on this; a new game uses <see cref="CreateNewGame"/>.</summary>
         public static GameSession CreateNewSession(Gender playerGender, int seed)
         {
             var session = new GameSession(playerGender, seed);
@@ -474,6 +567,12 @@ namespace Bnhon.Core.Content
         {
             var session = CreateNewSession((Gender)data.playerGender, seed);
             report = SaveMapper.Apply(data, session, FindItem, FindCrop, FindBuff);
+            if (data.version < 5)
+            {
+                // Saves from before the opening existed are already living at the base.
+                session.Story.Set(StoryIds.IntroDone);
+                OpeningStory.SkipAll(session);
+            }
             if (report.AbandonedRaid) GrantFallbackWeapon(session);
             return session;
         }

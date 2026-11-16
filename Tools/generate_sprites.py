@@ -108,6 +108,7 @@ ITEMS = [
     ("meal_spinach_soup", "bowl of clear green vegetable soup", None, DARK),
     ("meal_mugwort_porridge", "bowl of rice porridge with green herbs on top", None, DARK),
     ("meal_cabbage_stir_fry", "plate of stir-fried cabbage with red tomato pieces", None, DARK),
+    ("dagger", "combat dagger with a black handle, upright, blade pointing up", "tall", None),
     ("tea_tin", "small decorated metal tea tin", None, None),
     ("old_cassette", "old audio cassette tape", None, None),
 ]

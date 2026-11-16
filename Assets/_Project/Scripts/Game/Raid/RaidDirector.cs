@@ -47,6 +47,22 @@ namespace Bnhon.Game.Raid
             if (Instance == this) Instance = null;
         }
 
+        /// <summary>Changes where raids begin. Used when the raid map is swapped.</summary>
+        public void SetRaidSpawn(Vector2 raidSpawn)
+        {
+            _raidSpawn = raidSpawn;
+        }
+
+        public void PutPlayerAtRaidSpawn()
+        {
+            MovePlayer(_raidSpawn);
+        }
+
+        public void PutPlayerAtBase()
+        {
+            MovePlayer(_baseSpawn);
+        }
+
         public bool TryStartRaid()
         {
             var root = GameRoot.Instance;
@@ -70,6 +86,7 @@ namespace Bnhon.Game.Raid
             if (!session.IsInRaid) return;
 
             session.CurrentRaid.Extract();
+            session.Story.Set(Bnhon.Core.Story.StoryIds.Extracted);
             Sfx.PlayUi(SoundId.Extract, 0.8f);
             root.Save();
             MovePlayer(_baseSpawn);
@@ -108,6 +125,13 @@ namespace Bnhon.Game.Raid
         {
             var root = GameRoot.Instance;
             var session = root.Session;
+
+            if (session.InIntro && StoryDirector.Instance != null)
+            {
+                Sfx.PlayUi(SoundId.PlayerDeath);
+                StoryDirector.Instance.RestartIntro();
+                return;
+            }
 
             int lostCount = 0;
             if (session.IsInRaid)

@@ -42,6 +42,8 @@ namespace Bnhon.Game
         private static readonly Color WallColor = new Color(0.18f, 0.18f, 0.2f);
         private static readonly Color RaidFloorColor = new Color(0.25f, 0.26f, 0.28f);
 
+        private const string HospitalMap = "hospital";
+
         [SerializeField] private string mapName = "outskirts";
         [SerializeField] private float cameraSize = 7f;
 
@@ -51,11 +53,14 @@ namespace Bnhon.Game
         private Transform _raidRoot;
         private Transform _raidGeometry;
         private PlayerController _player;
+        private RaidDirector _director;
+        private readonly List<Vector2> _hordePoints = new List<Vector2>();
 
         private void Start()
         {
             GameRoot.Ensure();
-            LoadMap();
+            // A new game opens in the hospital; the normal raid map replaces it once the player is rescued.
+            LoadMap(GameRoot.Instance.Session.InIntro ? HospitalMap : mapName);
 
             BuildBase();
             _player = BuildPlayer();
@@ -65,6 +70,7 @@ namespace Bnhon.Game
             new GameObject("NavGrid").AddComponent<NavGrid>();
 
             var director = new GameObject("RaidDirector").AddComponent<RaidDirector>();
+            _director = director;
             director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), BuildRaidZone);
             BuildRaidZone();
 
@@ -83,10 +89,48 @@ namespace Bnhon.Game
             new GameObject("ShopScreen").AddComponent<ShopScreen>().Player = _player;
             new GameObject("KitchenScreen").AddComponent<KitchenScreen>().Player = _player;
             new GameObject("NpcScreen").AddComponent<NpcScreen>().Player = _player;
+            new GameObject("SceneScreen").AddComponent<SceneScreen>().Player = _player;
+
+            new GameObject("StoryDirector").AddComponent<StoryDirector>().Init(_player, ReleaseHorde, LeaveHospital, RestartHospital);
         }
 
-        private void LoadMap()
+        /// <summary>Throws the current raid map away and builds another in its place.</summary>
+        private void SwitchMap(string name)
         {
+            LoadMap(name);
+            if (_raidGeometry != null) Destroy(_raidGeometry.gameObject);
+            _raidGeometry = null;
+            BuildRaidZone();
+            _director.SetRaidSpawn(CellCenter(_map.Spawn.X, _map.Spawn.Y));
+        }
+
+        private void LeaveHospital()
+        {
+            SwitchMap(mapName);
+            _director.PutPlayerAtBase();
+        }
+
+        private void RestartHospital()
+        {
+            BuildRaidZone();
+            _director.PutPlayerAtRaidSpawn();
+        }
+
+        /// <summary>Zombies burst out of every horde point and go for the player. Every fourth one is a runner.</summary>
+        private int ReleaseHorde()
+        {
+            Vector2 playerPosition = _player.transform.position;
+            for (int i = 0; i < _hordePoints.Count; i++)
+            {
+                ZombieKind kind = i % 4 == 3 ? ZombieKind.Runner : ZombieKind.Walker;
+                BuildZombie(_hordePoints[i], kind).Investigate(playerPosition, 90f);
+            }
+            return _hordePoints.Count;
+        }
+
+        private void LoadMap(string mapName)
+        {
+            _map = null;
             var root = GameRoot.Instance;
             TextAsset asset = Resources.Load<TextAsset>("Maps/" + mapName);
 
@@ -293,6 +337,7 @@ namespace Bnhon.Game
 
             if (_raidRoot != null) Destroy(_raidRoot.gameObject);
             _raidRoot = new GameObject("RaidZone").transform;
+            _hordePoints.Clear();
 
             foreach (MapMarker marker in _map.Markers)
             {
@@ -309,6 +354,34 @@ namespace Bnhon.Game
                     case 'M': BuildContainer(position, PrototypeContent.MedicalCabinet, "crate_medical", new Color(0.8f, 0.8f, 0.82f)); break;
                     case 'S': BuildContainer(position, PrototypeContent.SeedStore, "crate_seed", new Color(0.55f, 0.7f, 0.3f)); break;
                     case 'W': BuildContainer(position, PrototypeContent.WeaponCrate, "crate_weapon", new Color(0.35f, 0.42f, 0.3f)); break;
+
+                    case 'K':
+                        GameObject cabinet = PlaceholderArt.Box("Loot_story", position, new Vector2(0.9f, 0.8f), new Color(0.8f, 0.8f, 0.82f), _raidRoot, 2, "crate_medical", SpriteFit.Crate);
+                        cabinet.AddComponent<BoxCollider2D>();
+                        cabinet.AddComponent<YSort>();
+                        cabinet.AddComponent<LootContainer>().InitFixed(PrototypeContent.IntroCabinet, "Tủ cạnh giường");
+                        break;
+
+                    case 'T':
+                        GameObject trap = new GameObject("HordeTrigger");
+                        trap.transform.SetParent(_raidRoot, false);
+                        trap.transform.position = position;
+                        var trapArea = trap.AddComponent<BoxCollider2D>();
+                        trapArea.isTrigger = true;
+                        trapArea.size = new Vector2(5f, 4f);
+                        trap.AddComponent<StoryTrigger>().Init(() => { if (StoryDirector.Instance != null) StoryDirector.Instance.OnReachedCanteen(); });
+                        break;
+
+                    case 'H': _hordePoints.Add(position); break;
+
+                    case RaidMap.Rescuer:
+                        GameObject rescuer = PlaceholderArt.Box("Rescuer", position, new Vector2(0.8f, 0.8f), new Color(0.5f, 0.75f, 0.95f), _raidRoot, 10, "npc_minh", SpriteFit.Character);
+                        rescuer.AddComponent<YSort>();
+                        var reach = rescuer.AddComponent<BoxCollider2D>();
+                        reach.isTrigger = true;
+                        reach.size = new Vector2(4f, 4f);
+                        rescuer.AddComponent<StoryTrigger>().Init(() => { if (StoryDirector.Instance != null) StoryDirector.Instance.OnRescued(); });
+                        break;
 
                     case 'Z': BuildZombie(position, ZombieKind.Walker); break;
                     case 'R': BuildZombie(position, ZombieKind.Runner); break;
