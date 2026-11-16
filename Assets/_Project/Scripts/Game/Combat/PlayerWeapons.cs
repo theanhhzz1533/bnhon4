@@ -285,7 +285,7 @@ namespace Bnhon.Game.Combat
                 if (hurtbox != null)
                 {
                     if (hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead) continue;
-                    hurtbox.Owner.Damage(weapon.Damage);
+                    hurtbox.Owner.Damage(weapon.Damage, origin);
                     end = hit.point;
                     break;
                 }
@@ -320,7 +320,7 @@ namespace Bnhon.Game.Combat
                 if (toTarget.sqrMagnitude > 0.0001f && Vector2.Angle(direction, toTarget) > halfArc) continue;
                 if (SightBlocker.IsBlocked(origin, target)) continue;
 
-                hurtbox.Owner.Damage(weapon.Damage);
+                hurtbox.Owner.Damage(weapon.Damage, origin);
             }
 
             // Show the reach of the swing: its two edges and its middle.

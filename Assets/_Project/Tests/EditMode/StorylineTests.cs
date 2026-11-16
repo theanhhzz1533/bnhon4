@@ -106,6 +106,10 @@ namespace Bnhon.Core.Tests
             Assert.That(story.Advance(session).Id, Is.EqualTo("workbench"));
             Assert.That(session.Stash.CountOf(PrototypeContent.BlueprintMedKit.Id), Is.EqualTo(1));
 
+            Assert.That(story.Advance(session) == null, Is.True);
+            session.Story.Set(PrototypeContent.FlagButcherDead);
+            Assert.That(story.Advance(session).Id, Is.EqualTo("town"));
+
             Assert.That(story.Current(session) == null, Is.True);
             Assert.That(story.Advance(session) == null, Is.True);
         }

@@ -94,8 +94,11 @@ namespace Bnhon.Game.UI
                 "Ngày " + session.Clock.Day + " · " + RaidDirector.SeasonName(session.Clock.Season) + " · năm " + session.Clock.Year, _bold);
             y += 20f;
 
+            var area = RaidDirector.Instance != null ? RaidDirector.Instance.CurrentArea : null;
             string place = session.IsInRaid
-                ? (session.InIntro ? "Bệnh viện  " : "Đang raid  ") + RaidClock()
+                ? (session.InIntro || area == null
+                    ? "Bệnh viện  " + RaidClock()
+                    : area.DisplayName + "  " + RaidClock() + "  ·  đe dọa " + Bnhon.Core.Raid.Threat.Level(session.Clock.TotalDays))
                 : "Căn cứ · " + (session.Phase == DayPhase.Morning ? "buổi sáng" : "buổi tối");
             Label(new Rect(x, y, inner, 18f), place, _small, session.IsInRaid ? Gold : Dim);
             y += 20f;

@@ -25,7 +25,9 @@ namespace Bnhon.Core.Maps
     ///   P  player entry (exactly one)
     ///   E  extraction point (at least one)
     ///   C  house cabinet   M  medical cabinet   S  seed store   W  weapon crate
+    ///   V  safe (rare loot)
     ///   Z  walker          R  runner            G  screamer
+    ///   A  armoured        B  the area's boss
     /// </code>
     /// Story maps (the hospital opening) also use:
     /// <code>
@@ -42,8 +44,8 @@ namespace Bnhon.Core.Maps
         public const char Floor = '.';
         public const char PlayerSpawn = 'P';
         public const char Extraction = 'E';
-        public const string LootSymbols = "CMSW";
-        public const string ZombieSymbols = "ZRG";
+        public const string LootSymbols = "CMSWV";
+        public const string ZombieSymbols = "ZRGAB";
         public const string StorySymbols = "KTHN";
         public const char Rescuer = 'N';
 

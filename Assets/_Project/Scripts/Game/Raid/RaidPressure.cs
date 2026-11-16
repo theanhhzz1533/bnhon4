@@ -82,7 +82,9 @@ namespace Bnhon.Game.Raid
 
             _nextWaveTime += waveInterval;
             int room = maxZombiesAlive - ZombieAI.AliveCount;
-            int size = Mathf.Min(Mathf.Min(firstWaveSize + _wavesSent, maxWaveSize), room);
+            int threat = Bnhon.Core.Raid.Threat.Level(GameRoot.Instance.Session.Clock.TotalDays);
+            int wanted = Mathf.Min(firstWaveSize + _wavesSent, maxWaveSize) + Bnhon.Core.Raid.Threat.ExtraWaveSize(threat);
+            int size = Mathf.Min(wanted, room);
             _wavesSent++;
             if (size <= 0) return;
 

@@ -17,12 +17,13 @@ namespace Bnhon.EditorTools
     {
         private const string DefaultMapPath = "Assets/_Project/Resources/Maps/outskirts.txt";
 
-        private static readonly char[] Symbols = { '.', '#', 'P', 'E', 'C', 'M', 'S', 'W', 'Z', 'R', 'G', 'K', 'T', 'H', 'N' };
+        private static readonly char[] Symbols = { '.', '#', 'P', 'E', 'C', 'M', 'S', 'W', 'Z', 'R', 'G', 'K', 'T', 'H', 'N', 'V', 'A', 'B' };
         private static readonly string[] SymbolNames =
         {
             ". Sàn", "# Tường", "P Chỗ vào", "E Rút lui", "C Tủ nhà", "M Tủ thuốc", "S Hạt giống", "W Vũ khí",
             "Z Zombie", "R Zombie chạy", "G Zombie gào",
-            "K Tủ cốt truyện", "T Bẫy thả đàn", "H Zombie của đàn", "N Người cứu"
+            "K Tủ cốt truyện", "T Bẫy thả đàn", "H Zombie của đàn", "N Người cứu",
+            "V Két sắt", "A Zombie bọc thép", "B Trùm"
         };
 
         private TextAsset _asset;

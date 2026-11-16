@@ -18,7 +18,13 @@ namespace Bnhon.Game.AI
         Runner,
 
         /// <summary>Never attacks. Screams on sight to call every zombie nearby, then backs away.</summary>
-        Screamer
+        Screamer,
+
+        /// <summary>Slow, hits hard, and shrugs off most damage from the front. Turns slowly: get behind it.</summary>
+        Armored,
+
+        /// <summary>One per area. Huge health, fast, partly armoured in front.</summary>
+        Boss
     }
 
     /// <summary>
@@ -74,6 +80,15 @@ namespace Bnhon.Game.AI
         private float _nextScreamTime;
         private float _nextGrowlTime;
         private float _nextStepTime;
+
+        // Armour: which way the zombie faces, how fast it can turn, and how much of a frontal hit is stopped.
+        private Vector2 _facing = Vector2.down;
+        private float _turnDegreesPerSecond = 100000f;
+        private float _frontArmor;
+        private Transform _plate;
+        private SpriteRenderer[] _extras;
+        private float _nextClangTime;
+        private static bool _armorHintShown;
         private float _lastSeenTime;
         private Vector2 _lastSeenPosition;
         private bool _seesTarget;
@@ -103,6 +118,7 @@ namespace Bnhon.Game.AI
             _target = target;
             _targetHealth = target != null ? target.GetComponent<Health>() : null;
             Configure(kind);
+            _extras = GetComponentsInChildren<SpriteRenderer>();
             _nextGrowlTime = UnityEngine.Time.time + UnityEngine.Random.Range(0.5f, 5f);
         }
 
@@ -130,6 +146,26 @@ namespace Bnhon.Game.AI
                     color = new Color(0.7f, 0.35f, 0.85f);
                     break;
 
+                case ZombieKind.Armored:
+                    _health.SetMax(220f);
+                    chaseSpeed = 2.1f;
+                    attackDamage = 26f;
+                    attackInterval = 1.2f;
+                    color = new Color(0.5f, 0.55f, 0.62f);
+                    SetArmor(0.75f, 110f);
+                    break;
+
+                case ZombieKind.Boss:
+                    _health.SetMax(900f);
+                    chaseSpeed = 3.3f;
+                    sightRange = 10f;
+                    attackDamage = 32f;
+                    attackInterval = 0.9f;
+                    loseInterestTime = 10f;
+                    color = new Color(0.6f, 0.15f, 0.15f);
+                    SetArmor(0.4f, 200f);
+                    break;
+
                 default:
                     _health.SetMax(100f);
                     color = new Color(0.45f, 0.65f, 0.3f);
@@ -138,6 +174,58 @@ namespace Bnhon.Game.AI
 
             // Real art keeps its own colors; only the placeholder square is tinted by type.
             if (PlaceholderArt.IsPlaceholder(_renderer)) _renderer.color = color;
+        }
+
+        /// <summary>Gives the zombie frontal armour, shown as a plate held out in the direction it faces.</summary>
+        private void SetArmor(float frontArmor, float turnDegreesPerSecond)
+        {
+            _frontArmor = frontArmor;
+            _turnDegreesPerSecond = turnDegreesPerSecond;
+            _health.Modifier = ReduceFrontalDamage;
+
+            GameObject plate = PlaceholderArt.Box("Plate", transform.position, new Vector2(0.9f, 0.16f), new Color(0.15f, 0.16f, 0.19f), transform, 16);
+            _plate = plate.transform;
+            _plate.name = "Plate";
+        }
+
+        private float ReduceFrontalDamage(float amount, Vector2 from)
+        {
+            Vector2 position = transform.position;
+            float reduced = Bnhon.Core.Combat.Armor.Apply(amount, _frontArmor, _facing.x, _facing.y, from.x - position.x, from.y - position.y);
+            if (reduced >= amount) return amount;
+
+            float now = UnityEngine.Time.time;
+            if (now >= _nextClangTime)
+            {
+                _nextClangTime = now + 0.12f;
+                Sfx.Play(SoundId.EmptyClick, position, 1f, 20f);
+            }
+            if (!_armorHintShown && GameRoot.Instance != null)
+            {
+                _armorHintShown = true;
+                GameRoot.Instance.Notify("Đạn bật ra khỏi tấm giáp! Loại này chỉ sợ đòn từ bên hông và sau lưng. Lăn qua nó rồi bắn.", 7f);
+            }
+            return reduced;
+        }
+
+        /// <summary>Turns toward where it is looking or going, no faster than its turn rate, and moves the plate with it.</summary>
+        private void UpdateFacing(Vector2 toTarget, float distance)
+        {
+            Vector2 wanted = _facing;
+            if (_state == State.Chase && _seesTarget && distance > 0.01f) wanted = toTarget / distance;
+            else if (_velocity.sqrMagnitude > 0.04f) wanted = _velocity.normalized;
+
+            float current = Mathf.Atan2(_facing.y, _facing.x) * Mathf.Rad2Deg;
+            float target = Mathf.Atan2(wanted.y, wanted.x) * Mathf.Rad2Deg;
+            float delta = Mathf.DeltaAngle(current, target);
+            float step = _turnDegreesPerSecond * UnityEngine.Time.deltaTime;
+            float angle = current + Mathf.Clamp(delta, -step, step);
+            float radians = angle * Mathf.Deg2Rad;
+            _facing = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+
+            if (_plate == null) return;
+            _plate.localPosition = new Vector3(_facing.x * 0.62f, _facing.y * 0.62f, 0f);
+            _plate.localRotation = Quaternion.Euler(0f, 0f, angle + 90f);
         }
 
         private void Awake()
@@ -177,7 +265,16 @@ namespace Bnhon.Game.AI
             if (_renderer != null)
             {
                 VisionSystem vision = VisionSystem.Instance;
-                _renderer.enabled = vision == null || vision.IsVisible(position);
+                bool visible = vision == null || vision.IsVisible(position);
+                _renderer.enabled = visible;
+                // Armour plates and markers are hidden with the body, or they would give it away in the fog.
+                if (_extras != null)
+                {
+                    foreach (SpriteRenderer extra in _extras)
+                    {
+                        if (extra != null) extra.enabled = visible;
+                    }
+                }
             }
 
             Vector2 toTarget = (Vector2)_target.position - position;
@@ -190,6 +287,8 @@ namespace Bnhon.Game.AI
                 _nextGrowlTime = now + UnityEngine.Random.Range(3f, 7f);
                 Sfx.Play(SoundId.ZombieGrowl, position, _state == State.Chase ? 0.9f : 0.55f, 15f);
             }
+
+            UpdateFacing(toTarget, distance);
 
             // Footsteps: slow scuffs from a walker, a quick patter from anything running at you.
             float pace = _body != null ? _body.linearVelocity.magnitude : 0f;
@@ -381,8 +480,21 @@ namespace Bnhon.Game.AI
         private void OnDied(Health health)
         {
             Sfx.Play(SoundId.ZombieDeath, transform.position, 0.9f);
+            if (Kind == ZombieKind.Boss) OnBossDied();
             SpawnCorpse();
             Destroy(gameObject);
+        }
+
+        /// <summary>The area's boss stays dead: the flag is set at once, so dying on the way home does not bring it back.</summary>
+        private static void OnBossDied()
+        {
+            var director = Bnhon.Game.Raid.RaidDirector.Instance;
+            var area = director != null ? director.CurrentArea : null;
+            if (area == null || area.BossFlag == null || GameRoot.Instance == null) return;
+
+            GameRoot.Instance.Session.Story.Set(area.BossFlag);
+            GameRoot.Instance.Notify("Đồ tể đã gục! Lục xác nó, rồi sống sót mà mang đồ về.", 7f);
+            Sfx.PlayUi(SoundId.Extract, 0.8f);
         }
 
         /// <summary>Leaves a searchable body where the zombie fell. It carries zero to two items, by zombie type.</summary>
@@ -393,6 +505,7 @@ namespace Bnhon.Game.AI
             {
                 case ZombieKind.Runner: table = PrototypeContent.RunnerCorpse; break;
                 case ZombieKind.Screamer: table = PrototypeContent.ScreamerCorpse; break;
+                case ZombieKind.Armored: table = PrototypeContent.ArmoredCorpse; break;
                 default: table = PrototypeContent.WalkerCorpse; break;
             }
 
@@ -402,7 +515,9 @@ namespace Bnhon.Game.AI
             // Same parent as the zombie, so corpses are cleared with the raid zone.
             GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", SpriteFit.Centered(1.5f, 1.2f));
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
-            corpse.AddComponent<LootContainer>().InitCorpse(table, RollCorpseItems());
+            var loot = corpse.AddComponent<LootContainer>();
+            if (Kind == ZombieKind.Boss) loot.InitFixed(PrototypeContent.ButcherLoot, "Xác Đồ tể");
+            else loot.InitCorpse(table, Kind == ZombieKind.Armored ? Mathf.Max(1, RollCorpseItems()) : RollCorpseItems());
         }
     }
 }

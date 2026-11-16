@@ -70,6 +70,7 @@ namespace Bnhon.Game
         private Transform _baseRoot;
         private GameObject _raidWorld;
         private BaseBuilder _builder;
+        private string _loadedMap;
         private readonly List<Vector2> _hordePoints = new List<Vector2>();
 
         private void Start()
@@ -94,6 +95,7 @@ namespace Bnhon.Game
             var director = new GameObject("RaidDirector").AddComponent<RaidDirector>();
             _director = director;
             director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), SetZone);
+            director.AreaChosen = SelectArea;
 
             new GameObject("RaidPressure").AddComponent<RaidPressure>().Init(SpawnReinforcements);
 
@@ -111,6 +113,7 @@ namespace Bnhon.Game
             new GameObject("KitchenScreen").AddComponent<KitchenScreen>().Player = _player;
             new GameObject("NpcScreen").AddComponent<NpcScreen>().Player = _player;
             new GameObject("SceneScreen").AddComponent<SceneScreen>().Player = _player;
+            new GameObject("AreaScreen").AddComponent<AreaScreen>().Player = _player;
 
             new GameObject("ScreenFade").AddComponent<ScreenFade>();
             new GameObject("Atmosphere").AddComponent<Atmosphere>();
@@ -179,6 +182,28 @@ namespace Bnhon.Game
             if (property != null && property.CanWrite) property.SetValue(target, value);
         }
 
+        /// <summary>Puts the chosen area's map in place. The outskirts use the map named in the Inspector.</summary>
+        private void SelectArea(Bnhon.Core.Raid.RaidArea area)
+        {
+            string wanted = area.Id == PrototypeContent.AreaOutskirtsId ? mapName : area.MapName;
+            if (wanted != _loadedMap) SwitchMap(wanted);
+        }
+
+        /// <summary>A walker placed by the map may turn up as something worse, the more days have passed. Not during the opening.</summary>
+        private static ZombieKind Escalate(ZombieKind kind)
+        {
+            var session = GameRoot.Instance.Session;
+            if (kind != ZombieKind.Walker || session.InIntro) return kind;
+
+            int level = Bnhon.Core.Raid.Threat.Level(session.Clock.TotalDays);
+            switch (Bnhon.Core.Raid.Threat.Roll(level, session.Rng))
+            {
+                case Bnhon.Core.Raid.ThreatUpgrade.Armored: return ZombieKind.Armored;
+                case Bnhon.Core.Raid.ThreatUpgrade.Runner: return ZombieKind.Runner;
+                default: return kind;
+            }
+        }
+
         /// <summary>Throws the current raid map away and builds another in its place.</summary>
         private void SwitchMap(string name)
         {
@@ -215,6 +240,7 @@ namespace Bnhon.Game
         private void LoadMap(string mapName)
         {
             _map = null;
+            _loadedMap = mapName;
             var root = GameRoot.Instance;
             TextAsset asset = Resources.Load<TextAsset>("Maps/" + mapName);
 
@@ -484,7 +510,16 @@ namespace Bnhon.Game
                         rescuer.AddComponent<StoryTrigger>().Init(() => { if (StoryDirector.Instance != null) StoryDirector.Instance.OnRescued(); });
                         break;
 
-                    case 'Z': BuildZombie(position, ZombieKind.Walker); break;
+                    case 'V': BuildContainer(position, PrototypeContent.Safe, "crate_safe", new Color(0.28f, 0.33f, 0.45f)); break;
+
+                    case 'Z': BuildZombie(position, Escalate(ZombieKind.Walker)); break;
+                    case 'A': BuildZombie(position, ZombieKind.Armored); break;
+                    case 'B':
+                        // A boss that has been killed does not come back; one of its guards stands there instead.
+                        var area = _director != null ? _director.CurrentArea : null;
+                        bool dead = area != null && area.BossDefeated(GameRoot.Instance.Session);
+                        BuildZombie(position, dead ? ZombieKind.Armored : ZombieKind.Boss);
+                        break;
                     case 'R': BuildZombie(position, ZombieKind.Runner); break;
                     case 'G': BuildZombie(position, ZombieKind.Screamer); break;
                 }
@@ -607,7 +642,7 @@ namespace Bnhon.Game
                 if (vision != null && vision.IsActive && vision.IsVisible(position)) continue;
 
                 float roll = UnityEngine.Random.value;
-                ZombieKind kind = roll < 0.6f ? ZombieKind.Walker : (roll < 0.9f ? ZombieKind.Runner : ZombieKind.Screamer);
+                ZombieKind kind = Escalate(roll < 0.6f ? ZombieKind.Walker : (roll < 0.9f ? ZombieKind.Runner : ZombieKind.Screamer));
                 BuildZombie(position, kind).Investigate(playerPosition, 45f);
                 placed++;
             }
@@ -617,7 +652,14 @@ namespace Bnhon.Game
         private ZombieAI BuildZombie(Vector2 position, ZombieKind kind)
         {
             string spriteKey = "zombie_" + kind.ToString().ToLowerInvariant();
-            GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15, spriteKey, SpriteFit.Character);
+            // The boss keeps a normal footprint, so it fits through doors, but is drawn much bigger.
+            SpriteFit fit = kind == ZombieKind.Boss ? SpriteFit.Standing(1.8f, 2.5f) : SpriteFit.Character;
+            GameObject go = PlaceholderArt.Box("Zombie_" + kind, position, new Vector2(0.8f, 0.8f), new Color(0.45f, 0.65f, 0.3f), _raidRoot, 15, spriteKey, fit);
+            if (kind == ZombieKind.Boss && PlaceholderArt.FindSprite(spriteKey) == null)
+            {
+                // Without art the boss is a square like the rest; a dark halo marks it out.
+                PlaceholderArt.Box("Halo", position, new Vector2(1.7f, 1.7f), new Color(0.35f, 0.05f, 0.05f, 0.55f), _raidRoot, 14).transform.SetParent(go.transform, true);
+            }
             // Round bodies slide past each other and around wall corners; boxes lock together.
             go.AddComponent<CircleCollider2D>().radius = 0.5f;
 

@@ -6,6 +6,7 @@ using Bnhon.Core.Layout;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
+using Bnhon.Core.Raid;
 using Bnhon.Core.Relationships;
 using Bnhon.Core.Saving;
 using Bnhon.Core.Story;
@@ -194,8 +195,8 @@ namespace Bnhon.Core.Content
             .Add(CabbageSeed, 25, 2, 3);
 
         public static readonly LootTable WeaponCrate = new LootTable("weapon_crate")
-            .Add(PistolAmmo, 60, 6, 14)
-            .Add(ShotgunShell, 35, 2, 5)
+            .Add(PistolAmmo, 60, 4, 9)
+            .Add(ShotgunShell, 35, 2, 4)
             .Add(Pistol, 9)
             .Add(Shotgun, 6)
             .Add(BlueprintPistol, 7)
@@ -208,14 +209,14 @@ namespace Bnhon.Core.Content
             .Add(Cloth, 35, 1, 2)
             .Add(ScrapMetal, 25, 1, 2)
             .Add(CannedFood, 15)
-            .Add(PistolAmmo, 15, 2, 4)
+            .Add(PistolAmmo, 15, 1, 3)
             .Add(Bandage, 4);
 
         public static readonly LootTable RunnerCorpse = new LootTable("corpse_runner")
             .Add(WaterBottle, 28)
             .Add(Cloth, 30, 1, 2)
             .Add(Bandage, 8)
-            .Add(PistolAmmo, 20, 2, 5)
+            .Add(PistolAmmo, 20, 1, 3)
             .Add(ShotgunShell, 14, 1, 2);
 
         public static readonly LootTable ScreamerCorpse = new LootTable("corpse_screamer")
@@ -224,7 +225,50 @@ namespace Bnhon.Core.Content
             .Add(CircuitBoard, 25)
             .Add(OldCassette, 15);
 
-        public static readonly IReadOnlyList<LootTable> RaidLootTables = new[] { HouseCabinet, MedicalCabinet, SeedStore, WeaponCrate };
+        /// <summary>Safes: few, deep inside dangerous buildings, and worth the trip.</summary>
+        public static readonly LootTable Safe = new LootTable("safe")
+            .Add(CircuitBoard, 30, 1, 2)
+            .Add(PistolAmmo, 25, 8, 14)
+            .Add(ShotgunShell, 20, 3, 6)
+            .Add(MedKit, 18)
+            .Add(Shotgun, 10)
+            .Add(BlueprintShotgun, 8)
+            .Add(BlueprintPistol, 8)
+            .Add(TeaTin, 12)
+            .Add(OldCassette, 12);
+
+        public static readonly LootTable ArmoredCorpse = new LootTable("corpse_armored")
+            .Add(ScrapMetal, 50, 2, 3)
+            .Add(PistolAmmo, 25, 2, 5)
+            .Add(ShotgunShell, 15, 1, 3)
+            .Add(CircuitBoard, 10);
+
+        /// <summary>What the boss of the town centre always carries.</summary>
+        public static readonly IReadOnlyList<ItemAmount> ButcherLoot = new[] { A(Shotgun, 1), A(ShotgunShell, 6), A(MedKit, 1), A(CircuitBoard, 2) };
+
+        public static readonly IReadOnlyList<LootTable> RaidLootTables = new[] { HouseCabinet, MedicalCabinet, SeedStore, WeaponCrate, Safe };
+
+        public const string AreaOutskirtsId = "outskirts";
+        public const string AreaTownId = "town";
+        public const string FlagButcherDead = "boss_town";
+
+        public static readonly RaidArea AreaOutskirts = new RaidArea(AreaOutskirtsId, "Vùng ven thị trấn", "outskirts",
+            "Nhà dân thưa thớt, ít zombie. Chỗ để kiếm vật liệu và hạt giống khi chưa đủ đồ.", null, null);
+
+        public static readonly RaidArea AreaTown = new RaidArea(AreaTownId, "Trung tâm thị trấn", "town",
+            "Phố xá chật, zombie đông và có cả loại bọc thép. Két sắt và hòm vũ khí nhiều hơn hẳn. Đồ tể chiếm trụ sở ở giữa.",
+            "step_workbench", FlagButcherDead);
+
+        public static readonly IReadOnlyList<RaidArea> RaidAreas = new[] { AreaOutskirts, AreaTown };
+
+        public static RaidArea FindArea(string areaId)
+        {
+            foreach (var area in RaidAreas)
+            {
+                if (area.Id == areaId) return area;
+            }
+            return null;
+        }
 
         public const string NpcLan = "lan";
         public const string NpcMinh = "minh";
@@ -383,7 +427,7 @@ namespace Bnhon.Core.Content
         {
             // Level 1: the basics that keep a broke player able to go out again.
             workshop.AddRecipe(new Recipe("r_bandage", Bandage, 1, 1, null, A(Cloth, 2)));
-            workshop.AddRecipe(new Recipe("r_pistol_ammo", PistolAmmo, 6, 1, null, A(ScrapMetal, 2)));
+            workshop.AddRecipe(new Recipe("r_pistol_ammo", PistolAmmo, 4, 1, null, A(ScrapMetal, 2)));
 
             // Level 2
             workshop.AddRecipe(new Recipe("r_shotgun_shell", ShotgunShell, 4, 2, null, A(ScrapMetal, 2), A(Cloth, 1)));
@@ -465,8 +509,8 @@ namespace Bnhon.Core.Content
         /// <summary>What the base shop sells. Prices are well above what it pays, so trading is never free money.</summary>
         public static void SetUpShop(Trading.Shop shop)
         {
-            shop.AddEntry(PistolAmmo, 10, 30, 4);
-            shop.AddEntry(ShotgunShell, 4, 32, 2);
+            shop.AddEntry(PistolAmmo, 8, 36, 3);
+            shop.AddEntry(ShotgunShell, 4, 40, 2);
             shop.AddEntry(Bandage, 1, 22, 3);
             shop.AddEntry(CannedFood, 1, 26, 3);
             shop.AddEntry(WaterBottle, 1, 18, 3);
@@ -541,7 +585,11 @@ namespace Bnhon.Core.Content
             .Add(new StoryStep("workbench", "Gom vật liệu nâng bàn chế tạo lên cấp 2.",
                 session => session.Workshop.Level >= 2)
                 .Gives(0, A(BlueprintMedKit, 1))
-                .Says("Lan gửi bạn bản vẽ bộ sơ cứu (trong kho). Đăng ký ở bàn chế tạo là dùng được."));
+                .Says("Lan gửi bạn bản vẽ bộ sơ cứu (trong kho). Minh chỉ đường vào trung tâm thị trấn: ra cổng là chọn được."))
+            .Add(new StoryStep("town", "Vào trung tâm thị trấn và hạ Đồ tể đang chiếm trụ sở. Mang shotgun, và đừng bắn chính diện bọn bọc thép.",
+                session => session.Story.Has(FlagButcherDead))
+                .Gives(150, A(BlueprintShotgun, 1))
+                .Says("Đồ tể đã gục. Cả căn cứ ra cổng đón bạn. Nhận 150 tem phiếu và bản vẽ shotgun."));
 
         /// <summary>
         /// A brand new game: the session of <see cref="CreateNewSession"/>, but the player wakes

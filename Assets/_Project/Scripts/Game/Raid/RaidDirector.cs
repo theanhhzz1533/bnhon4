@@ -63,19 +63,34 @@ namespace Bnhon.Game.Raid
             MovePlayer(false);
         }
 
-        public bool TryStartRaid()
+        /// <summary>Where the current or last raid went. Null during the opening.</summary>
+        public Bnhon.Core.Raid.RaidArea CurrentArea { get; private set; }
+
+        /// <summary>Called with the chosen area before a raid starts, so its map can be put in place.</summary>
+        public Action<Bnhon.Core.Raid.RaidArea> AreaChosen { get; set; }
+
+        public bool TryStartRaid(Bnhon.Core.Raid.RaidArea area = null)
         {
             var root = GameRoot.Instance;
+            if (area == null) area = PrototypeContent.AreaOutskirts;
+            if (!area.IsUnlocked(root.Session))
+            {
+                root.Notify("Bạn chưa biết đường tới " + area.DisplayName + ".");
+                return false;
+            }
             if (root.Session.TryStartRaid() == null)
             {
                 root.Notify("Hôm nay bạn đã đi raid rồi. Hãy ngủ để sang ngày mới.");
                 return false;
             }
 
+            CurrentArea = area;
+            if (AreaChosen != null) AreaChosen(area);
+
             // Saved as "in a raid": quitting from here on loads as a death.
             root.Save(true);
             MovePlayer(true);
-            root.Notify("Bắt đầu raid. Tìm vùng xanh lá để rút lui.");
+            root.Notify(area.DisplayName + ". Tìm vùng xanh lá để rút lui.");
             return true;
         }
 
