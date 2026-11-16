@@ -81,6 +81,7 @@ namespace Bnhon.Game
 
             new GameObject("WorkbenchScreen").AddComponent<WorkbenchScreen>().Player = _player;
             new GameObject("ShopScreen").AddComponent<ShopScreen>().Player = _player;
+            new GameObject("KitchenScreen").AddComponent<KitchenScreen>().Player = _player;
         }
 
         private void LoadMap()
@@ -231,6 +232,17 @@ namespace Bnhon.Game
             workbench.AddComponent<BoxCollider2D>();
             workbench.AddComponent<YSort>();
             workbench.AddComponent<WorkbenchStation>();
+
+            // The well sits right under the farm, so refilling the can is a few steps away.
+            GameObject well = PlaceholderArt.Box("Well", new Vector2(-5.8f, -3.2f), new Vector2(1.2f, 1.2f), new Color(0.35f, 0.6f, 0.8f), root, 2, "well", SpriteFit.Standing(1.5f, 1.6f));
+            well.AddComponent<BoxCollider2D>();
+            well.AddComponent<YSort>();
+            well.AddComponent<Well>();
+
+            GameObject kitchen = PlaceholderArt.Box("Kitchen", new Vector2(2.4f, -5.5f), new Vector2(1.6f, 1f), new Color(0.75f, 0.4f, 0.25f), root, 2, "kitchen", SpriteFit.Standing(1.7f, 1.5f));
+            kitchen.AddComponent<BoxCollider2D>();
+            kitchen.AddComponent<YSort>();
+            kitchen.AddComponent<KitchenStation>();
 
             GameObject shop = PlaceholderArt.Box("Shop", new Vector2(-8f, 5f), new Vector2(1.6f, 1.1f), new Color(0.3f, 0.5f, 0.62f), root, 2, "shop", SpriteFit.Standing(1.8f, 1.7f));
             shop.AddComponent<BoxCollider2D>();

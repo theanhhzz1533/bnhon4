@@ -35,6 +35,11 @@ namespace Bnhon.Core
         public Workshop Workshop { get; }
         public Shop Shop { get; }
         public Needs Needs { get; }
+        public WateringCan WateringCan { get; }
+        public BuffSet Buffs { get; }
+
+        /// <summary>The kitchen's recipes. It is a workshop that stays at level 1 and needs no blueprints.</summary>
+        public Workshop Kitchen { get; }
 
         public RaidSession CurrentRaid { get; private set; }
         public bool RaidedToday { get; private set; }
@@ -56,6 +61,9 @@ namespace Bnhon.Core
             Workshop = new Workshop();
             Shop = new Shop();
             Needs = new Needs();
+            WateringCan = new WateringCan();
+            Buffs = new BuffSet();
+            Kitchen = new Workshop();
         }
 
         /// <summary>Sets whether today's raid has been used, from a save. Any raid object is discarded.</summary>
@@ -85,6 +93,7 @@ namespace Bnhon.Core
             Farm.OnNewDay(Clock.Season);
             Relationships.OnNewDay(Clock);
             Shop.Restock(Rng);
+            Buffs.Clear();
 
             // A night at the base: water is on hand, and there is a modest meal.
             Needs.Drink(Needs.Max);
@@ -106,6 +115,7 @@ namespace Bnhon.Core
 
             Needs.Eat(effect.Hunger);
             Needs.Drink(effect.Thirst);
+            Buffs.Add(effect.Buff);
             return true;
         }
     }

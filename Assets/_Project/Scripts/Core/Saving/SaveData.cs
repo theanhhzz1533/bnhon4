@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -36,6 +36,18 @@ namespace Bnhon.Core.Saving
         public List<string> blueprints = new List<string>();
         public bool shopSaved;
         public List<ShopStockSave> shopStock = new List<ShopStockSave>();
+
+        // Added in version 3. Absent in older saves: a full watering can and no buffs.
+        public bool canSaved;
+        public int canWater;
+        public List<BuffSave> buffs = new List<BuffSave>();
+    }
+
+    [Serializable]
+    public sealed class BuffSave
+    {
+        public string id;
+        public float remaining;
     }
 
     [Serializable]

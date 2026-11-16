@@ -572,6 +572,7 @@ namespace Bnhon.Game.UI
             if (effect.Heal > 0f) text += " +" + effect.Heal + " máu";
             if (effect.Hunger > 0f) text += " +" + effect.Hunger + " no";
             if (effect.Thirst > 0f) text += " +" + effect.Thirst + " nước";
+            if (effect.Buff != null) text += " · " + effect.Buff.DisplayName;
             return text;
         }
 

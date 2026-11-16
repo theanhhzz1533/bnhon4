@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 78 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 89 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -28,7 +28,9 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 
 `PrototypeBootstrap` dựng toàn bộ màn chơi thử bằng các ô vuông màu, không cần prefab hay asset:
 
-- **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, bàn chế tạo, quầy mua bán, giường, cổng ra ngoài.
+- **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, bàn chế tạo, quầy mua bán, giếng nước, bếp, giường, cổng ra ngoài.
+- **Trồng trọt:** 6 loại cây theo mùa (mùa đông chỉ trồng được bắp cải). Bình tưới chứa 6 lần tưới, múc lại ở giếng. Cây không tưới quá 2 ngày liền sẽ chết, và chết khi sang mùa không hợp.
+- **Nấu ăn:** bếp nấu 4 món từ nông sản. Mỗi món cho một hiệu ứng (hồi thể lực nhanh, chậm đói khát, hồi máu dần, chạy nhanh); thời gian chỉ chạy khi ở ngoài và hết khi đi ngủ.
 - **Khu raid:** dựng từ bản đồ file chữ 104×64 ô: 21 công trình (nhà, phòng khám, trường học, cửa hàng, nhà kho, bãi xe), 45 thùng đồ, 65 zombie và ba vùng rút lui màu xanh lá.
 
 | Phím | Hành động |
@@ -41,6 +43,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 | R | Nạp đạn từ balo; xoay vật phẩm khi đang kéo trong balo |
 | Q | Dùng nhanh một món hồi máu trong balo |
 | E | Tương tác: lục đồ, mở kho, cuốc, gieo, tưới, thu hoạch, nói chuyện, ngủ, ra cổng |
+| F | Khi đứng ở ô đất đã cuốc: đổi loại hạt sẽ gieo |
 | Tab | Mở hoặc đóng balo. Kéo chuột trái để xếp đồ, chuột phải để chuyển nhanh, F để dùng hoặc trang bị món đang rê chuột, Esc để đóng. Kéo súng vào ô vũ khí để trang bị, bấm vào súng đang trang bị để cất về balo |
 
 Đói và khát chỉ giảm khi đang raid; về 0 thì mất máu dần và thể lực hồi chậm. Ngủ hồi đầy nước và một phần no.
@@ -81,7 +84,7 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 | `crate_house.png`, `crate_medical.png`, `crate_seed.png`, `crate_weapon.png` | Bốn loại thùng đồ | Co theo bề ngang, giữ tỉ lệ |
 | `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |
 | `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |
-| `bed.png`, `stash.png`, `gate.png`, `workbench.png`, `shop.png` | Đồ trong căn cứ | Co vừa khung, giữ tỉ lệ |
+| `bed.png`, `stash.png`, `gate.png`, `workbench.png`, `shop.png`, `well.png`, `kitchen.png` | Đồ trong căn cứ | Co vừa khung, giữ tỉ lệ |
 | `item_<id>.png` (ví dụ `item_pistol.png`, `item_bandage.png`) | Icon vật phẩm trong balo, kho, hòm | Co vừa các ô của vật phẩm; chưa có hình thì hiện tên |
 
 Ảnh trong thư mục này được Unity tự đặt thành sprite pixel art (lọc Point, không nén) nhờ `Assets/_Project/Scripts/Editor/SpriteImportSettings.cs`, nên không cần chỉnh Inspector. Ảnh được co giãn theo kích thước vật thể nên độ phân giải nào cũng chạy, nhưng nên giữ mật độ điểm ảnh đồng đều giữa các món. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.

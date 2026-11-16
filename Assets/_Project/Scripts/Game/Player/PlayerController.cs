@@ -151,6 +151,7 @@ namespace Bnhon.Game.Player
 
             Focused = FindInteractable();
             if (Focused != null && keyboard.eKey.wasPressedThisFrame) Focused.Interact(this);
+            if (keyboard.fKey.wasPressedThisFrame && Focused is FarmPlotView plot) plot.AlternateAction();
         }
 
         private void FixedUpdate()
@@ -162,6 +163,7 @@ namespace Bnhon.Game.Player
             }
             float speed = _sprinting ? sprintSpeed : walkSpeed;
             if (_slowed) speed *= usingItemSpeedFactor;
+            if (GameRoot.Instance != null) speed *= GameRoot.Instance.Session.Buffs.Multiplier(BuffStat.MoveSpeed);
             _body.linearVelocity = _move * speed;
         }
 

@@ -59,8 +59,12 @@ namespace Bnhon.Core.Vitals
         /// <summary>How long the player is busy using it. They cannot attack meanwhile, and being hit interrupts it.</summary>
         public float UseSeconds { get; }
 
-        public ConsumableDefinition(string itemId, float heal = 0f, float hunger = 0f, float thirst = 0f, float useSeconds = 2f)
+        /// <summary>A timed effect it starts, or null. Cooked meals have one.</summary>
+        public BuffDefinition Buff { get; }
+
+        public ConsumableDefinition(string itemId, float heal = 0f, float hunger = 0f, float thirst = 0f, float useSeconds = 2f, BuffDefinition buff = null)
         {
+            Buff = buff;
             UseSeconds = useSeconds;
             ItemId = itemId;
             Heal = heal;

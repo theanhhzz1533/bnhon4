@@ -88,6 +88,13 @@ namespace Bnhon.Core.Saving
                 data.shopStock.Add(new ShopStockSave { id = entry.Item.Id, stock = entry.Stock });
             }
 
+            data.canSaved = true;
+            data.canWater = session.WateringCan.Water;
+            foreach (Vitals.ActiveBuff buff in session.Buffs.Active)
+            {
+                data.buffs.Add(new BuffSave { id = buff.Definition.Id, remaining = buff.Remaining });
+            }
+
             return data;
         }
 
@@ -100,7 +107,8 @@ namespace Bnhon.Core.Saving
             SaveData data,
             GameSession session,
             Func<string, ItemDefinition> findItem,
-            Func<string, CropDefinition> findCrop)
+            Func<string, CropDefinition> findCrop,
+            Func<string, Vitals.BuffDefinition> findBuff = null)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (session == null) throw new ArgumentNullException(nameof(session));
@@ -179,6 +187,20 @@ namespace Bnhon.Core.Saving
                 foreach (ShopStockSave saved in data.shopStock)
                 {
                     if (saved != null) session.Shop.RestoreStock(saved.id, saved.stock);
+                }
+            }
+
+            if (data.canSaved) session.WateringCan.Restore(data.canWater);
+
+            session.Buffs.Clear();
+            if (data.buffs != null && findBuff != null)
+            {
+                foreach (BuffSave saved in data.buffs)
+                {
+                    if (saved == null) continue;
+                    Vitals.BuffDefinition buff = findBuff(saved.id);
+                    if (buff == null) report.Dropped.Add("buff " + saved.id);
+                    else session.Buffs.Add(buff, saved.remaining);
                 }
             }
 

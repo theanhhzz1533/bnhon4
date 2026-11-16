@@ -1,4 +1,3 @@
-using Bnhon.Core.Content;
 using Bnhon.Core.Farming;
 using Bnhon.Game.Player;
 using UnityEngine;
@@ -27,13 +26,35 @@ namespace Bnhon.Game.Interaction
                 {
                     case PlotState.Untilled: return "E: Cuốc đất";
                     case PlotState.Dead: return "E: Dọn cây chết";
-                    case PlotState.Tilled: return "E: Gieo hạt";
+                    case PlotState.Tilled: return SowPrompt();
                     case PlotState.Ready: return "E: Thu hoạch " + _plot.Crop.DisplayName;
                     default:
                         string progress = _plot.Crop.DisplayName + " " + _plot.GrowthDays + "/" + _plot.Crop.DaysToMature + " ngày";
-                        return _plot.IsWatered ? progress + " (đã tưới)" : "E: Tưới nước · " + progress;
+                        if (_plot.IsWatered) return progress + " (đã tưới)";
+                        WateringCan can = GameRoot.Instance.Session.WateringCan;
+                        return can.IsEmpty
+                            ? "Bình tưới cạn, ra giếng múc nước · " + progress
+                            : "E: Tưới nước (bình " + can.Water + "/" + can.Capacity + ") · " + progress;
                 }
             }
+        }
+
+        private static string SowPrompt()
+        {
+            var session = GameRoot.Instance.Session;
+            CropDefinition crop = SeedChoice.Current(session);
+            if (crop == null) return "Không có hạt giống hợp mùa (mua ở quầy hoặc tìm ngoài kia)";
+
+            string text = "E: Gieo " + crop.DisplayName + " (còn " + SeedChoice.Owned(session, crop) + " hạt, "
+                + crop.DaysToMature + " ngày" + (crop.RegrowDays > 0 ? ", thu nhiều lần" : string.Empty) + ")";
+            return SeedChoice.OptionCount(session) > 1 ? text + " · F: đổi hạt" : text;
+        }
+
+        /// <summary>Called when the player presses the alternate key while facing this plot.</summary>
+        public void AlternateAction()
+        {
+            if (_plot == null || _plot.State != PlotState.Tilled) return;
+            SeedChoice.Cycle(GameRoot.Instance.Session);
         }
 
         public void Init(FarmPlot plot)
@@ -79,7 +100,9 @@ namespace Bnhon.Game.Interaction
                     break;
 
                 case PlotState.Growing:
-                    root.Notify(_plot.Water() ? "Đã tưới nước." : "Hôm nay đã tưới rồi.");
+                    if (_plot.IsWatered) root.Notify("Hôm nay đã tưới rồi.");
+                    else if (session.WateringCan.WaterPlot(_plot)) root.Notify("Đã tưới nước. Bình còn " + session.WateringCan.Water + "/" + session.WateringCan.Capacity + ".");
+                    else root.Notify("Bình tưới cạn. Ra giếng múc nước.");
                     break;
 
                 case PlotState.Ready:
@@ -92,16 +115,13 @@ namespace Bnhon.Game.Interaction
             }
         }
 
-        /// <summary>Consumes one seed that can grow this season, from the backpack first, then the stash.</summary>
+        /// <summary>Consumes one of the chosen seed, from the backpack first, then the stash.</summary>
         private static CropDefinition TakeSeed()
         {
             var session = GameRoot.Instance.Session;
-            foreach (CropDefinition crop in PrototypeContent.Crops)
-            {
-                if (!crop.GrowsIn(session.Clock.Season)) continue;
-                if (session.Backpack.TryConsume(crop.Seed.Id, 1) || session.Stash.TryConsume(crop.Seed.Id, 1)) return crop;
-            }
-            return null;
+            CropDefinition crop = SeedChoice.Current(session);
+            if (crop == null) return null;
+            return session.Backpack.TryConsume(crop.Seed.Id, 1) || session.Stash.TryConsume(crop.Seed.Id, 1) ? crop : null;
         }
 
         private static Color ColorFor(FarmPlot plot)

@@ -61,11 +61,16 @@ namespace Bnhon.Game.Player
             UpdateUse(delta);
 
             bool weakened = session.Needs.IsStarving || session.Needs.IsDehydrated;
-            session.Stamina.Tick(delta, weakened ? weakenedRegenMultiplier : 1f);
+            float regen = (weakened ? weakenedRegenMultiplier : 1f) * session.Buffs.Multiplier(BuffStat.StaminaRegen);
+            session.Stamina.Tick(delta, regen);
 
-            // Hunger and thirst only run while outside.
+            // Hunger, thirst and meal buffs only run while outside.
             if (!session.IsInRaid) return;
-            session.Needs.Tick(delta);
+            session.Needs.Tick(delta * session.Buffs.Multiplier(BuffStat.NeedsDrain));
+
+            float healing = session.Buffs.Total(BuffStat.HealthRegen);
+            if (healing > 0f && _health.Current > 0f) _health.Heal(healing * delta);
+            session.Buffs.Tick(delta);
             if (weakened)
             {
                 // Starving must not interrupt eating, or the player could never recover.
@@ -109,7 +114,8 @@ namespace Bnhon.Game.Player
             var needs = root.Session.Needs;
             bool wouldHeal = effect.Heal > 0f && _health.Current < _health.Max;
             bool wouldFeed = (effect.Hunger > 0f && needs.Hunger < needs.Max) || (effect.Thirst > 0f && needs.Thirst < needs.Max);
-            if (!wouldHeal && !wouldFeed)
+            bool wouldBuff = effect.Buff != null && !root.Session.Buffs.Has(effect.Buff.Id);
+            if (!wouldHeal && !wouldFeed && !wouldBuff)
             {
                 root.Notify("Chưa cần dùng " + definition.DisplayName + ".", 1.5f);
                 return false;

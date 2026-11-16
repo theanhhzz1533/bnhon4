@@ -69,6 +69,15 @@ namespace Bnhon.Game.UI
                 }
                 _text.Append('\n');
             }
+            foreach (Bnhon.Core.Vitals.ActiveBuff buff in session.Buffs.Active)
+            {
+                int left = Mathf.CeilToInt(buff.Remaining);
+                _text.Append("  + ").Append(buff.Definition.DisplayName).Append("  ").Append(left / 60).Append(':').Append((left % 60).ToString("00")).Append('\n');
+            }
+            if (!session.IsInRaid)
+            {
+                _text.Append("Bình tưới: ").Append(session.WateringCan.Water).Append('/').Append(session.WateringCan.Capacity).Append('\n');
+            }
             _text.Append("Tem phiếu: ").Append(session.Wallet.Money).Append('\n');
 
             _text.Append("Balo: ").Append(session.Backpack.Items.Count).Append(" món, giá trị ")

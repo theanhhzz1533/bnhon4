@@ -49,7 +49,8 @@ Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 p
 - [ ] Chuyển dữ liệu mẫu trong `PrototypeContent` sang ScriptableObject
 - [ ] Đặt và dời công trình trên lưới: bàn chế tạo, kho, bếp
 - [x] Chế tạo kiểu Escape From Duckov: bàn chế tạo 3 cấp, bản vẽ phải mang về đăng ký, tháo dỡ vật phẩm
-- [ ] Farming đầy đủ: dụng cụ, bình tưới, 6 loại cây, nấu ăn có buff
+- [x] Farming: bình tưới có dung tích và giếng nước, 6 loại cây theo mùa, chọn hạt để gieo, bếp nấu 4 món có buff
+- [ ] Farming, phần còn lại: cuốc và bình tưới nâng cấp được, hình cây lớn dần trên ô ruộng
 - [ ] Một NPC hoàn chỉnh: lịch sinh hoạt, hội thoại, quà tặng có UI, 2 cảnh tim
 - [ ] Một chuỗi nhiệm vụ cốt truyện mở đầu
 - [x] Quầy mua bán: hàng giới hạn về lại mỗi ngày, bán đồ được nửa giá trị

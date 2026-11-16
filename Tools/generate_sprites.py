@@ -67,6 +67,8 @@ ASSETS = [
     ("stash", "large wooden storage chest with metal bands", False),
     ("gate", "rusty corrugated metal gate with barbed wire", False),
     ("workbench", "sturdy wooden workbench with a vise, tools and scrap metal on top", False),
+    ("well", "round stone water well with a wooden bucket", False),
+    ("kitchen", "small brick cooking stove with a steaming pot on top", False),
     ("shop", "small market stall with a tarp roof, crates and canned goods on the counter", False),
 ]
 
@@ -96,6 +98,16 @@ ITEMS = [
     ("sweet_potato", "purple-skinned sweet potato", None, None),
     ("corn", "ear of yellow corn with green husk", None, None),
     ("mugwort", "bunch of green mugwort herb leaves tied together", None, None),
+    ("seed_tomato", "small burlap seed bag with a red tomato drawn on it", None, None),
+    ("seed_water_spinach", "small burlap seed bag with long green leaves drawn on it", None, None),
+    ("seed_cabbage", "small burlap seed bag with a green cabbage drawn on it", None, None),
+    ("tomato", "ripe red tomato with a green stem", None, None),
+    ("water_spinach", "bunch of long green water spinach stalks tied together", None, None),
+    ("cabbage", "round green cabbage head", None, None),
+    ("meal_roasted_sweet_potato", "roasted sweet potato split open showing orange flesh", None, None),
+    ("meal_spinach_soup", "bowl of clear green vegetable soup", None, DARK),
+    ("meal_mugwort_porridge", "bowl of rice porridge with green herbs on top", None, DARK),
+    ("meal_cabbage_stir_fry", "plate of stir-fried cabbage with red tomato pieces", None, DARK),
     ("tea_tin", "small decorated metal tea tin", None, None),
     ("old_cassette", "old audio cassette tape", None, None),
 ]

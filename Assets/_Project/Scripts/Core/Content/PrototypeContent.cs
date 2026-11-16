@@ -54,10 +54,42 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition TeaTin = new ItemDefinition("tea_tin", "Hộp trà", ItemCategory.Gift, ItemRarity.Uncommon, 1, 1, 1, 40);
         public static readonly ItemDefinition OldCassette = new ItemDefinition("old_cassette", "Băng cassette cũ", ItemCategory.Gift, ItemRarity.Rare, 1, 1, 1, 70);
 
+        // More crops, so every season has something to grow.
+        public static readonly ItemDefinition TomatoSeed = new ItemDefinition("seed_tomato", "Hạt cà chua", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 7);
+        public static readonly ItemDefinition WaterSpinachSeed = new ItemDefinition("seed_water_spinach", "Hạt rau muống", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 4);
+        public static readonly ItemDefinition CabbageSeed = new ItemDefinition("seed_cabbage", "Hạt bắp cải", ItemCategory.Seed, ItemRarity.Common, 1, 1, 20, 7);
+        public static readonly ItemDefinition Tomato = new ItemDefinition("tomato", "Cà chua", ItemCategory.Produce, ItemRarity.Common, 1, 1, 10, 12);
+        public static readonly ItemDefinition WaterSpinach = new ItemDefinition("water_spinach", "Rau muống", ItemCategory.Produce, ItemRarity.Common, 1, 1, 10, 7);
+        public static readonly ItemDefinition Cabbage = new ItemDefinition("cabbage", "Bắp cải", ItemCategory.Produce, ItemRarity.Common, 1, 1, 5, 22);
+
+        // Cooked in the kitchen. Each feeds well and gives one buff for the day's raid.
+        public static readonly ItemDefinition RoastedSweetPotato = new ItemDefinition("meal_roasted_sweet_potato", "Khoai nướng", ItemCategory.Food, ItemRarity.Uncommon, 1, 1, 3, 40);
+        public static readonly ItemDefinition SpinachSoup = new ItemDefinition("meal_spinach_soup", "Canh rau muống", ItemCategory.Food, ItemRarity.Uncommon, 1, 1, 3, 35);
+        public static readonly ItemDefinition MugwortPorridge = new ItemDefinition("meal_mugwort_porridge", "Cháo ngải cứu", ItemCategory.Food, ItemRarity.Uncommon, 1, 1, 3, 50);
+        public static readonly ItemDefinition CabbageStirFry = new ItemDefinition("meal_cabbage_stir_fry", "Bắp cải xào cà chua", ItemCategory.Food, ItemRarity.Uncommon, 1, 1, 3, 55);
+
+        public static readonly BuffDefinition BuffEndurance = new BuffDefinition("buff_endurance", "Dẻo dai: thể lực hồi nhanh hơn 30%", BuffStat.StaminaRegen, 0.3f, 240f);
+        public static readonly BuffDefinition BuffHydrated = new BuffDefinition("buff_hydrated", "Mát ruột: đói và khát chậm hơn 40%", BuffStat.NeedsDrain, -0.4f, 300f);
+        public static readonly BuffDefinition BuffMending = new BuffDefinition("buff_mending", "Ấm bụng: hồi 0,5 máu mỗi giây", BuffStat.HealthRegen, 0.5f, 120f);
+        public static readonly BuffDefinition BuffNimble = new BuffDefinition("buff_nimble", "Nhanh nhẹn: di chuyển nhanh hơn 8%", BuffStat.MoveSpeed, 0.08f, 240f);
+
+        public static readonly IReadOnlyList<BuffDefinition> Buffs = new[] { BuffEndurance, BuffHydrated, BuffMending, BuffNimble };
+
+        public static BuffDefinition FindBuff(string buffId)
+        {
+            foreach (var buff in Buffs)
+            {
+                if (buff.Id == buffId) return buff;
+            }
+            return null;
+        }
+
         public static readonly IReadOnlyList<ItemDefinition> Items = new[]
         {
             Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun, MedKit, BlueprintPistol, BlueprintShotgun, BlueprintMedKit,
-            SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette
+            SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette,
+            TomatoSeed, WaterSpinachSeed, CabbageSeed, Tomato, WaterSpinach, Cabbage,
+            RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry
         };
 
         public static ItemDefinition FindItem(string itemId)
@@ -77,7 +109,14 @@ namespace Bnhon.Core.Content
             new ConsumableDefinition(Corn.Id, hunger: 20f, thirst: 5f),
             new ConsumableDefinition(Bandage.Id, heal: 30f, useSeconds: 3.5f),
             new ConsumableDefinition(Mugwort.Id, heal: 15f, useSeconds: 2.5f),
-            new ConsumableDefinition(MedKit.Id, heal: 65f, useSeconds: 5f)
+            new ConsumableDefinition(MedKit.Id, heal: 65f, useSeconds: 5f),
+            new ConsumableDefinition(Tomato.Id, hunger: 12f, thirst: 12f),
+            new ConsumableDefinition(WaterSpinach.Id, hunger: 10f, thirst: 5f),
+            new ConsumableDefinition(Cabbage.Id, hunger: 25f, thirst: 5f),
+            new ConsumableDefinition(RoastedSweetPotato.Id, hunger: 60f, useSeconds: 3f, buff: BuffEndurance),
+            new ConsumableDefinition(SpinachSoup.Id, hunger: 25f, thirst: 60f, useSeconds: 3f, buff: BuffHydrated),
+            new ConsumableDefinition(MugwortPorridge.Id, heal: 20f, hunger: 45f, thirst: 15f, useSeconds: 3f, buff: BuffMending),
+            new ConsumableDefinition(CabbageStirFry.Id, hunger: 55f, thirst: 10f, useSeconds: 3f, buff: BuffNimble)
         };
 
         public static ConsumableDefinition FindConsumable(string itemId)
@@ -101,7 +140,19 @@ namespace Bnhon.Core.Content
             "crop_mugwort", "Ngải cứu", MugwortSeed, Mugwort, 3,
             SeasonMask.Spring | SeasonMask.Summer | SeasonMask.Autumn, 0, 1, 2);
 
-        public static readonly IReadOnlyList<CropDefinition> Crops = new[] { SweetPotatoCrop, CornCrop, MugwortCrop };
+        public static readonly CropDefinition TomatoCrop = new CropDefinition(
+            "crop_tomato", "Cà chua", TomatoSeed, Tomato, 5,
+            SeasonMask.Spring | SeasonMask.Summer, 2, 1, 2);
+
+        public static readonly CropDefinition WaterSpinachCrop = new CropDefinition(
+            "crop_water_spinach", "Rau muống", WaterSpinachSeed, WaterSpinach, 3,
+            SeasonMask.Summer | SeasonMask.Autumn, 2, 2, 3);
+
+        public static readonly CropDefinition CabbageCrop = new CropDefinition(
+            "crop_cabbage", "Bắp cải", CabbageSeed, Cabbage, 5,
+            SeasonMask.Autumn | SeasonMask.Winter, 0, 1, 1);
+
+        public static readonly IReadOnlyList<CropDefinition> Crops = new[] { SweetPotatoCrop, CornCrop, MugwortCrop, TomatoCrop, WaterSpinachCrop, CabbageCrop };
 
         public static CropDefinition FindCrop(string cropId)
         {
@@ -131,7 +182,10 @@ namespace Bnhon.Core.Content
         public static readonly LootTable SeedStore = new LootTable("seed_store")
             .Add(SweetPotatoSeed, 40, 2, 4)
             .Add(CornSeed, 35, 2, 4)
-            .Add(MugwortSeed, 25, 1, 3);
+            .Add(MugwortSeed, 25, 1, 3)
+            .Add(TomatoSeed, 30, 2, 4)
+            .Add(WaterSpinachSeed, 30, 2, 4)
+            .Add(CabbageSeed, 25, 2, 3);
 
         public static readonly LootTable WeaponCrate = new LootTable("weapon_crate")
             .Add(PistolAmmo, 60, 6, 14)
@@ -223,6 +277,15 @@ namespace Bnhon.Core.Content
             workshop.SetDismantle(OldCassette, A(ScrapMetal, 1));
         }
 
+        /// <summary>What the kitchen cooks. All at level 1 with no blueprint: the kitchen has no upgrades yet.</summary>
+        public static void SetUpKitchen(Workshop kitchen)
+        {
+            kitchen.AddRecipe(new Recipe("k_roasted_sweet_potato", RoastedSweetPotato, 1, 1, null, A(SweetPotato, 2), A(Wood, 1)));
+            kitchen.AddRecipe(new Recipe("k_spinach_soup", SpinachSoup, 1, 1, null, A(WaterSpinach, 2), A(WaterBottle, 1)));
+            kitchen.AddRecipe(new Recipe("k_mugwort_porridge", MugwortPorridge, 1, 1, null, A(Mugwort, 1), A(Corn, 1)));
+            kitchen.AddRecipe(new Recipe("k_cabbage_stir_fry", CabbageStirFry, 1, 1, null, A(Cabbage, 1), A(Tomato, 1)));
+        }
+
         /// <summary>What the base shop sells. Prices are well above what it pays, so trading is never free money.</summary>
         public static void SetUpShop(Trading.Shop shop)
         {
@@ -234,6 +297,9 @@ namespace Bnhon.Core.Content
             shop.AddEntry(SweetPotatoSeed, 3, 18, 3);
             shop.AddEntry(CornSeed, 3, 24, 2);
             shop.AddEntry(MugwortSeed, 2, 28, 2);
+            shop.AddEntry(TomatoSeed, 3, 26, 2);
+            shop.AddEntry(WaterSpinachSeed, 3, 16, 2);
+            shop.AddEntry(CabbageSeed, 2, 20, 2);
             shop.AddEntry(Pistol, 1, 220, 1, 0.35);
             shop.AddEntry(BlueprintMedKit, 1, 120, 1, 0.25);
         }
@@ -248,6 +314,7 @@ namespace Bnhon.Core.Content
 
             SetUpWorkshop(session.Workshop);
             SetUpShop(session.Shop);
+            SetUpKitchen(session.Kitchen);
             session.Shop.FillStock();
             session.Loadout.Set(0, Pistol, PistolMagazine);
             session.Wallet.Add(50);
@@ -285,7 +352,7 @@ namespace Bnhon.Core.Content
         public static GameSession LoadSession(SaveData data, int seed, out LoadReport report)
         {
             var session = CreateNewSession((Gender)data.playerGender, seed);
-            report = SaveMapper.Apply(data, session, FindItem, FindCrop);
+            report = SaveMapper.Apply(data, session, FindItem, FindCrop, FindBuff);
             if (report.AbandonedRaid) GrantFallbackWeapon(session);
             return session;
         }
