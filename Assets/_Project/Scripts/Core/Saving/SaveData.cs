@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 5;
+        public const int CurrentVersion = 6;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -44,6 +44,18 @@ namespace Bnhon.Core.Saving
 
         // Added in version 4. Absent in older saves: nobody met, no scenes seen.
         public List<string> storyFlags = new List<string>();
+
+        // Added in version 6. Absent in older saves: a level 1 can and buildings where a new game puts them.
+        public int canLevel = 1;
+        public List<BuildingSave> buildings = new List<BuildingSave>();
+    }
+
+    [Serializable]
+    public sealed class BuildingSave
+    {
+        public string id;
+        public int x;
+        public int y;
     }
 
     [Serializable]

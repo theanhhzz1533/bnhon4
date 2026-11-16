@@ -4,6 +4,7 @@ using Bnhon.Core.Crafting;
 using Bnhon.Core.Economy;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Inventory;
+using Bnhon.Core.Layout;
 using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
 using Bnhon.Core.Raid;
@@ -22,6 +23,8 @@ namespace Bnhon.Core
     public sealed class GameSession
     {
         public const float SleepMeal = 30f;
+        public const int BaseWidth = 20;
+        public const int BaseHeight = 14;
 
         public GameClock Clock { get; }
         public GridInventory Stash { get; }
@@ -38,6 +41,9 @@ namespace Bnhon.Core
         public Shop Shop { get; }
         public Needs Needs { get; }
         public StoryFlags Story { get; }
+
+        /// <summary>Where the buildings of the base stand.</summary>
+        public BaseLayout Base { get; }
 
         /// <summary>Morning until the day's raid has been used, evening after.</summary>
         public DayPhase Phase => RaidedToday ? DayPhase.Evening : DayPhase.Morning;
@@ -75,6 +81,7 @@ namespace Bnhon.Core
             Shop = new Shop();
             Needs = new Needs();
             Story = new StoryFlags();
+            Base = new BaseLayout(BaseWidth, BaseHeight);
             WateringCan = new WateringCan();
             Buffs = new BuffSet();
             Kitchen = new Workshop();

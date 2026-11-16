@@ -197,6 +197,20 @@ namespace Bnhon.Core.Crafting
             }
         }
 
+        /// <summary>True if the stash and backpack together hold everything listed.</summary>
+        public static bool CanAfford(IReadOnlyList<ItemAmount> amounts, GridInventory stash, GridInventory backpack)
+        {
+            return HasAll(amounts, stash, backpack);
+        }
+
+        /// <summary>Takes everything listed, from the stash first and then the backpack. Takes nothing if anything is short.</summary>
+        public static bool TrySpend(IReadOnlyList<ItemAmount> amounts, GridInventory stash, GridInventory backpack)
+        {
+            if (!HasAll(amounts, stash, backpack)) return false;
+            TakeAll(amounts, stash, backpack);
+            return true;
+        }
+
         private struct Taken
         {
             public GridInventory Grid;

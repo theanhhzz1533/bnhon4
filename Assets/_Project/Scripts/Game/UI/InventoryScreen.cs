@@ -112,6 +112,7 @@ namespace Bnhon.Game.UI
 
             // A workbench or shop menu owns Tab while it is open, and on the frame it closes.
             if (ModalScreen.Current != null || ModalScreen.ClosedFrame == UnityEngine.Time.frameCount) return;
+            if (Bnhon.Game.Interaction.BaseBuilder.Active) return;
 
             if (keyboard.tabKey.wasPressedThisFrame)
             {

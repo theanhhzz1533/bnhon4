@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 108 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 117 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -46,6 +46,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 | Q | Dùng nhanh một món hồi máu trong balo |
 | E | Tương tác: lục đồ, mở kho, cuốc, gieo, tưới, thu hoạch, nói chuyện, ngủ, ra cổng |
 | F | Khi đứng ở ô đất đã cuốc: đổi loại hạt sẽ gieo |
+| B | Ở căn cứ: bật hoặc tắt chế độ xây dựng. Bấm vào công trình để nhấc lên, bấm lần nữa để đặt ở chỗ viền xanh, chuột phải để trả về chỗ cũ |
 | Tab | Mở hoặc đóng balo. Kéo chuột trái để xếp đồ, chuột phải để chuyển nhanh, F để dùng hoặc trang bị món đang rê chuột, Esc để đóng. Kéo súng vào ô vũ khí để trang bị, bấm vào súng đang trang bị để cất về balo |
 
 Đói và khát chỉ giảm khi đang raid; về 0 thì mất máu dần và thể lực hồi chậm. Ngủ hồi đầy nước và một phần no.
@@ -87,9 +88,11 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 | `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |
 | `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |
 | `bed.png`, `stash.png`, `gate.png`, `workbench.png`, `shop.png`, `well.png`, `kitchen.png` | Đồ trong căn cứ | Co vừa khung, giữ tỉ lệ |
+| `base_floor.png`, `plot_dry.png`, `plot_wet.png` | Nền căn cứ, ô ruộng khô và ướt | Kéo giãn vừa một ô |
+| `crop_sprout.png`, `crop_<tên cây>.png` (ví dụ `crop_corn.png`) | Cây mới nhú và cây đã lớn trên ô ruộng | Co theo độ lớn của cây |
 | `item_<id>.png` (ví dụ `item_pistol.png`, `item_bandage.png`) | Icon vật phẩm trong balo, kho, hòm | Co vừa các ô của vật phẩm; chưa có hình thì hiện tên |
 
-Ảnh trong thư mục này được Unity tự đặt thành sprite pixel art (lọc Point, không nén) nhờ `Assets/_Project/Scripts/Editor/SpriteImportSettings.cs`, nên không cần chỉnh Inspector. Ảnh được co giãn theo kích thước vật thể nên độ phân giải nào cũng chạy, nhưng nên giữ mật độ điểm ảnh đồng đều giữa các món. Ô ruộng và nền căn cứ chưa hỗ trợ thay hình.
+Ảnh trong thư mục này được Unity tự đặt thành sprite pixel art (lọc Point, không nén) nhờ `Assets/_Project/Scripts/Editor/SpriteImportSettings.cs`, nên không cần chỉnh Inspector. Ảnh được co giãn theo kích thước vật thể nên độ phân giải nào cũng chạy, nhưng nên giữ mật độ điểm ảnh đồng đều giữa các món.
 
 Ảnh tạo bằng workflow ComfyUI trong `Tools/ComfyUI/` có thể xử lý tự động bằng `Tools/sprite_prep.py` (cần Python, `pip install pillow numpy`):
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Bnhon.Core.Crafting;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Items;
+using Bnhon.Core.Layout;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Npcs;
 using Bnhon.Core.Quests;
@@ -402,6 +403,56 @@ namespace Bnhon.Core.Content
             workshop.SetDismantle(OldCassette, A(ScrapMetal, 1));
         }
 
+        public static readonly BuildingType BuildingShop = new BuildingType("shop", "Quầy mua bán", 2, 1);
+        public static readonly BuildingType BuildingWorkbench = new BuildingType("workbench", "Bàn chế tạo", 2, 1);
+        public static readonly BuildingType BuildingStash = new BuildingType("stash", "Kho", 2, 1);
+        public static readonly BuildingType BuildingBed = new BuildingType("bed", "Giường", 1, 2);
+        public static readonly BuildingType BuildingKitchen = new BuildingType("kitchen", "Bếp", 2, 1);
+        public static readonly BuildingType BuildingWell = new BuildingType("well", "Giếng", 1, 1);
+
+        /// <summary>
+        /// The yard: where nothing may be built, and where each building starts. Cell (0,0) is
+        /// the bottom-left corner of the yard; the scene puts the yard's centre at the origin.
+        /// </summary>
+        public static void SetUpBase(BaseLayout layout)
+        {
+            layout.Reserve(2, 5, 4, 5);    // the farm
+            layout.Reserve(1, 7);          // Bà Tư by the farm
+            layout.Reserve(18, 2, 2, 4);   // the gate
+            layout.Reserve(9, 4, 2, 2);    // where the player appears
+            layout.Reserve(7, 11, 2, 1);   // Lan's medicine corner
+            layout.Reserve(10, 11);        // Minh at the workshop
+            layout.Reserve(4, 11, 2, 1);   // Bà Tư's porch
+            layout.Reserve(17, 1);         // Minh's watch by the gate
+
+            layout.Add(BuildingShop, 1, 11);
+            layout.Add(BuildingWorkbench, 11, 11);
+            layout.Add(BuildingStash, 14, 11);
+            layout.Add(BuildingBed, 17, 10);
+            layout.Add(BuildingKitchen, 11, 1);
+            layout.Add(BuildingWell, 4, 3);
+        }
+
+        /// <summary>What the next watering can level costs, and the workbench level it needs. Null at the top level.</summary>
+        public static ItemAmount[] CanUpgradeCost(int currentLevel, out int workbenchLevel)
+        {
+            workbenchLevel = currentLevel;
+            if (currentLevel == 1) return new[] { A(ScrapMetal, 4), A(Cloth, 2) };
+            if (currentLevel == 2) return new[] { A(ScrapMetal, 8), A(CircuitBoard, 1) };
+            return null;
+        }
+
+        /// <summary>Upgrades the watering can if the workbench is good enough and the materials are there.</summary>
+        public static CraftBlock UpgradeWateringCan(GameSession session)
+        {
+            ItemAmount[] cost = CanUpgradeCost(session.WateringCan.Level, out int workbenchLevel);
+            if (cost == null) return CraftBlock.MaxLevel;
+            if (session.Workshop.Level < workbenchLevel) return CraftBlock.WorkbenchLevel;
+            if (!Workshop.TrySpend(cost, session.Stash, session.Backpack)) return CraftBlock.Materials;
+            session.WateringCan.Upgrade();
+            return CraftBlock.None;
+        }
+
         /// <summary>What the kitchen cooks. All at level 1 with no blueprint: the kitchen has no upgrades yet.</summary>
         public static void SetUpKitchen(Workshop kitchen)
         {
@@ -529,6 +580,7 @@ namespace Bnhon.Core.Content
             SetUpWorkshop(session.Workshop);
             SetUpShop(session.Shop);
             SetUpKitchen(session.Kitchen);
+            SetUpBase(session.Base);
             session.Shop.FillStock();
             session.Loadout.Set(0, Pistol, PistolMagazine);
             session.Wallet.Add(50);

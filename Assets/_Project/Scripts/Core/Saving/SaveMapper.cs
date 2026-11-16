@@ -90,6 +90,12 @@ namespace Bnhon.Core.Saving
 
             foreach (string flag in session.Story.All) data.storyFlags.Add(flag);
 
+            data.canLevel = session.WateringCan.Level;
+            foreach (Layout.PlacedBuilding building in session.Base.Buildings)
+            {
+                data.buildings.Add(new BuildingSave { id = building.Type.Id, x = building.X, y = building.Y });
+            }
+
             data.canSaved = true;
             data.canWater = session.WateringCan.Water;
             foreach (Vitals.ActiveBuff buff in session.Buffs.Active)
@@ -193,7 +199,18 @@ namespace Bnhon.Core.Saving
             }
 
             session.Story.Restore(data.storyFlags);
-            if (data.canSaved) session.WateringCan.Restore(data.canWater);
+            if (data.canSaved) session.WateringCan.Restore(data.canLevel, data.canWater);
+
+            if (data.buildings != null)
+            {
+                // Lift every saved building off the grid first, so two that swapped places can both land.
+                foreach (BuildingSave saved in data.buildings)
+                {
+                    if (saved == null) continue;
+                    if (session.Base.Get(saved.id) == null) report.Dropped.Add("building " + saved.id);
+                    else if (!session.Base.Move(saved.id, saved.x, saved.y)) report.Dropped.Add("building " + saved.id + " (no room, left where it was)");
+                }
+            }
 
             session.Buffs.Clear();
             if (data.buffs != null && findBuff != null)

@@ -21,18 +21,18 @@ namespace Bnhon.Game.Raid
         private CameraFollow _camera;
         private Vector2 _baseSpawn;
         private Vector2 _raidSpawn;
-        private Action _rebuildRaidZone;
+        private Action<bool> _onZoneChange;
 
         public static RaidDirector Instance { get; private set; }
 
-        public void Init(PlayerController player, CameraFollow cameraFollow, Vector2 baseSpawn, Vector2 raidSpawn, Action rebuildRaidZone)
+        public void Init(PlayerController player, CameraFollow cameraFollow, Vector2 baseSpawn, Vector2 raidSpawn, Action<bool> onZoneChange)
         {
             _player = player;
             _playerHealth = player.GetComponent<Health>();
             _camera = cameraFollow;
             _baseSpawn = baseSpawn;
             _raidSpawn = raidSpawn;
-            _rebuildRaidZone = rebuildRaidZone;
+            _onZoneChange = onZoneChange;
             _playerHealth.Died += OnPlayerDied;
         }
 
@@ -55,12 +55,12 @@ namespace Bnhon.Game.Raid
 
         public void PutPlayerAtRaidSpawn()
         {
-            MovePlayer(_raidSpawn);
+            MovePlayer(true);
         }
 
         public void PutPlayerAtBase()
         {
-            MovePlayer(_baseSpawn);
+            MovePlayer(false);
         }
 
         public bool TryStartRaid()
@@ -74,7 +74,7 @@ namespace Bnhon.Game.Raid
 
             // Saved as "in a raid": quitting from here on loads as a death.
             root.Save(true);
-            MovePlayer(_raidSpawn);
+            MovePlayer(true);
             root.Notify("Bắt đầu raid. Tìm vùng xanh lá để rút lui.");
             return true;
         }
@@ -89,7 +89,7 @@ namespace Bnhon.Game.Raid
             session.Story.Set(Bnhon.Core.Story.StoryIds.Extracted);
             Sfx.PlayUi(SoundId.Extract, 0.8f);
             root.Save();
-            MovePlayer(_baseSpawn);
+            MovePlayer(false);
             root.Notify("Rút lui thành công. Giá trị balo: " + session.Backpack.TotalValue() + ".", 5f);
         }
 
@@ -105,7 +105,6 @@ namespace Bnhon.Game.Raid
 
             _playerHealth.ResetFull();
             root.Save();
-            if (_rebuildRaidZone != null) _rebuildRaidZone();
             root.Notify("Ngày " + session.Clock.Day + ", " + SeasonName(session.Clock.Season) + ", năm " + session.Clock.Year + ".", 5f);
             return true;
         }
@@ -142,17 +141,19 @@ namespace Bnhon.Game.Raid
 
             Sfx.PlayUi(SoundId.PlayerDeath);
             _playerHealth.ResetFull();
-            MovePlayer(_baseSpawn);
+            MovePlayer(false);
             string message = "Bạn đã gục ngã, mất " + lostCount + " món trong balo và vũ khí đang mang. Túi an toàn vẫn còn.";
             if (PrototypeContent.GrantFallbackWeapon(session)) message += " Minh để lại trong kho một khẩu súng ngắn cũ.";
             root.Save();
             root.Notify(message, 8f);
         }
 
-        private void MovePlayer(Vector2 position)
+        /// <summary>Switches the world to the raid map or the base, then puts the player at its entry point.</summary>
+        private void MovePlayer(bool toRaid)
         {
             if (InventoryScreen.Instance != null) InventoryScreen.Instance.Close();
-            _player.Teleport(position);
+            if (_onZoneChange != null) _onZoneChange(toRaid);
+            _player.Teleport(toRaid ? _raidSpawn : _baseSpawn);
             if (_camera != null) _camera.SnapToTarget();
         }
     }

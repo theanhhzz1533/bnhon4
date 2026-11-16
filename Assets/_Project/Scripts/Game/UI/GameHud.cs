@@ -248,7 +248,10 @@ namespace Bnhon.Game.UI
             string line = "Tem phiếu " + session.Wallet.Money + "   ·   Balo " + session.Backpack.Items.Count + " món (Tab)";
             if (!session.IsInRaid) line += "   ·   Bình tưới " + session.WateringCan.Water + "/" + session.WateringCan.Capacity;
             GUI.Label(new Rect(x, panel.y + 5f, inner, 18f), line, _text);
-            Label(new Rect(x, panel.y + 24f, inner, 16f), "WASD đi · Shift chạy · Space lăn · R nạp đạn · Q hồi máu · E tương tác", _small, Dim);
+            string keys = session.IsInRaid
+                ? "WASD đi · Shift chạy · Space lăn · R nạp đạn · Q hồi máu · E tương tác"
+                : "WASD đi · E tương tác · Tab balo · B dời công trình";
+            Label(new Rect(x, panel.y + 24f, inner, 16f), keys, _small, Dim);
         }
 
         /// <summary>Bottom centre, from the bottom up: what E does, the latest message, the item-use bar, the extraction countdown.</summary>
@@ -256,7 +259,11 @@ namespace Bnhon.Game.UI
         {
             float y = height - 150f;
 
-            if (Player.Focused != null)
+            if (Bnhon.Game.Interaction.BaseBuilder.Active)
+            {
+                y = CentredPanel(Bnhon.Game.Interaction.BaseBuilder.Hint, width, y, StaminaColor, 760f);
+            }
+            else if (Player.Focused != null)
             {
                 string prompt = Player.Focused.Prompt;
                 if (!string.IsNullOrEmpty(prompt)) y = CentredPanel(prompt, width, y, Color.white, 620f);

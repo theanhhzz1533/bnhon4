@@ -4,18 +4,26 @@ using UnityEngine;
 
 namespace Bnhon.Game.Interaction
 {
-    /// <summary>Scene view of one <see cref="FarmPlot"/>. One key does the next sensible action.</summary>
+    /// <summary>
+    /// Scene view of one <see cref="FarmPlot"/>. One key does the next sensible action.
+    /// The soil shows whether it is tilled and watered, and the crop on it grows from a
+    /// sprout to the full plant. Art is used when present (plot_dry, plot_wet, crop_sprout
+    /// and one sprite per crop id); otherwise everything is coloured squares.
+    /// </summary>
     public sealed class FarmPlotView : MonoBehaviour, IInteractable
     {
         private static readonly Color UntilledColor = new Color(0.45f, 0.36f, 0.24f);
         private static readonly Color TilledColor = new Color(0.33f, 0.24f, 0.15f);
         private static readonly Color WateredColor = new Color(0.22f, 0.17f, 0.12f);
-        private static readonly Color GrowingColor = new Color(0.3f, 0.55f, 0.25f);
+        private static readonly Color GrowingColor = new Color(0.3f, 0.6f, 0.25f);
         private static readonly Color ReadyColor = new Color(0.95f, 0.75f, 0.2f);
         private static readonly Color DeadColor = new Color(0.4f, 0.4f, 0.4f);
 
         private FarmPlot _plot;
-        private SpriteRenderer _renderer;
+        private SpriteRenderer _soil;
+        private bool _soilIsPlaceholder;
+        private SpriteRenderer _wet;
+        private SpriteRenderer _crop;
 
         public string Prompt
         {
@@ -60,17 +68,85 @@ namespace Bnhon.Game.Interaction
         public void Init(FarmPlot plot)
         {
             _plot = plot;
+            _soil = GetComponentInChildren<SpriteRenderer>();
+            _soilIsPlaceholder = PlaceholderArt.IsPlaceholder(_soil);
+
+            // Wet soil is a second picture laid over the dry one. Without art the square is recoloured instead.
+            Sprite wetArt = PlaceholderArt.FindSprite("plot_wet");
+            if (wetArt != null && !_soilIsPlaceholder)
+            {
+                _wet = NewRenderer("Wet", 2);
+                _wet.sprite = wetArt;
+                Vector3 size = wetArt.bounds.size;
+                Vector3 footprint = transform.localScale;
+                _wet.transform.localScale = new Vector3(footprint.x / Mathf.Max(0.0001f, size.x), footprint.y / Mathf.Max(0.0001f, size.y), 1f);
+                _wet.enabled = false;
+            }
+
+            _crop = NewRenderer("Crop", 3);
+            _crop.enabled = false;
         }
 
-        private void Awake()
+        /// <summary>A renderer on a sibling object at this plot's position, so the plot's own scale does not distort it.</summary>
+        private SpriteRenderer NewRenderer(string name, int sortingOrder)
         {
-            _renderer = GetComponent<SpriteRenderer>();
+            var go = new GameObject(name);
+            go.transform.SetParent(transform.parent, false);
+            go.transform.position = transform.position;
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sharedMaterial = PlaceholderArt.UnlitMaterial;
+            renderer.sortingOrder = sortingOrder;
+            return renderer;
         }
 
         private void Update()
         {
-            if (_plot == null || _renderer == null) return;
-            _renderer.color = ColorFor(_plot);
+            if (_plot == null || _soil == null) return;
+
+            bool tilled = _plot.State != PlotState.Untilled;
+            if (_soilIsPlaceholder)
+            {
+                _soil.color = !tilled ? UntilledColor : (_plot.IsWatered ? WateredColor : TilledColor);
+            }
+            else
+            {
+                // Untilled ground shows the soil picture faintly, so the plot can still be found.
+                _soil.color = tilled ? Color.white : new Color(1f, 1f, 1f, 0.45f);
+                if (_wet != null) _wet.enabled = tilled && _plot.IsWatered;
+                else if (tilled && _plot.IsWatered) _soil.color = new Color(0.7f, 0.7f, 0.75f, 1f);
+            }
+
+            UpdateCrop();
+        }
+
+        private void UpdateCrop()
+        {
+            bool hasPlant = _plot.State == PlotState.Growing || _plot.State == PlotState.Ready || _plot.State == PlotState.Dead;
+            _crop.enabled = hasPlant;
+            if (!hasPlant) return;
+
+            CropDefinition crop = _plot.Crop;
+            bool growing = _plot.State == PlotState.Growing;
+            float growth = growing && crop != null && crop.DaysToMature > 0 ? Mathf.Clamp((float)_plot.GrowthDays / crop.DaysToMature, 0f, 1f) : 1f;
+            float size = growing ? 0.4f + 0.5f * growth : 0.95f;
+
+            string key = crop == null ? null : (growing && growth < 0.34f ? "crop_sprout" : crop.Id);
+            Sprite art = PlaceholderArt.FindSprite(key);
+
+            if (art != null)
+            {
+                Vector3 bounds = art.bounds.size;
+                float longest = Mathf.Max(0.0001f, Mathf.Max(bounds.x, bounds.y));
+                _crop.sprite = art;
+                _crop.color = _plot.State == PlotState.Dead ? new Color(0.45f, 0.4f, 0.35f, 1f) : Color.white;
+                _crop.transform.localScale = new Vector3(size / longest, size / longest, 1f);
+            }
+            else
+            {
+                _crop.sprite = PlaceholderArt.Square;
+                _crop.color = _plot.State == PlotState.Ready ? ReadyColor : (_plot.State == PlotState.Dead ? DeadColor : GrowingColor);
+                _crop.transform.localScale = new Vector3(size * 0.7f, size * 0.7f, 1f);
+            }
         }
 
         public void Interact(PlayerController player)
@@ -122,21 +198,6 @@ namespace Bnhon.Game.Interaction
             CropDefinition crop = SeedChoice.Current(session);
             if (crop == null) return null;
             return session.Backpack.TryConsume(crop.Seed.Id, 1) || session.Stash.TryConsume(crop.Seed.Id, 1) ? crop : null;
-        }
-
-        private static Color ColorFor(FarmPlot plot)
-        {
-            switch (plot.State)
-            {
-                case PlotState.Untilled: return UntilledColor;
-                case PlotState.Tilled: return plot.IsWatered ? WateredColor : TilledColor;
-                case PlotState.Growing:
-                    float t = plot.Crop.DaysToMature > 0 ? (float)plot.GrowthDays / plot.Crop.DaysToMature : 0f;
-                    Color soil = plot.IsWatered ? WateredColor : TilledColor;
-                    return Color.Lerp(soil, GrowingColor, 0.35f + 0.65f * t);
-                case PlotState.Ready: return ReadyColor;
-                default: return DeadColor;
-            }
         }
     }
 }

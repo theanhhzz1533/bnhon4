@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Bnhon.Core;
 using Bnhon.Core.Pathfinding;
 using Bnhon.Core.Content;
+using Bnhon.Core.Layout;
 using Bnhon.Core.Loot;
 using Bnhon.Core.Maps;
 using Bnhon.Game.AI;
@@ -47,6 +49,10 @@ namespace Bnhon.Game
         [SerializeField] private string mapName = "outskirts";
         [SerializeField] private float cameraSize = 7f;
 
+        [Tooltip("Thêm Pixel Perfect Camera của URP vào camera. Chỉ nên bật khi mọi sprite cùng mật độ điểm ảnh.")]
+        [SerializeField] private bool pixelPerfect;
+        [SerializeField] private int pixelsPerUnit = 16;
+
         private RaidMap _map;
         private readonly List<GridPoint> _openCells = new List<GridPoint>();
         private Vector2 _raidSize;
@@ -54,6 +60,9 @@ namespace Bnhon.Game
         private Transform _raidGeometry;
         private PlayerController _player;
         private RaidDirector _director;
+        private Transform _baseRoot;
+        private GameObject _raidWorld;
+        private BaseBuilder _builder;
         private readonly List<Vector2> _hordePoints = new List<Vector2>();
 
         private void Start()
@@ -62,8 +71,14 @@ namespace Bnhon.Game
             // A new game opens in the hospital; the normal raid map replaces it once the player is rescued.
             LoadMap(GameRoot.Instance.Session.InIntro ? HospitalMap : mapName);
 
+            _builder = new GameObject("BaseBuilder").AddComponent<BaseBuilder>();
             BuildBase();
+            // The raid map is only built, and only switched on, while the player is out there.
+            _raidWorld = new GameObject("RaidWorld");
+            _raidWorld.SetActive(false);
+
             _player = BuildPlayer();
+            _builder.Init(_player);
             CameraFollow cameraFollow = SetUpCamera(_player);
             Sfx.Ensure().Listener = _player.transform;
 
@@ -71,8 +86,7 @@ namespace Bnhon.Game
 
             var director = new GameObject("RaidDirector").AddComponent<RaidDirector>();
             _director = director;
-            director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), BuildRaidZone);
-            BuildRaidZone();
+            director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), SetZone);
 
             new GameObject("RaidPressure").AddComponent<RaidPressure>().Init(SpawnReinforcements);
 
@@ -91,7 +105,71 @@ namespace Bnhon.Game
             new GameObject("NpcScreen").AddComponent<NpcScreen>().Player = _player;
             new GameObject("SceneScreen").AddComponent<SceneScreen>().Player = _player;
 
+            new GameObject("ScreenFade").AddComponent<ScreenFade>();
+            new GameObject("Atmosphere").AddComponent<Atmosphere>();
+            if (pixelPerfect) AddPixelPerfectCamera(cameraFollow.gameObject);
+            SplitIntoScenes();
+
             new GameObject("StoryDirector").AddComponent<StoryDirector>().Init(_player, ReleaseHorde, LeaveHospital, RestartHospital);
+        }
+
+        /// <summary>
+        /// Shows the base or the raid map, never both. Entering the raid map builds it fresh:
+        /// new loot and zombies every time. The cut is hidden by a fade from black.
+        /// </summary>
+        private void SetZone(bool raid)
+        {
+            _baseRoot.gameObject.SetActive(!raid);
+            _raidWorld.SetActive(raid);
+            if (raid) BuildRaidZone();
+            ScreenFade.Flash();
+        }
+
+        /// <summary>
+        /// Puts the base and the raid map in two scenes of their own, made at runtime, so
+        /// the Hierarchy shows them apart and each can later become a scene file.
+        /// </summary>
+        private void SplitIntoScenes()
+        {
+            try
+            {
+                var baseScene = UnityEngine.SceneManagement.SceneManager.CreateScene("Base");
+                var raidScene = UnityEngine.SceneManagement.SceneManager.CreateScene("Raid");
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(_baseRoot.gameObject, baseScene);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(_raidWorld, raidScene);
+            }
+            catch (Exception error)
+            {
+                // The game plays the same in one scene; only the Hierarchy grouping is lost.
+                Debug.LogWarning("Không tách được scene căn cứ và raid: " + error.Message);
+            }
+        }
+
+        /// <summary>
+        /// Adds URP's Pixel Perfect Camera without referencing the URP assembly, so the project
+        /// still compiles if that package changes. Does nothing if the component is not found.
+        /// </summary>
+        private void AddPixelPerfectCamera(GameObject cameraObject)
+        {
+            Type type = Type.GetType("UnityEngine.Rendering.Universal.PixelPerfectCamera, Unity.RenderPipelines.Universal.2D.Runtime")
+                ?? Type.GetType("UnityEngine.Rendering.Universal.PixelPerfectCamera, Unity.RenderPipelines.Universal.Runtime")
+                ?? Type.GetType("UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera, Unity.RenderPipelines.Universal.Runtime");
+            if (type == null)
+            {
+                Debug.LogWarning("Không tìm thấy Pixel Perfect Camera của URP; bỏ qua.");
+                return;
+            }
+
+            Component component = cameraObject.GetComponent(type) ?? cameraObject.AddComponent(type);
+            SetProperty(type, component, "assetsPPU", pixelsPerUnit);
+            SetProperty(type, component, "refResolutionX", 480);
+            SetProperty(type, component, "refResolutionY", 270);
+        }
+
+        private static void SetProperty(Type type, object target, string name, object value)
+        {
+            var property = type.GetProperty(name);
+            if (property != null && property.CanWrite) property.SetValue(target, value);
         }
 
         /// <summary>Throws the current raid map away and builds another in its place.</summary>
@@ -100,7 +178,6 @@ namespace Bnhon.Game
             LoadMap(name);
             if (_raidGeometry != null) Destroy(_raidGeometry.gameObject);
             _raidGeometry = null;
-            BuildRaidZone();
             _director.SetRaidSpawn(CellCenter(_map.Spawn.X, _map.Spawn.Y));
         }
 
@@ -112,7 +189,7 @@ namespace Bnhon.Game
 
         private void RestartHospital()
         {
-            BuildRaidZone();
+            // Entering the raid zone rebuilds it, so the zombies and the cabinet are back.
             _director.PutPlayerAtRaidSpawn();
         }
 
@@ -232,7 +309,24 @@ namespace Bnhon.Game
         private void BuildBase()
         {
             Transform root = new GameObject("Base").transform;
-            PlaceholderArt.Box("BaseFloor", BaseCenter, BaseSize, new Color(0.3f, 0.42f, 0.28f), root, 0);
+            _baseRoot = root;
+
+            if (PlaceholderArt.FindSprite("base_floor") == null)
+            {
+                PlaceholderArt.Box("BaseFloor", BaseCenter, BaseSize, new Color(0.3f, 0.42f, 0.28f), root, 0);
+            }
+            else
+            {
+                Transform floor = new GameObject("BaseFloor").transform;
+                floor.SetParent(root, false);
+                for (int x = 0; x < GameSession.BaseWidth; x++)
+                {
+                    for (int y = 0; y < GameSession.BaseHeight; y++)
+                    {
+                        PlaceholderArt.Box("FloorTile", BaseBuilder.CellCenter(x, y), Vector2.one, Color.white, floor, 0, "base_floor", SpriteFit.Tile);
+                    }
+                }
+            }
 
             float halfX = BaseSize.x * 0.5f;
             float halfY = BaseSize.y * 0.5f;
@@ -251,52 +345,48 @@ namespace Bnhon.Game
                 {
                     if (index >= session.Farm.Plots.Count) break;
                     var position = new Vector2(-7f + column * 1.2f, 1.5f - row * 1.2f);
-                    GameObject plot = PlaceholderArt.Box("FarmPlot" + index, position, new Vector2(1.1f, 1.1f), Color.white, root, 1);
+                    GameObject plot = PlaceholderArt.Box("FarmPlot" + index, position, new Vector2(1.1f, 1.1f), Color.white, root, 1, "plot_dry", SpriteFit.Tile);
                     plot.AddComponent<BoxCollider2D>().isTrigger = true;
                     plot.AddComponent<FarmPlotView>().Init(session.Farm.Plots[index]);
                     index++;
                 }
             }
 
-            GameObject bed = PlaceholderArt.Box("Bed", new Vector2(7f, 4.5f), new Vector2(1.2f, 2f), new Color(0.7f, 0.3f, 0.3f), root, 2, "bed", SpriteFit.Centered(1.5f, 2.3f));
-            bed.AddComponent<BoxCollider2D>();
-            bed.AddComponent<YSort>();
-            bed.AddComponent<Bed>();
-
-            GameObject stash = PlaceholderArt.Box("Stash", new Vector2(4.5f, 5f), new Vector2(1.6f, 1f), new Color(0.6f, 0.45f, 0.2f), root, 2, "stash", SpriteFit.Standing(1.7f, 1.5f));
-            stash.AddComponent<BoxCollider2D>();
-            stash.AddComponent<YSort>();
-            stash.AddComponent<StashCrate>();
-
             GameObject gate = PlaceholderArt.Box("RaidGate", new Vector2(BaseSize.x * 0.5f - 1f, -3f), new Vector2(1f, 2.4f), new Color(0.9f, 0.6f, 0.15f), root, 2, "gate", SpriteFit.Centered(2.4f, 2.4f));
             gate.AddComponent<BoxCollider2D>();
             gate.AddComponent<YSort>();
             gate.AddComponent<RaidGate>();
 
-            GameObject workbench = PlaceholderArt.Box("Workbench", new Vector2(2.4f, 5f), new Vector2(1.6f, 1f), new Color(0.5f, 0.42f, 0.33f), root, 2, "workbench", SpriteFit.Standing(1.7f, 1.5f));
-            workbench.AddComponent<BoxCollider2D>();
-            workbench.AddComponent<YSort>();
-            workbench.AddComponent<WorkbenchStation>();
-
-            // The well sits right under the farm, so refilling the can is a few steps away.
-            GameObject well = PlaceholderArt.Box("Well", new Vector2(-5.8f, -3.2f), new Vector2(1.2f, 1.2f), new Color(0.35f, 0.6f, 0.8f), root, 2, "well", SpriteFit.Standing(1.5f, 1.6f));
-            well.AddComponent<BoxCollider2D>();
-            well.AddComponent<YSort>();
-            well.AddComponent<Well>();
-
-            GameObject kitchen = PlaceholderArt.Box("Kitchen", new Vector2(2.4f, -5.5f), new Vector2(1.6f, 1f), new Color(0.75f, 0.4f, 0.25f), root, 2, "kitchen", SpriteFit.Standing(1.7f, 1.5f));
-            kitchen.AddComponent<BoxCollider2D>();
-            kitchen.AddComponent<YSort>();
-            kitchen.AddComponent<KitchenStation>();
-
-            GameObject shop = PlaceholderArt.Box("Shop", new Vector2(-8f, 5f), new Vector2(1.6f, 1.1f), new Color(0.3f, 0.5f, 0.62f), root, 2, "shop", SpriteFit.Standing(1.8f, 1.7f));
-            shop.AddComponent<BoxCollider2D>();
-            shop.AddComponent<YSort>();
-            shop.AddComponent<ShopStall>();
+            // These stand where the saved layout says, and can be moved in build mode (B).
+            Building(PrototypeContent.BuildingBed, new Color(0.7f, 0.3f, 0.3f), "bed", SpriteFit.Centered(1.5f, 2.3f), root).AddComponent<Bed>();
+            Building(PrototypeContent.BuildingStash, new Color(0.6f, 0.45f, 0.2f), "stash", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<StashCrate>();
+            Building(PrototypeContent.BuildingWorkbench, new Color(0.5f, 0.42f, 0.33f), "workbench", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<WorkbenchStation>();
+            Building(PrototypeContent.BuildingWell, new Color(0.35f, 0.6f, 0.8f), "well", SpriteFit.Standing(1.4f, 1.5f), root).AddComponent<Well>();
+            Building(PrototypeContent.BuildingKitchen, new Color(0.75f, 0.4f, 0.25f), "kitchen", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<KitchenStation>();
+            Building(PrototypeContent.BuildingShop, new Color(0.3f, 0.5f, 0.62f), "shop", SpriteFit.Standing(1.8f, 1.7f), root).AddComponent<ShopStall>();
 
             BuildNpc(PrototypeContent.NpcLan, new Color(0.95f, 0.6f, 0.75f), root);
             BuildNpc(PrototypeContent.NpcMinh, new Color(0.5f, 0.75f, 0.95f), root);
             BuildNpc(PrototypeContent.NpcBaTu, new Color(0.8f, 0.8f, 0.6f), root);
+        }
+
+        /// <summary>One movable building of the base, placed by the layout. Slightly smaller than its cells, so there is room to walk between neighbours.</summary>
+        private GameObject Building(BuildingType type, Color color, string spriteKey, SpriteFit fit, Transform root)
+        {
+            PlacedBuilding placed = GameRoot.Instance.Session.Base.Get(type.Id);
+            var size = new Vector2(type.Width - 0.2f, type.Height - 0.15f);
+            GameObject building = PlaceholderArt.Box(type.DisplayName, BaseBuilder.Center(type, placed.X, placed.Y), size, color, root, 2, spriteKey, fit);
+            building.AddComponent<BoxCollider2D>();
+            building.AddComponent<YSort>();
+            _builder.Register(type.Id, building);
+            return building;
+        }
+
+        /// <summary>The free cell beside a building, for whoever is scheduled to stand there.</summary>
+        private static Vector2 Beside(BuildingType type)
+        {
+            GameRoot.Instance.Session.Base.StandCell(type.Id, out int x, out int y);
+            return BaseBuilder.CellCenter(x, y);
         }
 
         /// <summary>Where each named spot of the base is. Residents stand at these by their schedules.</summary>
@@ -307,8 +397,8 @@ namespace Bnhon.Game
                 case PrototypeContent.SpotClinic: return new Vector2(-2f, 4.5f);
                 case PrototypeContent.SpotWorkshop: return new Vector2(0.5f, 4.5f);
                 case PrototypeContent.SpotPorch: return new Vector2(-5f, 4.5f);
-                case PrototypeContent.SpotKitchen: return new Vector2(0.7f, -5.3f);
-                case PrototypeContent.SpotWell: return new Vector2(-4.2f, -3.3f);
+                case PrototypeContent.SpotKitchen: return Beside(PrototypeContent.BuildingKitchen);
+                case PrototypeContent.SpotWell: return Beside(PrototypeContent.BuildingWell);
                 case PrototypeContent.SpotGate: return new Vector2(7.4f, -5.2f);
                 case PrototypeContent.SpotFarm: return new Vector2(-8.8f, 0.3f);
                 default: return new Vector2(0f, 3f);
@@ -323,7 +413,7 @@ namespace Bnhon.Game
             npc.AddComponent<NpcView>().Init(npcId, SpotPosition);
         }
 
-        /// <summary>Destroys and rebuilds everything in the raid zone from the map. Called on start and after each sleep.</summary>
+        /// <summary>Destroys and rebuilds everything in the raid zone from the map. Called each time the player enters it.</summary>
         private void BuildRaidZone()
         {
             // Floor and walls never change, so they are built once. Only loot, zombies,
@@ -331,12 +421,14 @@ namespace Bnhon.Game
             if (_raidGeometry == null)
             {
                 _raidGeometry = new GameObject("RaidGeometry").transform;
+                _raidGeometry.SetParent(_raidWorld.transform, false);
                 BuildFloor();
                 BuildWalls();
             }
 
             if (_raidRoot != null) Destroy(_raidRoot.gameObject);
             _raidRoot = new GameObject("RaidZone").transform;
+            _raidRoot.SetParent(_raidWorld.transform, false);
             _hordePoints.Clear();
 
             foreach (MapMarker marker in _map.Markers)

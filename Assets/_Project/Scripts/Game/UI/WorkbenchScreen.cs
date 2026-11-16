@@ -45,6 +45,7 @@ namespace Bnhon.Game.UI
 
             GUILayout.Label("Bàn chế tạo · cấp " + workshop.Level + "/" + Workshop.MaxLevel, TitleStyle);
             DrawUpgrade(workshop, stash, backpack);
+            DrawCanUpgrade(session, stash, backpack);
             GUILayout.Space(6f);
 
             _scroll = GUILayout.BeginScrollView(_scroll);
@@ -86,6 +87,36 @@ namespace Bnhon.Game.UI
                     {
                         Sfx.PlayUi(SoundId.Extract, 0.6f);
                         GameRoot.Instance.Notify("Bàn chế tạo lên cấp " + workshop.Level + ".", 3f);
+                    }
+                });
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawCanUpgrade(Bnhon.Core.GameSession session, GridInventory stash, GridInventory backpack)
+        {
+            var can = session.WateringCan;
+            ItemAmount[] cost = Bnhon.Core.Content.PrototypeContent.CanUpgradeCost(can.Level, out int benchLevel);
+            if (cost == null)
+            {
+                ColoredLabel("Bình tưới đã ở cấp cao nhất (" + can.Capacity + " lần tưới).", Dim);
+                return;
+            }
+
+            GUILayout.BeginHorizontal();
+            bool affordable = AppendAmounts(cost, stash, backpack);
+            bool benchOk = session.Workshop.Level >= benchLevel;
+            int bigger = can.Capacity + Bnhon.Core.Farming.WateringCan.ChargesPerLevel;
+            ColoredLabel("Bình tưới " + can.Capacity + " → " + bigger + " lần tưới:  " + _text
+                + (benchOk ? string.Empty : "  (cần bàn cấp " + benchLevel + ")"), affordable && benchOk ? Good : Color.white);
+            if (Button("Nâng bình", affordable && benchOk, 110f))
+            {
+                Defer(() =>
+                {
+                    if (Bnhon.Core.Content.PrototypeContent.UpgradeWateringCan(session) == CraftBlock.None)
+                    {
+                        Sfx.PlayUi(SoundId.Extract, 0.6f);
+                        GameRoot.Instance.Notify("Bình tưới giờ chứa " + session.WateringCan.Capacity + " lần tưới.", 3f);
                     }
                 });
             }

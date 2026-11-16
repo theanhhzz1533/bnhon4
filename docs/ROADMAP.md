@@ -44,17 +44,20 @@ Xong khi: chơi trọn một chuyến raid 10 phút và thấy căng thẳng.
 
 Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 phút.
 
-- [ ] Tách căn cứ và bản đồ raid thành hai scene, có màn chuyển cảnh
+- [x] Căn cứ và bản đồ raid là hai scene tạo lúc chạy, mỗi lúc chỉ bật một bên, chuyển cảnh bằng mờ dần từ đen
+- [ ] Chuyển hai scene đó thành file scene thật (cần làm trong Unity Editor)
 - [x] Lưu và tải game bằng JSON: tự lưu khi bắt đầu raid, kết thúc raid và khi ngủ; thoát giữa raid tính là chết
 - [ ] Chuyển dữ liệu mẫu trong `PrototypeContent` sang ScriptableObject
-- [ ] Đặt và dời công trình trên lưới: bàn chế tạo, kho, bếp
+- [x] Dời công trình trên lưới (phím B): bàn chế tạo, kho, bếp, giếng, quầy, giường; lưu theo file lưu
 - [x] Chế tạo kiểu Escape From Duckov: bàn chế tạo 3 cấp, bản vẽ phải mang về đăng ký, tháo dỡ vật phẩm
 - [x] Farming: bình tưới có dung tích và giếng nước, 6 loại cây theo mùa, chọn hạt để gieo, bếp nấu 4 món có buff
-- [ ] Farming, phần còn lại: cuốc và bình tưới nâng cấp được, hình cây lớn dần trên ô ruộng
+- [x] Bình tưới nâng cấp được (6 → 9 → 12 lần tưới), hình cây lớn dần trên ô ruộng
+- [ ] Cuốc nâng cấp được
 - [x] Một NPC hoàn chỉnh (Lan): lịch sinh hoạt theo buổi và ngày trong tuần, hội thoại theo số tim, tặng quà có UI, 2 cảnh tim có lựa chọn
 - [x] Chuỗi cốt truyện mở đầu: tỉnh dậy trong bệnh viện, được Minh cứu về căn cứ, rồi 5 mục tiêu cho những ngày đầu
 - [x] Quầy mua bán: hàng giới hạn về lại mỗi ngày, bán đồ được nửa giá trị
-- [ ] Pixel art thật cho căn cứ và một khu raid; Pixel Perfect Camera; ánh sáng 2D
+- [x] Chỗ gắn pixel art cho nền căn cứ, ô ruộng và cây trồng; lớp màu chạng vạng buổi tối; Pixel Perfect Camera (tùy chọn, mặc định tắt)
+- [ ] Ánh sáng 2D thật của URP (cần vật liệu sprite có ánh sáng, làm trong Unity Editor)
 - [x] HUD dạng khối thay cho HUD debug: thanh máu và thể lực, vũ khí, mục tiêu, nhiệm vụ; giao diện co theo cửa sổ; hộp thoại cốt truyện
 - [ ] Chuyển HUD và menu từ IMGUI sang UI Toolkit
 

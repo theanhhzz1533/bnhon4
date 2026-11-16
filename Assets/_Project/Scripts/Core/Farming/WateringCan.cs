@@ -2,10 +2,19 @@ using System;
 
 namespace Bnhon.Core.Farming
 {
-    /// <summary>The player's watering can. Each plot watered uses one charge; it is refilled at the well.</summary>
+    /// <summary>
+    /// The player's watering can. Each plot watered uses one charge; it is refilled at the
+    /// well. Upgrading it at the workbench adds charges.
+    /// </summary>
     public sealed class WateringCan
     {
-        public int Capacity { get; }
+        public const int MaxLevel = 3;
+        public const int ChargesPerLevel = 3;
+
+        private readonly int _baseCapacity;
+
+        public int Level { get; private set; } = 1;
+        public int Capacity => _baseCapacity + (Level - 1) * ChargesPerLevel;
         public int Water { get; private set; }
 
         public bool IsEmpty => Water <= 0;
@@ -14,7 +23,7 @@ namespace Bnhon.Core.Farming
         public WateringCan(int capacity = 6)
         {
             if (capacity < 1) throw new ArgumentOutOfRangeException(nameof(capacity));
-            Capacity = capacity;
+            _baseCapacity = capacity;
             Water = capacity;
         }
 
@@ -32,8 +41,18 @@ namespace Bnhon.Core.Farming
             Water = Capacity;
         }
 
-        public void Restore(int water)
+        /// <summary>Makes the can one level bigger and fills it. Returns false at the top level.</summary>
+        public bool Upgrade()
         {
+            if (Level >= MaxLevel) return false;
+            Level++;
+            Refill();
+            return true;
+        }
+
+        public void Restore(int level, int water)
+        {
+            Level = Math.Max(1, Math.Min(MaxLevel, level));
             Water = Math.Max(0, Math.Min(Capacity, water));
         }
     }
