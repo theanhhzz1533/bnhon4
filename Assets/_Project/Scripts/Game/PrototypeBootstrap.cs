@@ -44,6 +44,13 @@ namespace Bnhon.Game
         private static readonly Color WallColor = new Color(0.18f, 0.18f, 0.2f);
         private static readonly Color RaidFloorColor = new Color(0.25f, 0.26f, 0.28f);
 
+        // Ground and wall art is drawn muted and, for the ground, at twice the size: a busy
+        // texture repeated in every cell at full brightness is tiring to look at for long.
+        private const int GroundTileCells = 2;
+        private static readonly Color RaidFloorTint = new Color(0.5f, 0.51f, 0.55f);
+        private static readonly Color WallTint = new Color(0.72f, 0.72f, 0.76f);
+        private static readonly Color BaseFloorTint = new Color(0.78f, 0.8f, 0.76f);
+
         private const string HospitalMap = "hospital";
 
         [SerializeField] private string mapName = "outskirts";
@@ -319,11 +326,13 @@ namespace Bnhon.Game
             {
                 Transform floor = new GameObject("BaseFloor").transform;
                 floor.SetParent(root, false);
-                for (int x = 0; x < GameSession.BaseWidth; x++)
+                for (int x = 0; x < GameSession.BaseWidth; x += GroundTileCells)
                 {
-                    for (int y = 0; y < GameSession.BaseHeight; y++)
+                    for (int y = 0; y < GameSession.BaseHeight; y += GroundTileCells)
                     {
-                        PlaceholderArt.Box("FloorTile", BaseBuilder.CellCenter(x, y), Vector2.one, Color.white, floor, 0, "base_floor", SpriteFit.Tile);
+                        Vector2 corner = BaseBuilder.CellCorner(x, y);
+                        var size = new Vector2(GroundTileCells, GroundTileCells);
+                        PlaceholderArt.Tint(PlaceholderArt.Box("FloorTile", corner + size * 0.5f, size, Color.white, floor, 0, "base_floor", SpriteFit.Tile), BaseFloorTint);
                     }
                 }
             }
@@ -493,15 +502,17 @@ namespace Bnhon.Game
                 return;
             }
 
-            // With floor art, lay one tile per open cell.
+            // With floor art, lay large tiles under the whole map. Walls are drawn over them,
+            // so there is no need to skip wall cells, and far fewer objects are needed.
             Transform floor = new GameObject("Floor").transform;
             floor.SetParent(_raidGeometry, false);
-            for (int y = 0; y < _map.Height; y++)
+            for (int y = 0; y < _map.Height; y += GroundTileCells)
             {
-                for (int x = 0; x < _map.Width; x++)
+                for (int x = 0; x < _map.Width; x += GroundTileCells)
                 {
-                    if (_map.IsWall(x, y)) continue;
-                    PlaceholderArt.Box("FloorTile", CellCenter(x, y), Vector2.one, RaidFloorColor, floor, 0, "floor", SpriteFit.Tile);
+                    float half = (GroundTileCells - 1) * 0.5f;
+                    var size = new Vector2(GroundTileCells, GroundTileCells);
+                    PlaceholderArt.Tint(PlaceholderArt.Box("FloorTile", CellCenter(x + half, y + half), size, RaidFloorColor, floor, 0, "floor", SpriteFit.Tile), RaidFloorTint);
                 }
             }
         }
@@ -563,7 +574,7 @@ namespace Bnhon.Game
             {
                 for (int x = 0; x < _map.Width; x++)
                 {
-                    if (_map.IsWall(x, y)) PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile);
+                    if (_map.IsWall(x, y)) PlaceholderArt.Tint(PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile), WallTint);
                 }
             }
         }

@@ -14,6 +14,7 @@ namespace Bnhon.Game.Audio
         public const string Roll = "roll";
         public const string PlayerHurt = "player_hurt";
         public const string PlayerDeath = "player_death";
+        public const string ZombieStep = "zombie_step";
         public const string ZombieGrowl = "zombie_growl";
         public const string ZombieScream = "zombie_scream";
         public const string ZombieHit = "zombie_hit";
@@ -26,7 +27,7 @@ namespace Bnhon.Game.Audio
         public static readonly string[] All =
         {
             PistolShot, ShotgunShot, KnifeSwing, Reload, EmptyClick, Footstep, Roll, PlayerHurt, PlayerDeath,
-            ZombieGrowl, ZombieScream, ZombieHit, ZombieDeath, LootOpen, ItemReveal, UseItem, Extract
+            ZombieStep, ZombieGrowl, ZombieScream, ZombieHit, ZombieDeath, LootOpen, ItemReveal, UseItem, Extract
         };
     }
 
@@ -55,6 +56,7 @@ namespace Bnhon.Game.Audio
                 case SoundId.Reload: samples = Clicks(rng, 0.42f, new[] { 0.02f, 0.2f, 0.33f }); break;
                 case SoundId.EmptyClick: samples = Clicks(rng, 0.08f, new[] { 0.01f }); break;
                 case SoundId.Footstep: samples = Thud(rng, 0.07f, 95f, 0.5f); break;
+                case SoundId.ZombieStep: samples = Thud(rng, 0.1f, 62f, 1.1f); break;
                 case SoundId.ZombieHit: samples = Thud(rng, 0.1f, 150f, 0.8f); break;
                 case SoundId.PlayerHurt: samples = Sweep(rng, 0.18f, 340f, 170f, 0.25f, 0f); break;
                 case SoundId.PlayerDeath: samples = Sweep(rng, 0.9f, 260f, 55f, 0.2f, 5f); break;

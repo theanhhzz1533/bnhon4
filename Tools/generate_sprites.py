@@ -42,15 +42,15 @@ STYLE = ("pixel art, top-down 3/4 view, post-apocalyptic Vietnamese small town, 
 OBJECT_STYLE = STYLE + ", single object centered, plain white background, game asset"
 ITEM_STYLE = ("pixel art, game inventory icon, single item centered, muted palette, clean outlines, "
               "simple, flat colors, plain white background")
-TILE_STYLE = STYLE + ", seamless tileable texture, top-down, flat, no objects, fills the whole image"
+TILE_STYLE = STYLE + ", seamless tileable texture, top-down, flat, no objects, fills the whole image, low contrast, muted colours, subtle even texture, large plain areas"
 NEGATIVE = ("photo, photorealistic, realistic, 3d render, blurry, gradient, depth of field, soft shading, "
             "text, watermark, signature, side view, multiple objects, frame, border")
-TILE_NEGATIVE = NEGATIVE.replace("multiple objects, ", "") + ", white background, object, perspective"
+TILE_NEGATIVE = NEGATIVE.replace("multiple objects, ", "") + ", white background, object, perspective, high contrast, busy pattern, bright highlights, strong outlines"
 
 # key -> (subject, is_tile). Keys match the file names PlaceholderArt looks for.
 ASSETS = [
-    ("floor", "cracked grey concrete ground", True),
-    ("wall", "weathered red brick wall top", True),
+    ("floor", "plain dark grey concrete ground with a few faint cracks", True),
+    ("wall", "top of a weathered dull brown brick wall, evenly worn", True),
     ("crate_house", "old wooden kitchen cabinet", False),
     ("crate_medical", "white metal medical cabinet with a red cross", False),
     ("crate_seed", "open wooden crate full of burlap seed bags", False),

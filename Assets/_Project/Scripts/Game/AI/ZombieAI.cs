@@ -73,6 +73,7 @@ namespace Bnhon.Game.AI
         private float _nextAttackTime;
         private float _nextScreamTime;
         private float _nextGrowlTime;
+        private float _nextStepTime;
         private float _lastSeenTime;
         private Vector2 _lastSeenPosition;
         private bool _seesTarget;
@@ -188,6 +189,15 @@ namespace Bnhon.Game.AI
             {
                 _nextGrowlTime = now + UnityEngine.Random.Range(3f, 7f);
                 Sfx.Play(SoundId.ZombieGrowl, position, _state == State.Chase ? 0.9f : 0.55f, 15f);
+            }
+
+            // Footsteps: slow scuffs from a walker, a quick patter from anything running at you.
+            float pace = _body != null ? _body.linearVelocity.magnitude : 0f;
+            if (pace > 0.4f && now >= _nextStepTime)
+            {
+                _nextStepTime = now + Mathf.Clamp(1.15f / pace, 0.19f, 0.62f);
+                float loudness = Mathf.Clamp(0.22f + pace * 0.09f, 0.25f, 0.7f);
+                Sfx.Play(SoundId.ZombieStep, position, loudness, 11f);
             }
 
             _seesTarget = distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position);

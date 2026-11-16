@@ -151,6 +151,17 @@ namespace Bnhon.Game
             return go;
         }
 
+        /// <summary>
+        /// Multiplies real art by a colour, to darken or mute it. Placeholder squares keep
+        /// the colour they were made with.
+        /// </summary>
+        public static GameObject Tint(GameObject go, Color tint)
+        {
+            var renderer = go.GetComponentInChildren<SpriteRenderer>();
+            if (renderer != null && !IsPlaceholder(renderer)) renderer.color = tint;
+            return go;
+        }
+
         /// <summary>True when the object still shows a colored square rather than real art.</summary>
         public static bool IsPlaceholder(SpriteRenderer renderer)
         {
