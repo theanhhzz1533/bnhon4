@@ -27,4 +27,40 @@ namespace Bnhon.Core.Combat
             return damage * (1f - System.Math.Min(1f, reduction));
         }
     }
+
+    /// <summary>
+    /// A shield held in front. While it lasts it stops part of every frontal hit, and each
+    /// frontal hit wears it down by the hit's full damage. Once its durability is gone it
+    /// is broken for good and stops nothing.
+    /// </summary>
+    public sealed class Shield
+    {
+        public float Reduction { get; }
+        public float MaxDurability { get; }
+        public float Durability { get; private set; }
+
+        public bool IsBroken => Durability <= 0f;
+
+        /// <summary>How much of the shield is left, 0..1.</summary>
+        public float Fraction => MaxDurability > 0f ? Durability / MaxDurability : 0f;
+
+        public Shield(float reduction, float durability)
+        {
+            Reduction = System.Math.Max(0f, System.Math.Min(1f, reduction));
+            MaxDurability = System.Math.Max(0f, durability);
+            Durability = MaxDurability;
+        }
+
+        /// <summary>
+        /// Takes a hit and returns the damage that gets through to the body. Hits from the
+        /// side or behind miss the shield. The hit that breaks the shield is still reduced.
+        /// </summary>
+        public float Absorb(float damage, float facingX, float facingY, float fromX, float fromY)
+        {
+            if (damage <= 0f || IsBroken || !Armor.IsFrontal(facingX, facingY, fromX, fromY)) return damage;
+
+            Durability = System.Math.Max(0f, Durability - damage);
+            return damage * (1f - Reduction);
+        }
+    }
 }

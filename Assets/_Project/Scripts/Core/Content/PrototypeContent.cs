@@ -195,8 +195,8 @@ namespace Bnhon.Core.Content
             .Add(CabbageSeed, 25, 2, 3);
 
         public static readonly LootTable WeaponCrate = new LootTable("weapon_crate")
-            .Add(PistolAmmo, 60, 4, 9)
-            .Add(ShotgunShell, 35, 2, 4)
+            .Add(PistolAmmo, 60, 6, 14)
+            .Add(ShotgunShell, 35, 2, 5)
             .Add(Pistol, 9)
             .Add(Shotgun, 6)
             .Add(BlueprintPistol, 7)
@@ -209,14 +209,14 @@ namespace Bnhon.Core.Content
             .Add(Cloth, 35, 1, 2)
             .Add(ScrapMetal, 25, 1, 2)
             .Add(CannedFood, 15)
-            .Add(PistolAmmo, 15, 1, 3)
+            .Add(PistolAmmo, 15, 2, 4)
             .Add(Bandage, 4);
 
         public static readonly LootTable RunnerCorpse = new LootTable("corpse_runner")
             .Add(WaterBottle, 28)
             .Add(Cloth, 30, 1, 2)
             .Add(Bandage, 8)
-            .Add(PistolAmmo, 20, 1, 3)
+            .Add(PistolAmmo, 20, 2, 5)
             .Add(ShotgunShell, 14, 1, 2);
 
         public static readonly LootTable ScreamerCorpse = new LootTable("corpse_screamer")
@@ -427,7 +427,7 @@ namespace Bnhon.Core.Content
         {
             // Level 1: the basics that keep a broke player able to go out again.
             workshop.AddRecipe(new Recipe("r_bandage", Bandage, 1, 1, null, A(Cloth, 2)));
-            workshop.AddRecipe(new Recipe("r_pistol_ammo", PistolAmmo, 4, 1, null, A(ScrapMetal, 2)));
+            workshop.AddRecipe(new Recipe("r_pistol_ammo", PistolAmmo, 6, 1, null, A(ScrapMetal, 2)));
 
             // Level 2
             workshop.AddRecipe(new Recipe("r_shotgun_shell", ShotgunShell, 4, 2, null, A(ScrapMetal, 2), A(Cloth, 1)));
@@ -509,8 +509,8 @@ namespace Bnhon.Core.Content
         /// <summary>What the base shop sells. Prices are well above what it pays, so trading is never free money.</summary>
         public static void SetUpShop(Trading.Shop shop)
         {
-            shop.AddEntry(PistolAmmo, 8, 36, 3);
-            shop.AddEntry(ShotgunShell, 4, 40, 2);
+            shop.AddEntry(PistolAmmo, 10, 30, 4);
+            shop.AddEntry(ShotgunShell, 4, 32, 2);
             shop.AddEntry(Bandage, 1, 22, 3);
             shop.AddEntry(CannedFood, 1, 26, 3);
             shop.AddEntry(WaterBottle, 1, 18, 3);

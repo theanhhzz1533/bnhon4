@@ -73,6 +73,30 @@ namespace Bnhon.Core.Tests
         }
 
         [Test]
+        public void Shield_WearsDownUnderFrontalHits_ThenStopsNothing()
+        {
+            var shield = new Shield(0.75f, 100f);
+
+            // Facing right; three 34-damage shots from the front.
+            Assert.That(shield.Absorb(34f, 1f, 0f, 5f, 0f), Is.EqualTo(8.5f));
+            Assert.That(shield.Absorb(34f, 1f, 0f, 5f, 0f), Is.EqualTo(8.5f));
+            Assert.That(shield.IsBroken, Is.False);
+            Assert.That(shield.Absorb(34f, 1f, 0f, 5f, 0f), Is.EqualTo(8.5f));
+            Assert.That(shield.IsBroken, Is.True);
+
+            Assert.That(shield.Absorb(34f, 1f, 0f, 5f, 0f), Is.EqualTo(34f));
+        }
+
+        [Test]
+        public void Shield_IsNotWornByHitsFromBehind()
+        {
+            var shield = new Shield(0.75f, 100f);
+
+            Assert.That(shield.Absorb(40f, 1f, 0f, -5f, 0f), Is.EqualTo(40f));
+            Assert.That(shield.Durability, Is.EqualTo(100f));
+        }
+
+        [Test]
         public void TownCentre_IsLockedUntilTheWorkbenchStep_AndItsBossStaysDead()
         {
             GameSession session = PrototypeContent.CreateNewSession(Gender.Male, 1);

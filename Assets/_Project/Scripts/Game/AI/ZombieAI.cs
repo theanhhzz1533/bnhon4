@@ -84,7 +84,7 @@ namespace Bnhon.Game.AI
         // Armour: which way the zombie faces, how fast it can turn, and how much of a frontal hit is stopped.
         private Vector2 _facing = Vector2.down;
         private float _turnDegreesPerSecond = 100000f;
-        private float _frontArmor;
+        private Bnhon.Core.Combat.Shield _shield;
         private Transform _plate;
         private SpriteRenderer[] _extras;
         private float _nextClangTime;
@@ -152,7 +152,7 @@ namespace Bnhon.Game.AI
                     attackDamage = 26f;
                     attackInterval = 1.2f;
                     color = new Color(0.5f, 0.55f, 0.62f);
-                    SetArmor(0.75f, 110f);
+                    SetArmor(0.75f, 150f, 110f);
                     break;
 
                 case ZombieKind.Boss:
@@ -163,7 +163,7 @@ namespace Bnhon.Game.AI
                     attackInterval = 0.9f;
                     loseInterestTime = 10f;
                     color = new Color(0.6f, 0.15f, 0.15f);
-                    SetArmor(0.4f, 200f);
+                    SetArmor(0.5f, 320f, 200f);
                     break;
 
                 default:
@@ -176,23 +176,44 @@ namespace Bnhon.Game.AI
             if (PlaceholderArt.IsPlaceholder(_renderer)) _renderer.color = color;
         }
 
-        /// <summary>Gives the zombie frontal armour, shown as a plate held out in the direction it faces.</summary>
-        private void SetArmor(float frontArmor, float turnDegreesPerSecond)
+        /// <summary>
+        /// Gives the zombie a shield, shown as a plate held out in the direction it faces.
+        /// Shooting the plate wears it down; when it breaks the zombie is as soft as any other.
+        /// </summary>
+        private void SetArmor(float reduction, float durability, float turnDegreesPerSecond)
         {
-            _frontArmor = frontArmor;
+            _shield = new Bnhon.Core.Combat.Shield(reduction, durability);
             _turnDegreesPerSecond = turnDegreesPerSecond;
-            _health.Modifier = ReduceFrontalDamage;
+            _health.Modifier = ShieldDamage;
 
-            GameObject plate = PlaceholderArt.Box("Plate", transform.position, new Vector2(0.9f, 0.16f), new Color(0.15f, 0.16f, 0.19f), transform, 16);
+            GameObject plate = PlaceholderArt.Box("Plate", transform.position, new Vector2(0.9f, 0.16f), PlateColor, transform, 16);
             _plate = plate.transform;
             _plate.name = "Plate";
         }
 
-        private float ReduceFrontalDamage(float amount, Vector2 from)
+        private static readonly Color PlateColor = new Color(0.15f, 0.16f, 0.19f);
+        private static readonly Color PlateWornColor = new Color(0.85f, 0.4f, 0.2f);
+
+        private float ShieldDamage(float amount, Vector2 from)
         {
+            if (_shield == null || _shield.IsBroken) return amount;
+
             Vector2 position = transform.position;
-            float reduced = Bnhon.Core.Combat.Armor.Apply(amount, _frontArmor, _facing.x, _facing.y, from.x - position.x, from.y - position.y);
-            if (reduced >= amount) return amount;
+            float through = _shield.Absorb(amount, _facing.x, _facing.y, from.x - position.x, from.y - position.y);
+            if (through >= amount) return amount;
+
+            if (_shield.IsBroken)
+            {
+                BreakShield(position);
+                return through;
+            }
+
+            // The plate goes from dark steel toward glowing orange as it is about to give.
+            if (_plate != null)
+            {
+                var plateRenderer = _plate.GetComponent<SpriteRenderer>();
+                if (plateRenderer != null) plateRenderer.color = Color.Lerp(PlateWornColor, PlateColor, _shield.Fraction);
+            }
 
             float now = UnityEngine.Time.time;
             if (now >= _nextClangTime)
@@ -203,10 +224,26 @@ namespace Bnhon.Game.AI
             if (!_armorHintShown && GameRoot.Instance != null)
             {
                 _armorHintShown = true;
-                GameRoot.Instance.Notify("Đạn bật ra khỏi tấm giáp! Loại này chỉ sợ đòn từ bên hông và sau lưng. Lăn qua nó rồi bắn.", 7f);
+                GameRoot.Instance.Notify("Đạn găm vào tấm chắn! Bắn tiếp cho vỡ, hoặc vòng ra hông và sau lưng.", 7f);
             }
-            return reduced;
+            return through;
         }
+
+        private void BreakShield(Vector2 position)
+        {
+            if (_plate != null) Destroy(_plate.gameObject);
+            _plate = null;
+            _turnDegreesPerSecond = 100000f;
+            Sfx.Play(SoundId.ZombieHit, position, 1f, 22f);
+            Sfx.Play(SoundId.Reload, position, 0.9f, 22f);
+            if (!_shieldBreakHintShown && GameRoot.Instance != null)
+            {
+                _shieldBreakHintShown = true;
+                GameRoot.Instance.Notify("Tấm chắn vỡ rồi! Giờ nó trúng đạn như zombie thường.", 4f);
+            }
+        }
+
+        private static bool _shieldBreakHintShown;
 
         /// <summary>Turns toward where it is looking or going, no faster than its turn rate, and moves the plate with it.</summary>
         private void UpdateFacing(Vector2 toTarget, float distance)

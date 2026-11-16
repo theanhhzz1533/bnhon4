@@ -30,7 +30,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 
 - **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, bàn chế tạo, quầy mua bán, giếng nước, bếp, giường, cổng ra ngoài.
 - **Trồng trọt:** 6 loại cây theo mùa (mùa đông chỉ trồng được bắp cải). Bình tưới chứa 6 lần tưới, múc lại ở giếng. Cây không tưới quá 2 ngày liền sẽ chết, và chết khi sang mùa không hợp.
-- **Độ khó tăng dần:** cứ hai ngày mức đe dọa tăng một bậc (tối đa 10); zombie thường trên bản đồ dần bị thay bằng zombie chạy và zombie bọc thép, đợt tăng viện đông hơn. Zombie bọc thép chặn 75% sát thương từ phía trước và xoay người chậm: phải vòng ra sau.
+- **Độ khó tăng dần:** cứ hai ngày mức đe dọa tăng một bậc (tối đa 10); zombie thường trên bản đồ dần bị thay bằng zombie chạy và zombie bọc thép, đợt tăng viện đông hơn. Zombie bọc thép cầm tấm chắn chặn 75% sát thương từ phía trước; bắn đủ thì tấm chắn vỡ, hoặc vòng ra sau để khỏi phải phá.
 - **Hai khu raid:** vùng ven (`outskirts.txt`) và trung tâm thị trấn (`town.txt`, mở sau khi nâng bàn chế tạo lên cấp 2), chọn ở cổng. Trung tâm có két sắt và trùm Đồ tể; hạ rồi thì nó không xuất hiện lại.
 - **Mở đầu:** game mới bắt đầu trong bệnh viện (`Resources/Maps/hospital.txt`): lục tủ lấy dao găm, tìm đường tới căn tin, chạy khỏi đàn zombie tới chỗ Minh. Chết trong màn này thì làm lại từ giường bệnh, không mất gì. Sau đó dòng "Mục tiêu" trên HUD dẫn qua những ngày đầu ở căn cứ. File lưu cũ bỏ qua màn mở đầu; muốn xem thì xóa file lưu bằng menu **Bnhon > Save**.
 - **Cư dân:** nhấn E để mở màn hình trò chuyện: câu thoại đổi theo số tim, buổi và chỗ đứng; chọn quà từ balo; nhận và giao nhiệm vụ. Cư dân đổi chỗ đứng giữa buổi sáng (trước raid) và buổi tối (sau raid). Lan có hai cảnh tim ở mốc 2 và 4 tim.

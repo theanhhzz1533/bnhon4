@@ -66,7 +66,7 @@ Xong khi: vòng lặp một ngày trọn vẹn, người ngoài chơi thử 30 p
 Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
 
 - [x] Bản đồ thứ hai (trung tâm thị trấn) có trùm, chọn khu ở cổng
-- [x] Mức đe dọa tăng theo ngày; zombie bọc thép; cân lại lượng đạn
+- [x] Mức đe dọa tăng theo ngày; zombie bọc thép có tấm chắn phá được
 - [ ] Bản đồ thứ ba; trùm có cơ chế riêng
 - [ ] 6 NPC, trong đó 4 hẹn hò được; hẹn hò và kết hôn
 - [ ] 4 mùa, ảnh hưởng của mùa lên cây trồng và raid
