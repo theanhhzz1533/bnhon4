@@ -38,16 +38,16 @@ namespace Bnhon.Game
 
         private static readonly Vector2 BaseCenter = Vector2.zero;
         private static readonly Vector2 BaseSize = new Vector2(20f, 14f);
-        private static readonly Vector2 RaidCenter = new Vector2(80f, 0f);
+        // Far from the base, so even the largest map never overlaps it.
+        private static readonly Vector2 RaidCenter = new Vector2(400f, 0f);
         private static readonly Vector2 BaseSpawn = new Vector2(0f, -2f);
 
         private static readonly Color WallColor = new Color(0.18f, 0.18f, 0.2f);
-        private static readonly Color RaidFloorColor = new Color(0.25f, 0.26f, 0.28f);
 
-        // Ground and wall art is drawn muted and, for the ground, at twice the size: a busy
+        // Base ground and wall art is drawn muted and, for the ground, at twice the size: a busy
         // texture repeated in every cell at full brightness is tiring to look at for long.
+        // Raid maps draw their ground from the map itself (see BuildFloor).
         private const int GroundTileCells = 2;
-        private static readonly Color RaidFloorTint = new Color(0.5f, 0.51f, 0.55f);
         private static readonly Color WallTint = new Color(0.72f, 0.72f, 0.76f);
         private static readonly Color BaseFloorTint = new Color(0.78f, 0.8f, 0.76f);
 
@@ -207,6 +207,8 @@ namespace Bnhon.Game
         /// <summary>Throws the current raid map away and builds another in its place.</summary>
         private void SwitchMap(string name)
         {
+            if (_groundTexture != null) Destroy(_groundTexture);
+            _groundTexture = null;
             LoadMap(name);
             if (_raidGeometry != null) Destroy(_raidGeometry.gameObject);
             _raidGeometry = null;
@@ -462,6 +464,7 @@ namespace Bnhon.Game
             }
 
             if (_raidRoot != null) Destroy(_raidRoot.gameObject);
+            GeneratorSwitch.ResetPower();
             _raidRoot = new GameObject("RaidZone").transform;
             _raidRoot.SetParent(_raidWorld.transform, false);
             _hordePoints.Clear();
@@ -471,10 +474,26 @@ namespace Bnhon.Game
                 Vector2 position = CellCenter(marker.X, marker.Y);
                 switch (marker.Symbol)
                 {
-                    case RaidMap.Extraction:
-                        GameObject extraction = PlaceholderArt.Box("Extraction", position, new Vector2(3f, 3f), new Color(0.2f, 0.8f, 0.35f, 0.45f), _raidRoot, 1, "extraction", SpriteFit.Tile);
-                        extraction.AddComponent<BoxCollider2D>().isTrigger = true;
-                        extraction.AddComponent<ExtractionZone>();
+                    case RaidMap.Extraction: BuildExit(position, null); break;
+
+                    case RaidMap.PoweredExit:
+                        BuildExit(position, () => GeneratorSwitch.PowerOn ? null : "Cửa cuốn đóng chặt. Cần điện: tìm cầu dao trong cửa hàng trạm xăng.");
+                        break;
+
+                    case RaidMap.BossExit:
+                        BuildExit(position, () =>
+                        {
+                            var area = _director != null ? _director.CurrentArea : null;
+                            if (area == null || area.BossDefeated(GameRoot.Instance.Session)) return null;
+                            return "Lối mòn sau đồi bị chặn. " + area.BossName + " còn sống thì không ai qua được.";
+                        });
+                        break;
+
+                    case RaidMap.PowerSwitch:
+                        GameObject power = PlaceholderArt.Box("PowerSwitch", position, new Vector2(0.7f, 0.9f), new Color(0.9f, 0.8f, 0.15f), _raidRoot, 2, "power_switch", SpriteFit.Crate);
+                        power.AddComponent<BoxCollider2D>();
+                        power.AddComponent<YSort>();
+                        power.AddComponent<GeneratorSwitch>();
                         break;
 
                     case 'C': BuildContainer(position, PrototypeContent.HouseCabinet, "crate_house", new Color(0.75f, 0.55f, 0.25f)); break;
@@ -518,7 +537,8 @@ namespace Bnhon.Game
                         // A boss that has been killed does not come back; one of its guards stands there instead.
                         var area = _director != null ? _director.CurrentArea : null;
                         bool dead = area != null && area.BossDefeated(GameRoot.Instance.Session);
-                        BuildZombie(position, dead ? ZombieKind.Armored : ZombieKind.Boss);
+                        ZombieAI boss = BuildZombie(position, dead ? ZombieKind.Armored : ZombieKind.Boss);
+                        if (!dead && area != null && area.BossHealth > 0f) boss.GetComponent<Health>().SetMax(area.BossHealth);
                         break;
                     case 'R': BuildZombie(position, ZombieKind.Runner); break;
                     case 'G': BuildZombie(position, ZombieKind.Screamer); break;
@@ -529,26 +549,87 @@ namespace Bnhon.Game
             if (NavGrid.Instance != null) NavGrid.Instance.RequestBuild(RaidCenter, _raidSize);
         }
 
+        private Texture2D _groundTexture;
+
+        /// <summary>
+        /// Draws the ground of the whole map as one picture, a few pixels per cell, coloured by
+        /// the kind of ground (concrete, grass, road, dirt, paddy) with a little grain. One object
+        /// for the whole map, however big, and muted colours that are easy on the eyes.
+        /// </summary>
         private void BuildFloor()
         {
-            if (PlaceholderArt.FindSprite("floor") == null)
+            const int pixelsPerCell = 4;
+            int width = _map.Width * pixelsPerCell;
+            int height = _map.Height * pixelsPerCell;
+
+            if (_groundTexture != null) Destroy(_groundTexture);
+            _groundTexture = new Texture2D(width, height);
+            _groundTexture.filterMode = FilterMode.Point;
+
+            var pixels = new Color[width * height];
+            for (int py = 0; py < height; py++)
             {
-                PlaceholderArt.Box("RaidFloor", RaidCenter, _raidSize, RaidFloorColor, _raidGeometry, 0);
-                return;
+                // Texture rows start at the bottom; map rows start at the top.
+                int cellY = _map.Height - 1 - py / pixelsPerCell;
+                for (int px = 0; px < width; px++)
+                {
+                    int cellX = px / pixelsPerCell;
+                    pixels[py * width + px] = GroundPixel(_map.GroundAt(cellX, cellY), px, py);
+                }
+            }
+            _groundTexture.SetPixels(pixels);
+            _groundTexture.Apply();
+
+            var ground = new GameObject("Ground");
+            ground.transform.SetParent(_raidGeometry, false);
+            ground.transform.position = RaidCenter;
+            var renderer = ground.AddComponent<SpriteRenderer>();
+            renderer.sprite = Sprite.Create(_groundTexture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), pixelsPerCell);
+            renderer.sharedMaterial = PlaceholderArt.UnlitMaterial;
+            renderer.sortingOrder = 0;
+        }
+
+        private static Color GroundPixel(char ground, int px, int py)
+        {
+            float grain = Grain(px, py);
+            Color color;
+            switch (ground)
+            {
+                case ',':
+                    color = new Color(0.24f, 0.31f, 0.19f);
+                    if (grain > 0.82f) color = new Color(0.29f, 0.37f, 0.22f);
+                    break;
+                case '=':
+                    color = new Color(0.19f, 0.19f, 0.2f);
+                    break;
+                case ':':
+                    color = new Color(0.35f, 0.28f, 0.2f);
+                    break;
+                case '~':
+                    // Rows of rice standing in water.
+                    color = py % 3 == 0 ? new Color(0.25f, 0.34f, 0.23f) : new Color(0.21f, 0.29f, 0.28f);
+                    break;
+                case '#':
+                    color = new Color(0.15f, 0.14f, 0.13f);
+                    break;
+                default:
+                    color = new Color(0.31f, 0.3f, 0.28f);
+                    break;
             }
 
-            // With floor art, lay large tiles under the whole map. Walls are drawn over them,
-            // so there is no need to skip wall cells, and far fewer objects are needed.
-            Transform floor = new GameObject("Floor").transform;
-            floor.SetParent(_raidGeometry, false);
-            for (int y = 0; y < _map.Height; y += GroundTileCells)
+            float shade = (grain - 0.5f) * 0.05f;
+            return new Color(color.r + shade, color.g + shade, color.b + shade, 1f);
+        }
+
+        /// <summary>A fixed pseudo-random value in 0..1 for a pixel, so the grain is the same every raid.</summary>
+        private static float Grain(int x, int y)
+        {
+            unchecked
             {
-                for (int x = 0; x < _map.Width; x += GroundTileCells)
-                {
-                    float half = (GroundTileCells - 1) * 0.5f;
-                    var size = new Vector2(GroundTileCells, GroundTileCells);
-                    PlaceholderArt.Tint(PlaceholderArt.Box("FloorTile", CellCenter(x + half, y + half), size, RaidFloorColor, floor, 0, "floor", SpriteFit.Tile), RaidFloorTint);
-                }
+                uint h = (uint)(x * 374761393 + y * 668265263);
+                h = (h ^ (h >> 13)) * 1274126177u;
+                h ^= h >> 16;
+                return (h & 0xFFFF) / 65535f;
             }
         }
 
@@ -612,6 +693,13 @@ namespace Bnhon.Game
                     if (_map.IsWall(x, y)) PlaceholderArt.Tint(PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile), WallTint);
                 }
             }
+        }
+
+        private void BuildExit(Vector2 position, Func<string> lockReason)
+        {
+            GameObject extraction = PlaceholderArt.Box("Extraction", position, new Vector2(3f, 3f), new Color(0.2f, 0.8f, 0.35f, 0.45f), _raidRoot, 1, "extraction", SpriteFit.Tile);
+            extraction.AddComponent<BoxCollider2D>().isTrigger = true;
+            extraction.AddComponent<ExtractionZone>().Init(lockReason);
         }
 
         private void BuildContainer(Vector2 position, LootTable table, string spriteKey, Color color)

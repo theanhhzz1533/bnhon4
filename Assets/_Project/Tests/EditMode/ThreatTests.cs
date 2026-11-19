@@ -125,6 +125,46 @@ namespace Bnhon.Core.Tests
         }
 
         [Test]
+        public void Map_KnowsItsGroundKinds_AndConditionalExits()
+        {
+            RaidMap map = RaidMap.Parse("########\n#P,=:~X#\n#E.J.U.#\n########\n");
+
+            Assert.That(map.GroundAt(2, 1), Is.EqualTo(','));
+            Assert.That(map.GroundAt(3, 1), Is.EqualTo('='));
+            Assert.That(map.GroundAt(5, 1), Is.EqualTo('~'));
+            Assert.That(map.GroundAt(0, 0), Is.EqualTo('#'));
+            Assert.That(map.GroundAt(6, 1), Is.EqualTo('.'));
+            Assert.That(map.IsWall(3, 1), Is.False);
+            Assert.That(map.Markers.Count, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void Map_WithOnlyConditionalExits_IsRejected()
+        {
+            bool rejected = false;
+            try
+            {
+                RaidMap.Parse("######\n#P.J.#\n######\n");
+            }
+            catch (System.FormatException)
+            {
+                rejected = true;
+            }
+            Assert.That(rejected, Is.True);
+        }
+
+        [Test]
+        public void BothAreas_HaveANamedBossWithLoot()
+        {
+            foreach (RaidArea area in PrototypeContent.RaidAreas)
+            {
+                Assert.That(area.BossFlag != null, Is.True);
+                Assert.That(area.BossLoot != null && area.BossLoot.Count > 0, Is.True);
+                Assert.That(area.BossName.Length > 0, Is.True);
+            }
+        }
+
+        [Test]
         public void Map_AcceptsSafesArmouredZombiesAndABoss()
         {
             RaidMap map = RaidMap.Parse("#######\n#P.V.E#\n#.A.B.#\n#######\n");

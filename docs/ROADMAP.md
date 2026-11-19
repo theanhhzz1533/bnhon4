@@ -67,6 +67,8 @@ Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
 
 - [x] Bản đồ thứ hai (trung tâm thị trấn) có trùm, chọn khu ở cổng
 - [x] Mức đe dọa tăng theo ngày; zombie bọc thép có tấm chắn phá được
+- [x] Vùng ven làm lại 260×170 theo ảnh ý tưởng: 5 khu, nền nhiều loại đất, cầu dao và lối rút lui có điều kiện, trùm ở tháp radio
+- [ ] Công cụ chuyển bản đồ sang Tilemap và ngược lại
 - [ ] Bản đồ thứ ba; trùm có cơ chế riêng
 - [ ] 6 NPC, trong đó 4 hẹn hò được; hẹn hò và kết hôn
 - [ ] 4 mùa, ảnh hưởng của mùa lên cây trồng và raid

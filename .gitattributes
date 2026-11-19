@@ -49,3 +49,4 @@
 # no LFS setup and diff as ordinary binary files. Large art (concept art,
 # .aseprite sources, audio) still goes through LFS via the rules above.
 Assets/_Project/Resources/Sprites/*.png -filter -diff -merge binary
+Tools/maps/*.png -filter -diff -merge binary

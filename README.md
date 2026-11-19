@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 125 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 130 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -31,7 +31,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 - **Căn cứ:** 9 ô ruộng, 3 cư dân (Lan, Minh, bà Tư), kho, bàn chế tạo, quầy mua bán, giếng nước, bếp, giường, cổng ra ngoài.
 - **Trồng trọt:** 6 loại cây theo mùa (mùa đông chỉ trồng được bắp cải). Bình tưới chứa 6 lần tưới, múc lại ở giếng. Cây không tưới quá 2 ngày liền sẽ chết, và chết khi sang mùa không hợp.
 - **Độ khó tăng dần:** cứ hai ngày mức đe dọa tăng một bậc (tối đa 10); zombie thường trên bản đồ dần bị thay bằng zombie chạy và zombie bọc thép, đợt tăng viện đông hơn. Zombie bọc thép cầm tấm chắn chặn 75% sát thương từ phía trước; bắn đủ thì tấm chắn vỡ, hoặc vòng ra sau để khỏi phải phá.
-- **Hai khu raid:** vùng ven (`outskirts.txt`) và trung tâm thị trấn (`town.txt`, mở sau khi nâng bàn chế tạo lên cấp 2), chọn ở cổng. Trung tâm có két sắt và trùm Đồ tể; hạ rồi thì nó không xuất hiện lại.
+- **Hai khu raid:** vùng ven (`outskirts.txt`, 260×170 ô: xóm nhà ống, trường học, trạm xăng, ruộng và chợ, đồi tháp radio có trùm Gã thợ điện) và trung tâm thị trấn (`town.txt`, mở sau khi nâng bàn chế tạo lên cấp 2), chọn ở cổng. Trung tâm có két sắt và trùm Đồ tể; hạ rồi thì nó không xuất hiện lại.
 - **Mở đầu:** game mới bắt đầu trong bệnh viện (`Resources/Maps/hospital.txt`): lục tủ lấy dao găm, tìm đường tới căn tin, chạy khỏi đàn zombie tới chỗ Minh. Chết trong màn này thì làm lại từ giường bệnh, không mất gì. Sau đó dòng "Mục tiêu" trên HUD dẫn qua những ngày đầu ở căn cứ. File lưu cũ bỏ qua màn mở đầu; muốn xem thì xóa file lưu bằng menu **Bnhon > Save**.
 - **Cư dân:** nhấn E để mở màn hình trò chuyện: câu thoại đổi theo số tim, buổi và chỗ đứng; chọn quà từ balo; nhận và giao nhiệm vụ. Cư dân đổi chỗ đứng giữa buổi sáng (trước raid) và buổi tối (sau raid). Lan có hai cảnh tim ở mốc 2 và 4 tim.
 - **Nấu ăn:** bếp nấu 4 món từ nông sản. Mỗi món cho một hiệu ứng (hồi thể lực nhanh, chậm đói khát, hồi máu dần, chạy nhanh); thời gian chỉ chạy khi ở ngoài và hết khi đi ngủ.
@@ -63,18 +63,24 @@ Trong Unity, menu **Bnhon > Save** có hai lệnh: xóa file lưu để chơi l�
 
 ## Sửa bản đồ raid
 
-Khu raid được dựng từ file chữ `Assets/_Project/Resources/Maps/outskirts.txt`, mỗi ký tự là một ô rộng 1 đơn vị.
+Khu raid được dựng từ file chữ trong `Assets/_Project/Resources/Maps/`, mỗi ký tự là một ô rộng 1 đơn vị.
+
+Bản đồ vùng ven (`outskirts.txt`) được sinh bằng `python Tools/maps/build_outskirts.py`, script này cũng xuất ảnh xem trước `Tools/maps/outskirts_preview.png`. Sửa tay trong file thì đừng chạy lại script, vì nó ghi đè. Bản đồ vùng ven cũ vẫn còn ở `outskirts_old.txt`.
 
 Cách tiện nhất là dùng trình sửa bản đồ trong Unity: menu **Bnhon > Raid Map Editor**. Nó vẽ bản đồ thành hình có màu, cho chọn ký hiệu rồi kéo chuột trái để vẽ (chuột phải để lấy ký hiệu tại ô đang trỏ), báo ngay nếu bản đồ sai hoặc có chỗ bị bít kín, và bấm Lưu để ghi lại file. Cũng có thể mở file bằng Notepad, sửa, lưu, rồi Play.
 
 | Ký tự | Ý nghĩa |
 | --- | --- |
 | `#` | Tường (chặn đường đi, đạn và tầm nhìn) |
-| `.` | Sàn |
+| `.` `,` `=` `:` `~` | Nền đi được: sàn bê tông, cỏ, đường nhựa, đất, ruộng nước (chỉ khác màu) |
 | `P` | Chỗ người chơi vào (đúng một cái) |
 | `E` | Điểm rút lui, vùng 3×3 quanh ô đó (ít nhất một cái) |
 | `C` `M` `S` `W` | Tủ nhà, tủ thuốc, kho hạt giống, hòm vũ khí |
-| `Z` `R` `G` | Zombie thường, zombie chạy, zombie gào |
+| `V` | Két sắt |
+| `Z` `R` `G` `A` `B` | Zombie thường, chạy, gào, bọc thép; trùm của khu |
+| `X` | Cầu dao máy phát (bật lên thì máy kêu, kéo zombie tới) |
+| `J` | Lối rút lui chỉ mở khi đã bật cầu dao |
+| `U` | Lối rút lui chỉ mở khi đã hạ trùm của khu |
 
 Dòng bắt đầu bằng `;` là ghi chú. Nếu file sai định dạng, game báo lỗi trên màn hình và dùng một bản đồ dự phòng nhỏ. Nếu có thùng đồ hay điểm rút lui bị tường bít kín, game cũng cảnh báo khi bắt đầu. Để dùng bản đồ khác, tạo file mới cùng thư mục và đổi ô `Map Name` trên `PrototypeBootstrap`.
 
@@ -84,7 +90,7 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 
 | Tên file | Dùng cho | Cách đặt |
 | --- | --- | --- |
-| `floor.png`, `wall.png` | Sàn và tường khu raid | Kéo giãn vừa một ô (nên là ảnh vuông) |
+| `wall.png` | Tường khu raid | Kéo giãn vừa một ô (nên là ảnh vuông). Nền khu raid giờ được vẽ theo loại đất của bản đồ nên `floor.png` không còn dùng |
 | `extraction.png` | Vùng rút lui | Kéo giãn vừa 3×3 ô |
 | `crate_house.png`, `crate_medical.png`, `crate_seed.png`, `crate_weapon.png` | Bốn loại thùng đồ | Co theo bề ngang, giữ tỉ lệ |
 | `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |

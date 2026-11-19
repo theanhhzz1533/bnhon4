@@ -285,9 +285,11 @@ namespace Bnhon.Game.UI
             }
 
             ExtractionZone zone = ExtractionZone.Active;
-            if (zone != null && zone.Remaining >= 0f)
+            if (zone != null && zone.PlayerInside)
             {
-                CentredPanel("Đang rút lui... " + zone.Remaining.ToString("0.0") + " giây", width, y, StaminaColor, 360f);
+                string locked = zone.LockReason;
+                if (locked != null) CentredPanel(locked, width, y, Warning, 560f);
+                else CentredPanel("Đang rút lui... " + zone.Remaining.ToString("0.0") + " giây", width, y, StaminaColor, 360f);
             }
         }
 

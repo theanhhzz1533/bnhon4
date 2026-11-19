@@ -69,6 +69,15 @@ namespace Bnhon.Core.Raid
         /// <summary>The story flag set when this area's boss is killed. Null if it has no boss.</summary>
         public string BossFlag { get; }
 
+        /// <summary>What the boss is called in messages.</summary>
+        public string BossName { get; set; } = "Trùm";
+
+        /// <summary>The boss's health. Zero keeps the default for bosses.</summary>
+        public float BossHealth { get; set; }
+
+        /// <summary>What the boss always carries. Null for none.</summary>
+        public System.Collections.Generic.IReadOnlyList<Crafting.ItemAmount> BossLoot { get; set; }
+
         public RaidArea(string id, string displayName, string mapName, string description, string unlockFlag, string bossFlag)
         {
             Id = id;

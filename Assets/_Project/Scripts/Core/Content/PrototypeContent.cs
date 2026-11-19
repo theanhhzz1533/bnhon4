@@ -252,12 +252,24 @@ namespace Bnhon.Core.Content
         public const string AreaTownId = "town";
         public const string FlagButcherDead = "boss_town";
 
+        public const string FlagTowerBossDead = "boss_outskirts";
+
         public static readonly RaidArea AreaOutskirts = new RaidArea(AreaOutskirtsId, "Vùng ven thị trấn", "outskirts",
-            "Nhà dân thưa thớt, ít zombie. Chỗ để kiếm vật liệu và hạt giống khi chưa đủ đồ.", null, null);
+            "Xóm nhà ống, trường học, trạm xăng, ruộng và chợ quê. Rộng, nhiều ngả. Trên đồi phía đông nam, Gã thợ điện canh tháp radio.",
+            null, FlagTowerBossDead)
+        {
+            BossName = "Gã thợ điện",
+            BossHealth = 600f,
+            BossLoot = new[] { A(CircuitBoard, 3), A(PistolAmmo, 16), A(MedKit, 1), A(BlueprintPistol, 1) }
+        };
 
         public static readonly RaidArea AreaTown = new RaidArea(AreaTownId, "Trung tâm thị trấn", "town",
             "Phố xá chật, zombie đông và có cả loại bọc thép. Két sắt và hòm vũ khí nhiều hơn hẳn. Đồ tể chiếm trụ sở ở giữa.",
-            "step_workbench", FlagButcherDead);
+            "step_workbench", FlagButcherDead)
+        {
+            BossName = "Đồ tể",
+            BossLoot = ButcherLoot
+        };
 
         public static readonly IReadOnlyList<RaidArea> RaidAreas = new[] { AreaOutskirts, AreaTown };
 

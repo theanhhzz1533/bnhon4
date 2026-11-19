@@ -96,6 +96,19 @@ namespace Bnhon.Game.AI
         private static readonly List<ZombieAI> Active = new List<ZombieAI>();
 
         private const float BodyRadius = 0.42f;
+
+        /// <summary>Beyond this distance from the player a wandering zombie does nothing at all.</summary>
+        private const float DormantDistance = 40f;
+
+        private void SetDrawn(bool visible)
+        {
+            if (_renderer != null) _renderer.enabled = visible;
+            if (_extras == null) return;
+            foreach (SpriteRenderer extra in _extras)
+            {
+                if (extra != null) extra.enabled = visible;
+            }
+        }
         private readonly List<Vector2> _path = new List<Vector2>();
         private int _pathIndex;
         private float _nextRepathTime;
@@ -297,6 +310,15 @@ namespace Bnhon.Game.AI
             }
 
             Vector2 position = transform.position;
+
+            // Far from the player and with nothing to do: stand still and skip the rest.
+            // Noise still reaches it (OnNoise), which wakes it by changing its state.
+            if (_state == State.Wander && ((Vector2)_target.position - position).sqrMagnitude > DormantDistance * DormantDistance)
+            {
+                _velocity = Vector2.zero;
+                if (_renderer != null && _renderer.enabled) SetDrawn(false);
+                return;
+            }
 
             // Fog of war: only drawn while the player can actually see this spot.
             if (_renderer != null)
@@ -502,9 +524,12 @@ namespace Bnhon.Game.AI
             if (_state == State.Chase) return;
 
             // Walls muffle sound: with one in the way, a noise carries only part of the distance.
+            // Out of reach even with nothing in the way: no need to check for walls.
             Vector2 position = transform.position;
+            float distanceSq = (position - source).sqrMagnitude;
+            if (distanceSq > radius * radius) return;
             if (SightBlocker.IsBlocked(source, position)) radius *= wallMuffle;
-            if ((position - source).sqrMagnitude > radius * radius) return;
+            if (distanceSq > radius * radius) return;
 
             Investigate(pointOfInterest, investigateTimeout);
         }
@@ -530,7 +555,7 @@ namespace Bnhon.Game.AI
             if (area == null || area.BossFlag == null || GameRoot.Instance == null) return;
 
             GameRoot.Instance.Session.Story.Set(area.BossFlag);
-            GameRoot.Instance.Notify("Đồ tể đã gục! Lục xác nó, rồi sống sót mà mang đồ về.", 7f);
+            GameRoot.Instance.Notify(area.BossName + " đã gục! Lục xác nó, rồi sống sót mà mang đồ về.", 7f);
             Sfx.PlayUi(SoundId.Extract, 0.8f);
         }
 
@@ -553,7 +578,8 @@ namespace Bnhon.Game.AI
             GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", SpriteFit.Centered(1.5f, 1.2f));
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
             var loot = corpse.AddComponent<LootContainer>();
-            if (Kind == ZombieKind.Boss) loot.InitFixed(PrototypeContent.ButcherLoot, "Xác Đồ tể");
+            var bossArea = Kind == ZombieKind.Boss && Bnhon.Game.Raid.RaidDirector.Instance != null ? Bnhon.Game.Raid.RaidDirector.Instance.CurrentArea : null;
+            if (Kind == ZombieKind.Boss) loot.InitFixed(bossArea != null && bossArea.BossLoot != null ? bossArea.BossLoot : PrototypeContent.ButcherLoot, "Xác " + (bossArea != null ? bossArea.BossName : "trùm"));
             else loot.InitCorpse(table, Kind == ZombieKind.Armored ? Mathf.Max(1, RollCorpseItems()) : RollCorpseItems());
         }
     }
