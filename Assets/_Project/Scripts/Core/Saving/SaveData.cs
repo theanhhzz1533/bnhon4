@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 8;
+        public const int CurrentVersion = 9;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -79,6 +79,8 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class ShopStockSave
     {
+        /// <summary>Whose shop. Empty in saves before version 9, which only had Chú Sáu's.</summary>
+        public string shop;
         public string id;
         public int stock;
     }

@@ -83,9 +83,12 @@ namespace Bnhon.Core.Saving
             foreach (string blueprint in session.Workshop.KnownBlueprints) data.blueprints.Add(blueprint);
 
             data.shopSaved = true;
-            foreach (Trading.ShopEntry entry in session.Shop.Entries)
+            foreach (var pair in session.Shops)
             {
-                data.shopStock.Add(new ShopStockSave { id = entry.Item.Id, stock = entry.Stock });
+                foreach (Trading.ShopEntry entry in pair.Value.Entries)
+                {
+                    data.shopStock.Add(new ShopStockSave { shop = pair.Key, id = entry.Item.Id, stock = entry.Stock });
+                }
             }
 
             foreach (string flag in session.Story.All) data.storyFlags.Add(flag);
@@ -205,7 +208,9 @@ namespace Bnhon.Core.Saving
             {
                 foreach (ShopStockSave saved in data.shopStock)
                 {
-                    if (saved != null) session.Shop.RestoreStock(saved.id, saved.stock);
+                    if (saved == null) continue;
+                    string owner = string.IsNullOrEmpty(saved.shop) ? "chu_sau" : saved.shop;
+                    session.ShopOf(owner).RestoreStock(saved.id, saved.stock);
                 }
             }
 

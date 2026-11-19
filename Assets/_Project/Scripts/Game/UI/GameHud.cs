@@ -293,6 +293,12 @@ namespace Bnhon.Game.UI
                 y = CentredPanel("Đang dùng " + vitals.UsingName + "... (bấm chuột để hủy)", width, y, Color.white, 520f);
             }
 
+            FlareBeacon flare = FlareBeacon.Active;
+            if (flare != null && flare.Remaining > 0f)
+            {
+                y = CentredPanel("Vy tới sau " + Mathf.CeilToInt(flare.Remaining) + " giây. Giữ chỗ!", width, y, Warning, 360f);
+            }
+
             ExtractionZone zone = ExtractionZone.Active;
             if (zone != null && zone.PlayerInside)
             {

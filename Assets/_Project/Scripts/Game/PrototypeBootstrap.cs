@@ -97,6 +97,7 @@ namespace Bnhon.Game
             _director = director;
             director.Init(_player, cameraFollow, BaseSpawn, CellCenter(_map.Spawn.X, _map.Spawn.Y), SetZone);
             director.AreaChosen = SelectArea;
+            director.InsertionPosition = InsertionPosition;
 
             new GameObject("RaidPressure").AddComponent<RaidPressure>().Init(SpawnReinforcements);
 
@@ -182,6 +183,14 @@ namespace Bnhon.Game
         {
             var property = type.GetProperty(name);
             if (property != null && property.CanWrite) property.SetValue(target, value);
+        }
+
+        /// <summary>Where one of the map's drop-off points is, or null if the map has no such point.</summary>
+        private Vector2? InsertionPosition(int index)
+        {
+            var points = _map.InsertionPoints;
+            if (index < 0 || index >= points.Count) return null;
+            return CellCenter(points[index].X, points[index].Y);
         }
 
         /// <summary>Puts the chosen area's map in place. The outskirts use the map named in the Inspector.</summary>
@@ -405,12 +414,14 @@ namespace Bnhon.Game
             Building(PrototypeContent.BuildingKitchen, new Color(0.75f, 0.4f, 0.25f), "kitchen", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<KitchenStation>();
             Building(PrototypeContent.BuildingShop, new Color(0.3f, 0.5f, 0.62f), "shop", SpriteFit.Standing(1.8f, 1.7f), root).AddComponent<ShopStall>();
             Building(PrototypeContent.BuildingLab, new Color(0.55f, 0.65f, 0.7f), "lab", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<LabStation>();
+            Building(PrototypeContent.BuildingBench, new Color(0.35f, 0.38f, 0.45f), "bench_vy", SpriteFit.Standing(1.8f, 1.6f), root).AddComponent<VyBench>();
 
             BuildNpc(PrototypeContent.NpcLan, new Color(0.95f, 0.6f, 0.75f), root);
             BuildNpc(PrototypeContent.NpcMinh, new Color(0.5f, 0.75f, 0.95f), root);
             BuildNpc(PrototypeContent.NpcBaTu, new Color(0.8f, 0.8f, 0.6f), root);
             BuildNpc(PrototypeContent.NpcChuSau, new Color(0.75f, 0.6f, 0.4f), root);
             BuildNpc(PrototypeContent.NpcQuan, new Color(0.85f, 0.88f, 0.9f), root);
+            BuildNpc(PrototypeContent.NpcVy, new Color(0.8f, 0.3f, 0.3f), root);
         }
 
         /// <summary>One movable building of the base, placed by the layout. Slightly smaller than its cells, so there is room to walk between neighbours.</summary>
@@ -443,6 +454,7 @@ namespace Bnhon.Game
                 case PrototypeContent.SpotKitchen: return Beside(PrototypeContent.BuildingKitchen);
                 case PrototypeContent.SpotShop: return Beside(PrototypeContent.BuildingShop);
                 case PrototypeContent.SpotLab: return Beside(PrototypeContent.BuildingLab);
+                case PrototypeContent.SpotBench: return Beside(PrototypeContent.BuildingBench);
                 case PrototypeContent.SpotWell: return Beside(PrototypeContent.BuildingWell);
                 case PrototypeContent.SpotGate: return new Vector2(7.4f, -5.2f);
                 case PrototypeContent.SpotFarm: return new Vector2(-8.8f, 0.3f);
@@ -513,6 +525,7 @@ namespace Bnhon.Game
                         break;
 
                     case RaidMap.Rescue: BuildSurvivor(position, rescueIndex++); break;
+                    case RaidMap.Insertion: break;
 
                     case RaidMap.PowerSwitch:
                         GameObject power = PlaceholderArt.Box("PowerSwitch", position, new Vector2(0.7f, 0.9f), new Color(0.9f, 0.8f, 0.15f), _raidRoot, 2, "power_switch", SpriteFit.Crate);

@@ -111,6 +111,9 @@ namespace Bnhon.Core.Tests
             session.Stash.Add(PrototypeContent.Cloth, 4);
             session.Workshop.Upgrade(session.Stash, session.Backpack);
             Assert.That(story.Advance(session).Id, Is.EqualTo("workbench"));
+            Assert.That(story.Advance(session) == null, Is.True);
+            Bnhon.Core.Npcs.Residents.MoveIn(session, PrototypeContent.NpcVy);
+            Assert.That(story.Advance(session).Id, Is.EqualTo("rescue_vy"));
             Assert.That(session.Stash.CountOf(PrototypeContent.BlueprintMedKit.Id), Is.EqualTo(1));
 
             Assert.That(story.Advance(session) == null, Is.True);

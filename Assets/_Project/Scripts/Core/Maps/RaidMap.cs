@@ -56,7 +56,10 @@ namespace Bnhon.Core.Maps
         public const string GroundSymbols = ".,=:~";
 
         /// <summary>A power switch (X), an exit that needs the power on (J), an exit that needs the area's boss dead (U).</summary>
-        public const string ConditionalSymbols = "XJU";
+        public const string ConditionalSymbols = "XJUI";
+
+        /// <summary>A place Vy can drop the player off instead of the usual start. Maps have up to three.</summary>
+        public const char Insertion = 'I';
         public const char PowerSwitch = 'X';
         public const char PoweredExit = 'J';
         public const char BossExit = 'U';
@@ -71,6 +74,20 @@ namespace Bnhon.Core.Maps
 
         /// <summary>Everything placed on the map except the player spawn.</summary>
         public IReadOnlyList<MapMarker> Markers => _markers;
+
+        /// <summary>The drop-off points, from the top of the map down.</summary>
+        public List<MapMarker> InsertionPoints
+        {
+            get
+            {
+                var points = new List<MapMarker>();
+                foreach (MapMarker marker in _markers)
+                {
+                    if (marker.Symbol == Insertion) points.Add(marker);
+                }
+                return points;
+            }
+        }
 
         private RaidMap(bool[,] walls, char[,] ground, GridPoint spawn, List<MapMarker> markers)
         {

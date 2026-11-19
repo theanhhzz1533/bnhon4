@@ -69,6 +69,14 @@ namespace Bnhon.Core.Raid
         /// <summary>The story flag set when this area's boss is killed. Null if it has no boss.</summary>
         public string BossFlag { get; }
 
+        /// <summary>Names of the map's drop-off points, from the top of the map down.</summary>
+        public System.Collections.Generic.IReadOnlyList<string> InsertionNames { get; set; }
+
+        public string InsertionName(int index)
+        {
+            return InsertionNames != null && index >= 0 && index < InsertionNames.Count ? InsertionNames[index] : "Điểm " + (index + 1);
+        }
+
         /// <summary>What the boss is called in messages.</summary>
         public string BossName { get; set; } = "Trùm";
 

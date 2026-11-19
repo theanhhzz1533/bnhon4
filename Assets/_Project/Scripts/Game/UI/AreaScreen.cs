@@ -51,15 +51,14 @@ namespace Bnhon.Game.UI
                 GUILayout.Label(area.DisplayName, HeaderStyle);
                 GUILayout.FlexibleSpace();
                 RaidArea target = area;
-                if (Button(unlocked ? "Lên đường" : "Chưa biết đường", unlocked, 150f))
+                int rides = PrototypeContent.RideLevel(session);
+                if (Button(!unlocked ? "Chưa biết đường" : rides > 0 ? "Đi bộ từ rìa" : "Lên đường", unlocked, 150f))
                 {
-                    Defer(() =>
-                    {
-                        Close();
-                        RaidDirector.Instance.TryStartRaid(target);
-                    });
+                    Defer(() => Go(target, -1));
                 }
                 GUILayout.EndHorizontal();
+
+                if (unlocked && rides > 0) DrawRides(session, target, rides);
 
                 GUILayout.Label(area.Description, TextStyle);
                 if (!unlocked) ColoredLabel("Làm theo mục tiêu trên màn hình để mở khu này.", Dim);
@@ -70,6 +69,38 @@ namespace Bnhon.Game.UI
                 }
                 GUILayout.Space(14f);
             }
+        }
+        /// <summary>Vy's ride: a random drop-off point, a choice of two, or any of them.</summary>
+        private void DrawRides(GameSession session, RaidArea area, int rides)
+        {
+            int count = area.InsertionNames != null ? area.InsertionNames.Count : 0;
+            if (count == 0) return;
+
+            GUILayout.BeginHorizontal();
+            ColoredLabel("Vy chở:", Good, GUILayout.Width(70f));
+            if (rides == 1)
+            {
+                if (Button("Thả ở điểm ngẫu nhiên", true, 220f)) Defer(() => Go(area, session.Rng.Next(count)));
+            }
+            else
+            {
+                // Two choices that stay the same for the whole day; or all of them.
+                int first = System.Math.Abs(session.Clock.TotalDays * 7 + area.Id.Length) % count;
+                for (int i = 0; i < count; i++)
+                {
+                    bool offered = rides >= 3 || i == first || i == (first + 1) % count;
+                    if (!offered) continue;
+                    int point = i;
+                    if (Button(area.InsertionName(i), true, 210f)) Defer(() => Go(area, point));
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void Go(RaidArea area, int insertion)
+        {
+            Close();
+            RaidDirector.Instance.TryStartRaid(area, insertion);
         }
     }
 }

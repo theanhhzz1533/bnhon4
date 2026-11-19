@@ -32,7 +32,7 @@ namespace Bnhon.Core.Tests
         [Test]
         public void ChuSausRescue_IsInTheOutskirts_AfterTheIntro_AndNeedsABandage()
         {
-            RescueDefinition rescue = PrototypeContent.FindRescue(PrototypeContent.AreaOutskirtsId, 1);
+            RescueDefinition rescue = PrototypeContent.FindRescue(PrototypeContent.AreaOutskirtsId, 2);
             Assert.That(rescue.NpcId, Is.EqualTo(PrototypeContent.NpcChuSau));
             Assert.That(rescue.Needs.Value.Item, Is.EqualTo(PrototypeContent.Bandage));
 

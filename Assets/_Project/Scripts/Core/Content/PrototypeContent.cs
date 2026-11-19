@@ -64,6 +64,11 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition CoreElectrician = new ItemDefinition("core_electrician", "Lõi Gã thợ điện", ItemCategory.Quest, ItemRarity.Epic, 1, 1, 1, 0);
         public static readonly ItemDefinition CoreButcher = new ItemDefinition("core_butcher", "Lõi Đồ tể", ItemCategory.Quest, ItemRarity.Epic, 1, 1, 1, 0);
 
+        // Vy's things: fuel for her bike, and gadgets she builds.
+        public static readonly ItemDefinition FuelCan = new ItemDefinition("fuel_can", "Can xăng", ItemCategory.Material, ItemRarity.Uncommon, 1, 2, 1, 30);
+        public static readonly ItemDefinition RadioDecoy = new ItemDefinition("radio_decoy", "Radio mồi", ItemCategory.Gadget, ItemRarity.Uncommon, 1, 1, 3, 40);
+        public static readonly ItemDefinition Flare = new ItemDefinition("flare", "Pháo hiệu", ItemCategory.Gadget, ItemRarity.Rare, 1, 1, 2, 90);
+
         // Found in the cabinet by the hospital bed. Picking it up gives the player their knife for good.
         public static readonly ItemDefinition Dagger = new ItemDefinition("dagger", "Dao găm", ItemCategory.Quest, ItemRarity.Uncommon, 1, 2, 1, 0);
 
@@ -103,7 +108,7 @@ namespace Bnhon.Core.Content
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette,
             TomatoSeed, WaterSpinachSeed, CabbageSeed, Tomato, WaterSpinach, Cabbage,
             RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry, Dagger,
-            Sample, CoreElectrician, CoreButcher
+            Sample, CoreElectrician, CoreButcher, FuelCan, RadioDecoy, Flare
         };
 
         public static ItemDefinition FindItem(string itemId)
@@ -185,6 +190,7 @@ namespace Bnhon.Core.Content
             .Add(ScrapMetal, 20, 1, 3)
             .Add(TeaTin, 8)
             .Add(OldCassette, 3)
+            .Add(FuelCan, 5)
             .Add(SweetPotatoSeed, 12, 1, 3);
 
         public static readonly LootTable MedicalCabinet = new LootTable("medical_cabinet")
@@ -209,7 +215,8 @@ namespace Bnhon.Core.Content
             .Add(BlueprintPistol, 7)
             .Add(BlueprintShotgun, 4)
             .Add(ScrapMetal, 25, 2, 4)
-            .Add(CircuitBoard, 15);
+            .Add(CircuitBoard, 15)
+            .Add(FuelCan, 10);
 
         // What zombies carry. Searched on their corpses.
         public static readonly LootTable WalkerCorpse = new LootTable("corpse_walker")
@@ -266,6 +273,7 @@ namespace Bnhon.Core.Content
             null, FlagTowerBossDead)
         {
             BossName = "Gã thợ điện",
+            InsertionNames = new[] { "Nhà kho mái xanh trong trường", "Sân sau xóm nhà ống", "Chòi giữa ruộng" },
             BossHealth = 600f,
             BossLoot = new[] { A(CircuitBoard, 3), A(PistolAmmo, 16), A(MedKit, 1), A(BlueprintPistol, 1), A(CoreElectrician, 1), A(Sample, 5) }
         };
@@ -275,6 +283,7 @@ namespace Bnhon.Core.Content
             "step_workbench", FlagButcherDead)
         {
             BossName = "Đồ tể",
+            InsertionNames = new[] { "Mái nhà phía tây bắc", "Hẻm phía nam", "Bãi xe phía đông nam" },
             BossLoot = ButcherLoot
         };
 
@@ -294,6 +303,7 @@ namespace Bnhon.Core.Content
         public const string NpcBaTu = "ba_tu";
         public const string NpcChuSau = "chu_sau";
         public const string NpcQuan = "quan";
+        public const string NpcVy = "vy";
 
         /// <summary>The residents who are at the base from the very start.</summary>
         public static readonly IReadOnlyList<string> Founders = new[] { NpcLan, NpcMinh, NpcBaTu };
@@ -310,6 +320,8 @@ namespace Bnhon.Core.Content
                     .Loves(SweetPotato.Id).Likes(TeaTin.Id, Mugwort.Id),
                 new NpcProfile(NpcChuSau, "Chú Sáu", Gender.Male, false)
                     .Loves(OldCassette.Id, TeaTin.Id).Likes(CannedFood.Id, Corn.Id).Dislikes(Mugwort.Id),
+                new NpcProfile(NpcVy, "Vy", Gender.Female, true)
+                    .Loves(FuelCan.Id, OldCassette.Id).Likes(CircuitBoard.Id, ScrapMetal.Id, CannedFood.Id).Dislikes(Mugwort.Id, TeaTin.Id),
                 new NpcProfile(NpcQuan, "Quân", Gender.Male, false)
                     .Loves(CircuitBoard.Id, Sample.Id).Likes(TeaTin.Id, MedKit.Id).Dislikes(CannedFood.Id, OldCassette.Id)
             };
@@ -325,8 +337,9 @@ namespace Bnhon.Core.Content
         public const string SpotFarm = "farm";
         public const string SpotShop = "shop";
         public const string SpotLab = "lab";
+        public const string SpotBench = "bench";
 
-        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm, SpotShop, SpotLab };
+        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm, SpotShop, SpotLab, SpotBench };
 
         public const string EventLanSupplies = "lan_2_supplies";
         public const string EventLanTea = "lan_4_tea";
@@ -474,7 +487,80 @@ namespace Bnhon.Core.Content
             return new NpcLife(NpcQuan, new NpcSchedule(SpotLab), book) { AddressMale = "anh", AddressFemale = "chị" };
         }
 
-        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu(), CreateChuSau(), CreateQuan() };
+        private static NpcLife CreateVy()
+        {
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Vy. Thợ điện, kiêm tài xế, kiêm người duy nhất ở đây biết con xe này chạy bằng gì. Gọi tên được rồi, khỏi chị chị em em.",
+                AlreadyTalked = "Nói rồi mà! Đang dở tay, có gì nói lẹ.",
+                AcceptsDating = "Hả? Ờ... được. Được! Mà đừng có cười."
+            };
+            book.Say("Con xe này mà chạy lại được thì đi đâu cũng nhanh gấp ba. Kiếm cho tôi can xăng.", 0, 3)
+                .Say("Ở đây ai cũng sợ tiếng máy. Tôi thì sợ im lặng hơn.", 0, 4)
+                .SayIn(DayPhase.Morning, "Đi đâu thì nói, tôi chở. Đừng có bắt tôi chở vào giữa bầy là được.", 0, 10)
+                .SayIn(DayPhase.Evening, "Về rồi à? Có nhặt được bảng mạch nào không? Không thì thôi, ngồi đây nói chuyện cũng được.", 0, 10)
+                .Say("Ông bô tôi mở tiệm sửa xe đầu thị trấn. Tôi lớn lên giữa đống ốc vít.", 2, 6)
+                .Say("Cái tháp radio trên đồi mà sửa được thì mình nghe được cả thế giới ngoài kia. Nếu còn ai.", 2)
+                .SayIn(DayPhase.Evening, "Lại đây, tôi chỉ cho cách nối dây. Lỡ mai tôi không có ở đây thì còn có người biết.", 5)
+                .Say("Ngồi sau xe tôi mà không la hét, cũng gan đấy.", 4)
+                .OnGift(GiftTaste.Loved, "Ê! Cái này xịn! Cảm ơn nha!")
+                .OnGift(GiftTaste.Liked, "Được đó, tôi lấy.")
+                .OnGift(GiftTaste.Neutral, "Ờ, cảm ơn.")
+                .OnGift(GiftTaste.Disliked, "Ủa, tôi làm gì với cái này?");
+
+            return new NpcLife(NpcVy, new NpcSchedule(SpotBench).On(DayPhase.Evening, SpotGate), book) { AddressMale = "anh", AddressFemale = "chị" };
+        }
+
+        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu(), CreateChuSau(), CreateQuan(), CreateVy() };
+
+        // ---------------------------------------------------------------------------------
+        // Vy: rides to drop-off points, the electric bench
+        // ---------------------------------------------------------------------------------
+
+        public const string FlagRide = "svc_vy_ride";
+        public const string FlagVyShop = "svc_vy_shop";
+        public const string FlagRideChooseTwo = "svc_vy_choose2";
+        public const string FlagRideChooseAny = "svc_vy_choose_any";
+        public const string FlagFlare = "svc_vy_flare";
+        public const string FlagActTwo = "act2_open";
+
+        /// <summary>
+        /// How much choice Vy's rides give: 0 no rides yet, 1 a random drop-off point, 2 a choice
+        /// of two of them, 3 any of them.
+        /// </summary>
+        public static int RideLevel(GameSession session)
+        {
+            if (!session.Story.Has(FlagRide)) return 0;
+            if (session.Story.Has(FlagRideChooseAny)) return 3;
+            return session.Story.Has(FlagRideChooseTwo) ? 2 : 1;
+        }
+
+        public static bool VyShopOpen(GameSession session) => session.Story.Has(FlagVyShop);
+
+        public static void SetUpVyShop(Trading.Shop shop)
+        {
+            shop.AddEntry(RadioDecoy, 1, 45, 2).RequiredFlag = FlagVyShop;
+            shop.AddEntry(FuelCan, 1, 70, 1, 0.5).RequiredFlag = FlagVyShop;
+            shop.AddEntry(Flare, 1, 160, 1).RequiredFlag = FlagFlare;
+        }
+
+        public static readonly QuestChain VyChain = new QuestChain(NpcVy)
+            .Add(new ChainStep("Hồi sinh con xe", "Con xe cần xăng và ít đồ thay: 1 can xăng, 4 sắt vụn, 1 bảng mạch làm bugi.", FlagRide)
+                .Bring(A(FuelCan, 1), A(ScrapMetal, 4), A(CircuitBoard, 1))
+                .Rewards("Vy chở đi raid: xuất phát ở 1 trong 3 điểm ngẫu nhiên của bản đồ, sâu hơn và gần đồ tốt hơn."))
+            .Add(new ChainStep("Bàn điện", "Có bảng mạch thì tôi ráp đồ điện cho mà xài: 2 bảng mạch, 2 vải.", FlagVyShop)
+                .Bring(A(CircuitBoard, 2), A(Cloth, 2))
+                .Rewards("Vy bán radio mồi (ném ra, phát tiếng ồn kéo zombie đi chỗ khác) và can xăng."))
+            .Add(new ChainStep("Bộ đàm", "Ráp được hai cái bộ đàm thì tôi biết chỗ nào an toàn mà thả: 3 bảng mạch, 2 sắt vụn.", FlagRideChooseTwo)
+                .Bring(A(CircuitBoard, 3), A(ScrapMetal, 2))
+                .Rewards("Mỗi lần chở, chọn được giữa 2 điểm xuất phát."))
+            .Add(new ChainStep("Tháp radio", "Tháp radio trên đồi. Hạ con quái canh nó rồi mang linh kiện lên sửa: 3 bảng mạch, 6 sắt vụn.", FlagRideChooseAny)
+                .NeedsFlag(FlagTowerBossDead, "cần hạ Gã thợ điện ở tháp radio")
+                .Bring(A(CircuitBoard, 3), A(ScrapMetal, 6))
+                .Rewards("Chọn bất kỳ điểm xuất phát nào. Tháp radio chạy lại: hồi 2 bắt đầu."))
+            .Add(new ChainStep("Pháo hiệu", "Bắn pháo hiệu là tôi tới đón, ở đâu cũng được: 2 vải, 1 can xăng.", FlagFlare)
+                .Bring(A(Cloth, 2), A(FuelCan, 1))
+                .Rewards("Vy bán pháo hiệu: đốt lên, giữ chỗ 40 giây, Vy tới đón ngay tại đó."));
 
         // ---------------------------------------------------------------------------------
         // Charms
@@ -582,7 +668,24 @@ namespace Bnhon.Core.Content
                     new SceneLine(null, "Ông nhìn sang chỗ trống cạnh bếp. Phòng thí nghiệm chỉ cần dựng lên là dùng được.")
                 }
             },
-            new RescueDefinition(NpcChuSau, AreaOutskirtsId, 1, session => !session.InIntro)
+            new RescueDefinition(NpcVy, AreaOutskirtsId, 1, session => !session.InIntro && session.Clock.TotalDays >= 4)
+            {
+                NeedsPower = true,
+                WorkSeconds = 25f,
+                WorkingLine = "Cửa cuốn kẹt rồi, cho tôi chút! Giữ chân tụi nó giùm!",
+                Plea = "Ê! Bên này! Cửa cuốn không có điện, tôi kẹt trong này với con xe. Cầu dao ở trong cửa hàng trạm xăng, bật giùm cái!",
+                Thanks = "Mở được rồi! Đi thôi, xe để sau. Tôi theo anh!",
+                Health = 100f,
+                Speed = 4f,
+                Arrival = new[]
+                {
+                    new SceneLine(null, "Vy dắt bộ chiếc xe phân khối lớn qua cổng, mồ hôi nhễ nhại, rồi dựng chân chống cái cạch."),
+                    new SceneLine("Vy", "Chỗ này được đó. Có tường, có bếp, có người. Có điện không? Không à. Để tôi."),
+                    new SceneLine("Vy", "Con xe này mà sống lại thì tôi chở anh đi đâu cũng được, khỏi lội bộ từ rìa bản đồ. Có điều nó cần xăng."),
+                    new SceneLine(null, "Cô kéo một cái bàn ra cạnh giếng, bày đồ nghề lên. Bàn điện của Vy đã có chỗ.")
+                }
+            },
+            new RescueDefinition(NpcChuSau, AreaOutskirtsId, 2, session => !session.InIntro)
             {
                 Needs = A(Bandage, 1),
                 Plea = "Ai đó? Ơ, người sống! Con ơi, chân chú bị kẹt dưới sạp, chảy máu quá. Có băng gạc không con?",
@@ -645,7 +748,7 @@ namespace Bnhon.Core.Content
                 .Bring(A(CoreButcher, 1))
                 .Rewards("Mở ô bùa thứ ba."));
 
-        public static readonly IReadOnlyList<QuestChain> Chains = new[] { SauChain, QuanChain };
+        public static readonly IReadOnlyList<QuestChain> Chains = new[] { SauChain, QuanChain, VyChain };
 
         public static QuestChain FindChain(string npcId)
         {
@@ -676,6 +779,7 @@ namespace Bnhon.Core.Content
         {
             QuestChain chain = FindChain(npcId);
             ChainStep step = chain != null ? chain.Complete(session) : null;
+            if (step != null && step.UnlockFlag == FlagRideChooseAny) session.Story.Set(FlagActTwo);
             if (step != null) ApplyServices(session);
             return step;
         }
@@ -736,6 +840,7 @@ namespace Bnhon.Core.Content
         public static readonly BuildingType BuildingKitchen = new BuildingType("kitchen", "Bếp", 2, 1);
         public static readonly BuildingType BuildingWell = new BuildingType("well", "Giếng", 1, 1);
         public static readonly BuildingType BuildingLab = new BuildingType("lab", "Phòng thí nghiệm", 2, 1);
+        public static readonly BuildingType BuildingBench = new BuildingType("bench", "Bàn điện của Vy", 2, 1);
 
         /// <summary>
         /// The yard: where nothing may be built, and where each building starts. Cell (0,0) is
@@ -759,6 +864,7 @@ namespace Bnhon.Core.Content
             layout.Add(BuildingKitchen, 11, 1);
             layout.Add(BuildingWell, 4, 3);
             layout.Add(BuildingLab, 14, 1);
+            layout.Add(BuildingBench, 14, 5);
         }
 
         /// <summary>What the next watering can level costs, and the workbench level it needs. Null at the top level.</summary>
@@ -878,6 +984,9 @@ namespace Bnhon.Core.Content
                 session => session.Workshop.Level >= 2)
                 .Gives(0, A(BlueprintMedKit, 1))
                 .Says("Lan gửi bạn bản vẽ bộ sơ cứu (trong kho). Minh chỉ đường vào trung tâm thị trấn: ra cổng là chọn được."))
+            .Add(new StoryStep("rescue_vy", "Có tiếng đập cửa cuốn trong gara trạm xăng (vùng ven, phía đông bắc). Bật cầu dao trong cửa hàng trạm xăng để mở cửa.",
+                session => Residents.LivesAtBase(session, NpcVy))
+                .Says("Vy đã về căn cứ. Giúp cô sửa xe để được chở đi raid."))
             .Add(new StoryStep("town", "Vào trung tâm thị trấn và hạ Đồ tể đang chiếm trụ sở. Mang shotgun, và đừng bắn chính diện bọn bọc thép.",
                 session => session.Story.Has(FlagButcherDead))
                 .Gives(150, A(BlueprintShotgun, 1))
@@ -919,10 +1028,11 @@ namespace Bnhon.Core.Content
 
             SetUpWorkshop(session.Workshop);
             SetUpShop(session.Shop);
+            SetUpVyShop(session.ShopOf(NpcVy));
             SetUpKitchen(session.Kitchen);
             foreach (string founder in Founders) Residents.MoveIn(session, founder);
             SetUpBase(session.Base);
-            session.Shop.FillStock();
+            foreach (var shop in session.Shops.Values) shop.FillStock();
             session.Loadout.Set(0, Pistol, PistolMagazine);
             session.Wallet.Add(50);
             session.Stash.Add(SweetPotatoSeed, 4);

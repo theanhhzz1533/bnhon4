@@ -33,7 +33,8 @@ HEADER = """; Ban do raid: Vung ven thi tran (260 x 170)
 ;      ruong lua va cho que (duoi trai), doi thap radio (duoi phai).
 ; Nen: . san be tong   , co   = duong nhua   : dat   ~ ruong nuoc
 ; Dieu kien: X cau dao   J loi ra can bat cau dao   U loi ra can ha trum
-; Y: nguoi cho giai cuu (thu tu tu tren xuong: 0 = Quan o truong hoc, 1 = Chu Sau o cho)
+; Y: nguoi cho giai cuu (thu tu tu tren xuong: 0 = Quan o truong hoc, 1 = Vy o gara, 2 = Chu Sau o cho)
+; I: diem Vy tha xuong (thu tu tu tren xuong: san sau xom nha, nha kho truong hoc, choi giua ruong)
 """
 
 
@@ -427,6 +428,8 @@ def place_markers(g, rng, school_parts, gas_parts, huts, market_parts, hill_part
     (gx0, gy0, gx1, gy1), (sx0, sy0, sx1, sy1) = gas_parts
     p.at(gx1 - 4, gy0 + 3, "J")
     p.at(sx0 + 19, sy0 + 3, "X")
+    # Vy is stuck in the garage behind the powered roller door (rescue marker 1).
+    p.at(gx1 - 8, gy0 + 8, "Y")
     p.at(W - 5, H - 5, "U")
 
     # Loot.
@@ -462,6 +465,11 @@ def place_markers(g, rng, school_parts, gas_parts, huts, market_parts, hill_part
     p.in_rect((hut[0] + 1, hut[1] + 1, hut[2] - 1, hut[3] - 1), "V", 2)
     p.in_rect((hut[0] + 1, hut[1] + 1, hut[2] - 1, hut[3] - 1), "M", 1)
     p.in_rect((compound[0] + 1, compound[1] + 1, compound[2] - 1, compound[3] - 1), "W", 2)
+
+    # Vy's drop-off points, top to bottom: a backyard in the houses, the school shed, a paddy hut.
+    p.in_rect((8, 44, 40, 60), "I", 1, ground=DIRT)
+    p.in_rect((shed[0] + 1, shed[1] + 1, shed[2] - 1, shed[3] - 1), "I", 1)
+    p.at(huts[1][0] + 1, huts[1][1] + 1, "I")
 
     # The boss stands by the tower; armoured guards around the compound.
     p.at(tower[0] + 6, tower[1] + 2, "B")
@@ -515,7 +523,7 @@ PREVIEW_COLORS = {
     DIRT: (122, 98, 70), PADDY: (74, 104, 96),
     "C": (210, 150, 60), "M": (235, 235, 240), "S": (140, 200, 80), "W": (60, 120, 60), "V": (90, 110, 170),
     "Z": (200, 40, 40), "R": (240, 120, 40), "G": (170, 70, 210), "A": (150, 160, 180), "B": (255, 0, 0),
-    "Y": (255, 255, 255), "E": (60, 230, 110), "J": (240, 220, 40), "U": (240, 120, 200), "X": (255, 255, 0), "P": (40, 140, 255),
+    "Y": (255, 255, 255), "I": (0, 220, 220), "E": (60, 230, 110), "J": (240, 220, 40), "U": (240, 120, 200), "X": (255, 255, 0), "P": (40, 140, 255),
 }
 
 
@@ -541,7 +549,7 @@ def preview(g, path, scale=4):
             s = g.c[y][x]
             if s in GROUND or s == WALL:
                 continue
-            r = 4 if s in "EJUXPBY" else 2
+            r = 4 if s in "EJUXPBYI" else 2
             for yy in range(-r, r + 1):
                 for xx in range(-r, r + 1):
                     X, Y = x * scale + scale // 2 + xx, y * scale + scale // 2 + yy

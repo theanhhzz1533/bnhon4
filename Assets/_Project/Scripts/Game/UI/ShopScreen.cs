@@ -20,6 +20,23 @@ namespace Bnhon.Game.UI
 
         public static ShopScreen Instance { get; private set; }
 
+        private Shop _shop;
+        private string _title;
+
+        /// <summary>Opens a particular resident's shop. Plain <see cref="ModalScreen.Open"/> opens Chú Sáu's.</summary>
+        public void Open(Shop shop, string title)
+        {
+            _shop = shop;
+            _title = title;
+            Open();
+        }
+
+        protected override void OnClosed()
+        {
+            _shop = null;
+            _title = null;
+        }
+
         private void Awake()
         {
             Instance = this;
@@ -34,10 +51,10 @@ namespace Bnhon.Game.UI
         protected override void DrawContents()
         {
             var session = GameRoot.Instance.Session;
-            Shop shop = session.Shop;
+            Shop shop = _shop ?? session.Shop;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Quầy của Chú Sáu", TitleStyle);
+            GUILayout.Label(_title ?? "Quầy của Chú Sáu", TitleStyle);
             GUILayout.FlexibleSpace();
             ColoredLabel("Tem phiếu: " + session.Wallet.Money, Money);
             GUILayout.EndHorizontal();

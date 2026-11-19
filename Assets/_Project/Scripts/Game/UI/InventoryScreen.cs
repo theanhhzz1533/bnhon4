@@ -134,7 +134,12 @@ namespace Bnhon.Game.UI
                 if (_hoverGrid.Contains(_hoverItem))
                 {
                     // F on a weapon equips it; on anything else it uses it.
-                    if (_hoverItem.Item.Category == ItemCategory.Weapon)
+                    if (Player != null && Bnhon.Game.Raid.Gadgets.TryUse(_hoverGrid, _hoverItem, Player))
+                    {
+                        // Gadgets act in the world, so the inventory gets out of the way.
+                        if (GameRoot.Instance.Session.IsInRaid) Close();
+                    }
+                    else if (_hoverItem.Item.Category == ItemCategory.Weapon)
                     {
                         if (Player != null && Player.Weapons != null) Player.Weapons.EquipFrom(_hoverGrid, _hoverItem);
                     }
@@ -565,6 +570,7 @@ namespace Bnhon.Game.UI
         {
             if (definition.Category == ItemCategory.Weapon) return " · F để trang bị (hoặc kéo vào ô vũ khí)";
             if (definition.Category == ItemCategory.Blueprint) return " · mang về đăng ký ở bàn chế tạo";
+            if (definition.Category == ItemCategory.Gadget) return " · F để dùng (khi ở ngoài)";
 
             ConsumableDefinition effect = PrototypeContent.FindConsumable(definition.Id);
             if (effect == null) return string.Empty;
@@ -645,6 +651,7 @@ namespace Bnhon.Game.UI
                 case ItemCategory.Gift: return "Quà tặng";
                 case ItemCategory.Key: return "Chìa khóa";
                 case ItemCategory.Blueprint: return "Bản vẽ";
+                case ItemCategory.Gadget: return "Đồ điện";
                 default: return "Vật phẩm nhiệm vụ";
             }
         }

@@ -70,7 +70,13 @@ namespace Bnhon.Game.Raid
         /// <summary>Called with the chosen area before a raid starts, so its map can be put in place.</summary>
         public Action<Bnhon.Core.Raid.RaidArea> AreaChosen { get; set; }
 
-        public bool TryStartRaid(Bnhon.Core.Raid.RaidArea area = null)
+        /// <summary>Where a drop-off point of the current map is. Set by whoever builds the maps.</summary>
+        public Func<int, Vector2?> InsertionPosition { get; set; }
+
+        private Vector2? _spawnOverride;
+
+        /// <param name="insertion">A drop-off point to start at (Vy's ride), or -1 for the usual start.</param>
+        public bool TryStartRaid(Bnhon.Core.Raid.RaidArea area = null, int insertion = -1)
         {
             var root = GameRoot.Instance;
             if (area == null) area = PrototypeContent.AreaOutskirts;
@@ -87,11 +93,15 @@ namespace Bnhon.Game.Raid
 
             CurrentArea = area;
             if (AreaChosen != null) AreaChosen(area);
+            _spawnOverride = insertion >= 0 && InsertionPosition != null ? InsertionPosition(insertion) : null;
 
             // Saved as "in a raid": quitting from here on loads as a death.
             root.Save(true);
             MovePlayer(true);
-            root.Notify(area.DisplayName + ". Tìm vùng xanh lá để rút lui.");
+            _spawnOverride = null;
+            root.Notify(insertion >= 0
+                ? "Vy thả bạn ở " + area.InsertionName(insertion) + " rồi rồ ga đi mất. Tìm vùng xanh lá để rút lui."
+                : area.DisplayName + ". Tìm vùng xanh lá để rút lui.", 5f);
             return true;
         }
 
@@ -195,7 +205,7 @@ namespace Bnhon.Game.Raid
         {
             if (InventoryScreen.Instance != null) InventoryScreen.Instance.Close();
             if (_onZoneChange != null) _onZoneChange(toRaid);
-            _player.Teleport(toRaid ? _raidSpawn : _baseSpawn);
+            _player.Teleport(toRaid ? (_spawnOverride ?? _raidSpawn) : _baseSpawn);
             if (_camera != null) _camera.SnapToTarget();
         }
     }

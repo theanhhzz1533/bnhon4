@@ -33,7 +33,8 @@ namespace Bnhon.Game.Interaction
                 only = area;
             }
 
-            if (unlocked > 1 && AreaScreen.Instance != null) AreaScreen.Instance.Open();
+            bool rides = PrototypeContent.RideLevel(session) > 0;
+            if ((unlocked > 1 || rides) && AreaScreen.Instance != null) AreaScreen.Instance.Open();
             else RaidDirector.Instance.TryStartRaid(only);
         }
     }

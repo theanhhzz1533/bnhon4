@@ -38,7 +38,24 @@ namespace Bnhon.Core
         public Stamina Stamina { get; }
         public Loadout Loadout { get; }
         public Workshop Workshop { get; }
+        /// <summary>Chú Sáu's general store.</summary>
         public Shop Shop { get; }
+
+        private readonly System.Collections.Generic.Dictionary<string, Shop> _shops = new System.Collections.Generic.Dictionary<string, Shop>();
+
+        /// <summary>Every resident's shop by the resident's id, Chú Sáu's included.</summary>
+        public System.Collections.Generic.IReadOnlyDictionary<string, Shop> Shops => _shops;
+
+        /// <summary>The shop of a resident, made empty the first time it is asked for.</summary>
+        public Shop ShopOf(string npcId)
+        {
+            if (!_shops.TryGetValue(npcId, out Shop shop))
+            {
+                shop = new Shop();
+                _shops[npcId] = shop;
+            }
+            return shop;
+        }
         public Needs Needs { get; }
         public StoryFlags Story { get; }
 
@@ -81,7 +98,7 @@ namespace Bnhon.Core
             Stamina = new Stamina();
             Loadout = new Loadout();
             Workshop = new Workshop();
-            Shop = new Shop();
+            Shop = ShopOf("chu_sau");
             Needs = new Needs();
             Story = new StoryFlags();
             Charms = new Charms.CharmCollection();
@@ -117,7 +134,7 @@ namespace Bnhon.Core
             Clock.AdvanceDay();
             Farm.OnNewDay(Clock.Season);
             Relationships.OnNewDay(Clock);
-            Shop.Restock(Rng);
+            foreach (Shop shop in _shops.Values) shop.Restock(Rng);
             Buffs.Clear();
 
             // A night at the base: water is on hand, and there is a modest meal.

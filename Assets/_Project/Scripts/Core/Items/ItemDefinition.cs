@@ -14,7 +14,10 @@ namespace Bnhon.Core.Items
         Gift,
         Key,
         Quest,
-        Blueprint
+        Blueprint,
+
+        /// <summary>Used in a raid for an effect in the world (a decoy, a flare).</summary>
+        Gadget
     }
 
     public enum ItemRarity

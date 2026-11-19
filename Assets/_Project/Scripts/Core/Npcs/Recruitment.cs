@@ -40,6 +40,15 @@ namespace Bnhon.Core.Npcs
         /// </summary>
         public float ClearRadius { get; set; }
 
+        /// <summary>They can only start once the map's power switch is on.</summary>
+        public bool NeedsPower { get; set; }
+
+        /// <summary>Seconds they spend working (opening a door) before they follow. The player holds the line meanwhile.</summary>
+        public float WorkSeconds { get; set; }
+
+        /// <summary>What they say while working.</summary>
+        public string WorkingLine { get; set; } = "Chờ chút!";
+
         public float Health { get; set; } = 100f;
         public float Speed { get; set; } = 3.4f;
 
@@ -105,6 +114,17 @@ namespace Bnhon.Core.Npcs
             return this;
         }
 
+        /// <summary>A story flag that must be set before the step can be done, and how to tell the player.</summary>
+        public string RequiredFlag { get; private set; }
+        public string RequiredText { get; private set; }
+
+        public ChainStep NeedsFlag(string flag, string text)
+        {
+            RequiredFlag = flag;
+            RequiredText = text;
+            return this;
+        }
+
         public ChainStep NeedsHearts(int hearts)
         {
             MinHearts = hearts;
@@ -125,6 +145,7 @@ namespace Bnhon.Core.Npcs
         NotResident,
         Finished,
         Hearts,
+        Flag,
         Items
     }
 
@@ -176,6 +197,7 @@ namespace Bnhon.Core.Npcs
 
             Relationships.Relationship bond = session.Relationships.Get(NpcId);
             if (step.MinHearts > 0 && (bond == null || bond.Hearts < step.MinHearts)) return ChainBlock.Hearts;
+            if (step.RequiredFlag != null && !session.Story.Has(step.RequiredFlag)) return ChainBlock.Flag;
             if (!Workshop.CanAfford(step.Items, session.Stash, session.Backpack)) return ChainBlock.Items;
             return ChainBlock.None;
         }

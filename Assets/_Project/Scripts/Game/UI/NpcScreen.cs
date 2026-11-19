@@ -170,6 +170,17 @@ namespace Bnhon.Game.UI
                 service = CharmScreen.Instance;
                 label = "Pha bùa";
             }
+            else if (_npcId == PrototypeContent.NpcVy && PrototypeContent.VyShopOpen(session))
+            {
+                GUILayout.BeginHorizontal();
+                if (Button("Mua đồ điện", true, 150f))
+                {
+                    Defer(() => ShopScreen.Instance.Open(session.ShopOf(PrototypeContent.NpcVy), "Bàn điện của Vy"));
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Space(8f);
+                return;
+            }
             if (service == null) return;
 
             GUILayout.BeginHorizontal();

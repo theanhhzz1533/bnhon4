@@ -23,6 +23,7 @@ namespace Bnhon.Game.AI
         private enum State
         {
             Waiting,
+            Working,
             Following
         }
 
@@ -44,6 +45,7 @@ namespace Bnhon.Game.AI
         private int _pathIndex;
         private float _nextRepathTime;
         private bool _pleaded;
+        private float _workDoneAt;
 
         /// <summary>Everyone currently waiting or following in the raid.</summary>
         public static IReadOnlyList<SurvivorAI> All => Alive;
@@ -58,6 +60,10 @@ namespace Bnhon.Game.AI
             get
             {
                 if (_state == State.Following) return _name + " đang theo bạn. Tới một lối rút lui cùng nhau.";
+                if (_state == State.Working)
+                    return _name + " đang làm, còn " + Mathf.CeilToInt(_workDoneAt - UnityEngine.Time.time) + " giây. Giữ chân zombie!";
+                if (_rescue.NeedsPower && !Bnhon.Game.Raid.GeneratorSwitch.PowerOn)
+                    return _name + " cần điện. Tìm cầu dao trong cửa hàng trạm xăng.";
                 if (_rescue.ClearRadius > 0f && ZombieAI.AnyAliveWithin(transform.position, _rescue.ClearRadius))
                     return _name + " không chịu ra khi còn zombie quanh đây. Dọn sạch khu này trước.";
                 if (_rescue.Needs == null) return "E: Bảo " + _name + " đi theo";
@@ -103,8 +109,14 @@ namespace Bnhon.Game.AI
 
         public void Interact(PlayerController player)
         {
-            if (_state == State.Following) return;
+            if (_state != State.Waiting) return;
             GameSession session = GameRoot.Instance.Session;
+
+            if (_rescue.NeedsPower && !Bnhon.Game.Raid.GeneratorSwitch.PowerOn)
+            {
+                GameRoot.Instance.Notify(_name + ": \"" + Fill(_rescue.Plea) + "\"", 6f);
+                return;
+            }
 
             if (_rescue.ClearRadius > 0f && ZombieAI.AnyAliveWithin(transform.position, _rescue.ClearRadius))
             {
@@ -124,6 +136,18 @@ namespace Bnhon.Game.AI
                 }
             }
 
+            if (_rescue.WorkSeconds > 0f)
+            {
+                _state = State.Working;
+                _workDoneAt = UnityEngine.Time.time + _rescue.WorkSeconds;
+                GameRoot.Instance.Notify(_name + ": \"" + Fill(_rescue.WorkingLine) + "\"", 5f);
+                return;
+            }
+            StartFollowing();
+        }
+
+        private void StartFollowing()
+        {
             _state = State.Following;
             Sfx.PlayUi(SoundId.UseItem, 0.6f);
             GameRoot.Instance.Notify(_name + ": \"" + Fill(_rescue.Thanks) + "\"", 6f);
@@ -145,6 +169,13 @@ namespace Bnhon.Game.AI
                 {
                     if (renderer != null) renderer.enabled = visible;
                 }
+            }
+
+            if (_state == State.Working)
+            {
+                _velocity = Vector2.zero;
+                if (UnityEngine.Time.time >= _workDoneAt) StartFollowing();
+                return;
             }
 
             if (_state == State.Waiting)
