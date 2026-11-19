@@ -42,6 +42,9 @@ namespace Bnhon.Core
         public Needs Needs { get; }
         public StoryFlags Story { get; }
 
+        /// <summary>The charms owned and worn. Never lost on death.</summary>
+        public Charms.CharmCollection Charms { get; }
+
         /// <summary>Where the buildings of the base stand.</summary>
         public BaseLayout Base { get; }
 
@@ -81,6 +84,7 @@ namespace Bnhon.Core
             Shop = new Shop();
             Needs = new Needs();
             Story = new StoryFlags();
+            Charms = new Charms.CharmCollection();
             Base = new BaseLayout(BaseWidth, BaseHeight);
             WateringCan = new WateringCan();
             Buffs = new BuffSet();

@@ -4,6 +4,7 @@ using Bnhon.Core.Loot;
 using Bnhon.Game.Audio;
 using Bnhon.Game.Player;
 using Bnhon.Game.UI;
+using Bnhon.Game.Combat;
 using UnityEngine;
 
 namespace Bnhon.Game.Interaction
@@ -28,6 +29,8 @@ namespace Bnhon.Game.Interaction
 
         private LootTable _table;
         private IReadOnlyList<Bnhon.Core.Crafting.ItemAmount> _fixed;
+        private List<Bnhon.Core.Crafting.ItemAmount> _extra;
+        private SpriteRenderer _senseGlow;
         private string _title = "Thùng đồ";
         private string _searchPrompt = "E: Lục đồ";
         private string _openPrompt = "E: Mở thùng";
@@ -58,6 +61,13 @@ namespace Bnhon.Game.Interaction
             _title = title;
         }
 
+        /// <summary>Something added on top of whatever the container rolls, such as samples on a body.</summary>
+        public void AddExtra(Bnhon.Core.Items.ItemDefinition item, int count)
+        {
+            if (_extra == null) _extra = new List<Bnhon.Core.Crafting.ItemAmount>();
+            _extra.Add(new Bnhon.Core.Crafting.ItemAmount(item, count));
+        }
+
         /// <summary>Sets this up as a zombie corpse: its own wording, loot count and a small grid.</summary>
         public void InitCorpse(LootTable table, int rollCount)
         {
@@ -86,6 +96,10 @@ namespace Bnhon.Game.Interaction
                         _contents.Add(drop.Item, drop.Count);
                     }
                 }
+                if (_extra != null)
+                {
+                    foreach (Bnhon.Core.Crafting.ItemAmount item in _extra) _contents.Add(item.Item, item.Count);
+                }
                 // Search order is the order the stacks sit in the grid.
                 _hidden = new List<PlacedItem>(_contents.Items);
             }
@@ -107,6 +121,7 @@ namespace Bnhon.Game.Interaction
 
         private void Update()
         {
+            UpdateSense();
             if (_contents == null) return;
 
             InventoryScreen screen = InventoryScreen.Instance;
@@ -130,7 +145,32 @@ namespace Bnhon.Game.Interaction
 
         private float RevealSeconds(PlacedItem item)
         {
-            return baseRevealSeconds + extraSecondsPerRarity * (int)item.Item.Rarity;
+            float seconds = baseRevealSeconds + extraSecondsPerRarity * (int)item.Item.Rarity;
+            return seconds / CharmEffects.More(Bnhon.Core.Charms.CharmStat.SearchSpeed);
+        }
+
+        /// <summary>
+        /// With the Scent charm, a container nobody has searched glows faintly when the player
+        /// is near, even through walls and fog.
+        /// </summary>
+        private void UpdateSense()
+        {
+            float range = CharmEffects.Get(Bnhon.Core.Charms.CharmStat.LootSense);
+            bool show = false;
+            if (range > 0f && _contents == null && PlayerVitals.Instance != null)
+            {
+                Vector2 offset = PlayerVitals.Instance.transform.position - transform.position;
+                show = offset.sqrMagnitude <= range * range;
+            }
+
+            if (show && _senseGlow == null)
+            {
+                _senseGlow = Bnhon.Game.World.SoftDot.Make("Scent", transform, YSort.AboveEverything + 3);
+                _senseGlow.color = new Color(0.95f, 0.85f, 0.4f, 0.55f);
+                Vector3 scale = transform.lossyScale;
+                _senseGlow.transform.localScale = new Vector3(1.4f / Mathf.Max(0.01f, scale.x), 1.4f / Mathf.Max(0.01f, scale.y), 1f);
+            }
+            if (_senseGlow != null && _senseGlow.enabled != show) _senseGlow.enabled = show;
         }
     }
 }

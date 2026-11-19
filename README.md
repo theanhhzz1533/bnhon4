@@ -13,7 +13,7 @@ Mốc M0 (khởi động). Repo hiện có:
 
 | Phần | Trạng thái |
 | --- | --- |
-| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 141 unit test đạt |
+| `Bnhon.Core`: luật chơi bằng C# thuần | Đã biên dịch và chạy 154 unit test đạt |
 | `Bnhon.Game`: lớp Unity (điều khiển, AI, tương tác, HUD) | Chạy được trong Unity 6000.3.28f1; code mới được kiểm tra kiểu với API giả lập trước khi đẩy lên |
 
 ## Thiết lập lần đầu
@@ -34,6 +34,7 @@ Mở scene `Assets/_Project/Scenes/Prototype.unity` và nhấn Play.
 - **Hai khu raid:** vùng ven (`outskirts.txt`, 260×170 ô: xóm nhà ống, trường học, trạm xăng, ruộng và chợ, đồi tháp radio có trùm Gã thợ điện) và trung tâm thị trấn (`town.txt`, mở sau khi nâng bàn chế tạo lên cấp 2), chọn ở cổng. Trung tâm có két sắt và trùm Đồ tể; hạ rồi thì nó không xuất hiện lại.
 - **Mở đầu:** game mới bắt đầu trong bệnh viện (`Resources/Maps/hospital.txt`): lục tủ lấy dao găm, tìm đường tới căn tin, chạy khỏi đàn zombie tới chỗ Minh. Chết trong màn này thì làm lại từ giường bệnh, không mất gì. Sau đó dòng "Mục tiêu" trên HUD dẫn qua những ngày đầu ở căn cứ. File lưu cũ bỏ qua màn mở đầu; muốn xem thì xóa file lưu bằng menu **Bnhon > Save**.
 - **Giải cứu và việc của cư dân:** Chú Sáu chờ trong nhà lồng chợ quê ở vùng ven (từ ngày thứ hai). Đưa chú băng gạc, chú đi theo bạn (zombie cũng nhắm vào chú); rút lui cùng nhau thì chú về căn cứ. Quầy mua bán chỉ mở sau khi làm việc đầu tiên của chú; 4 việc sau mở thêm hàng, giảm giá, bán đồ được giá hơn. Ký hiệu `Y` trên bản đồ là chỗ người chờ cứu.
+- **Quân và bùa:** sau chuyến raid đầu, Quân trốn trong lớp học cuối dãy ở trường học vùng ven; dọn sạch zombie trong bán kính 12 ô rồi hộ tống ông về. Làm việc đầu của ông để dựng phòng thí nghiệm: 8 mẫu vật (rơi từ xác zombie) đổi 1 bùa ngẫu nhiên (70% thường, 25% hiếm, 5% quý), lần đầu miễn phí. Đeo 2 bùa (3 sau việc cuối), không mất khi chết. 14 bùa: lén lút, sinh tồn, chiến đấu. Lõi trùm cho bùa hiếm trở lên; bùa trùng phân rã lại thành mẫu vật.
 - **Cư dân:** nhấn E để mở màn hình trò chuyện: câu thoại đổi theo số tim, buổi và chỗ đứng; chọn quà từ balo; nhận và giao nhiệm vụ. Cư dân đổi chỗ đứng giữa buổi sáng (trước raid) và buổi tối (sau raid). Lan có hai cảnh tim ở mốc 2 và 4 tim.
 - **Nấu ăn:** bếp nấu 4 món từ nông sản. Mỗi món cho một hiệu ứng (hồi thể lực nhanh, chậm đói khát, hồi máu dần, chạy nhanh); thời gian chỉ chạy khi ở ngoài và hết khi đi ngủ.
 - **Khu raid:** dựng từ bản đồ file chữ 104×64 ô: 21 công trình (nhà, phòng khám, trường học, cửa hàng, nhà kho, bãi xe), 45 thùng đồ, 65 zombie và ba vùng rút lui màu xanh lá.

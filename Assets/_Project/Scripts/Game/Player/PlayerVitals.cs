@@ -61,12 +61,18 @@ namespace Bnhon.Game.Player
             UpdateUse(delta);
 
             bool weakened = session.Needs.IsStarving || session.Needs.IsDehydrated;
-            float regen = (weakened ? weakenedRegenMultiplier : 1f) * session.Buffs.Multiplier(BuffStat.StaminaRegen);
+            ApplyCharms();
+            float regen = (weakened ? weakenedRegenMultiplier : 1f) * session.Buffs.Multiplier(BuffStat.StaminaRegen)
+                * CharmEffects.More(Bnhon.Core.Charms.CharmStat.StaminaRegen);
             session.Stamina.Tick(delta, regen);
 
             // Hunger, thirst and meal buffs only run while outside.
             if (!session.IsInRaid) return;
-            session.Needs.Tick(delta * session.Buffs.Multiplier(BuffStat.NeedsDrain));
+            session.Needs.Tick(delta * session.Buffs.Multiplier(BuffStat.NeedsDrain) * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.NeedsDrain));
+
+            // Recovery charm: health comes back slowly after a few seconds without being hit.
+            float regeneration = CharmEffects.Get(Bnhon.Core.Charms.CharmStat.Regeneration);
+            if (regeneration > 0f && _health.Current > 0f && _health.SinceDamaged > 5f) _health.Heal(regeneration * delta);
 
             float healing = session.Buffs.Total(BuffStat.HealthRegen);
             if (healing > 0f && _health.Current > 0f) _health.Heal(healing * delta);
@@ -78,6 +84,15 @@ namespace Bnhon.Game.Player
                 _health.Damage(starvationDamagePerSecond * delta);
                 _starvationTick = false;
             }
+        }
+
+        private const float BaseMaxHealth = 100f;
+
+        /// <summary>Keeps the player's maximum health and damage taken in line with the worn charms.</summary>
+        private void ApplyCharms()
+        {
+            _health.SetMaxKeepingShare(BaseMaxHealth + CharmEffects.Get(Bnhon.Core.Charms.CharmStat.MaxHealth));
+            _health.DamageScale = CharmEffects.Less(Bnhon.Core.Charms.CharmStat.DamageTaken);
         }
 
         /// <summary>True while an item is being used. The player cannot attack, sprint or roll meanwhile.</summary>

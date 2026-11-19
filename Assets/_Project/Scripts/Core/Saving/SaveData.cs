@@ -10,7 +10,7 @@ namespace Bnhon.Core.Saving
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 7;
+        public const int CurrentVersion = 8;
 
         public int version = CurrentVersion;
         public int playerGender;
@@ -48,6 +48,17 @@ namespace Bnhon.Core.Saving
         // Added in version 6. Absent in older saves: a level 1 can and buildings where a new game puts them.
         public int canLevel = 1;
         public List<BuildingSave> buildings = new List<BuildingSave>();
+
+        // Added in version 8. Absent in older saves: no charms.
+        public List<CharmSave> charms = new List<CharmSave>();
+        public List<string> wornCharms = new List<string>();
+    }
+
+    [Serializable]
+    public sealed class CharmSave
+    {
+        public string id;
+        public int count;
     }
 
     [Serializable]

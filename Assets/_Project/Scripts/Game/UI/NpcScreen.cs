@@ -158,16 +158,22 @@ namespace Bnhon.Game.UI
         /// <summary>Buttons for what this resident does for the base.</summary>
         private void DrawServices(GameSession session)
         {
-            if (_npcId != PrototypeContent.NpcChuSau || !PrototypeContent.ShopOpen(session)) return;
+            ModalScreen service = null;
+            string label = null;
+            if (_npcId == PrototypeContent.NpcChuSau && PrototypeContent.ShopOpen(session))
+            {
+                service = ShopScreen.Instance;
+                label = "Mua bán";
+            }
+            else if (_npcId == PrototypeContent.NpcQuan && PrototypeContent.LabOpen(session))
+            {
+                service = CharmScreen.Instance;
+                label = "Pha bùa";
+            }
+            if (service == null) return;
 
             GUILayout.BeginHorizontal();
-            if (Button("Mua bán", true, 150f))
-            {
-                Defer(() =>
-                {
-                    if (ShopScreen.Instance != null) ShopScreen.Instance.Open();
-                });
-            }
+            if (Button(label, true, 150f)) Defer(service.Open);
             GUILayout.EndHorizontal();
             GUILayout.Space(8f);
         }

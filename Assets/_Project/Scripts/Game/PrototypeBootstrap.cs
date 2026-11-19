@@ -115,6 +115,7 @@ namespace Bnhon.Game
             new GameObject("NpcScreen").AddComponent<NpcScreen>().Player = _player;
             new GameObject("SceneScreen").AddComponent<SceneScreen>().Player = _player;
             new GameObject("AreaScreen").AddComponent<AreaScreen>().Player = _player;
+            new GameObject("CharmScreen").AddComponent<CharmScreen>().Player = _player;
 
             new GameObject("ScreenFade").AddComponent<ScreenFade>();
             new GameObject("Atmosphere").AddComponent<Atmosphere>();
@@ -403,11 +404,13 @@ namespace Bnhon.Game
             Building(PrototypeContent.BuildingWell, new Color(0.35f, 0.6f, 0.8f), "well", SpriteFit.Standing(1.4f, 1.5f), root).AddComponent<Well>();
             Building(PrototypeContent.BuildingKitchen, new Color(0.75f, 0.4f, 0.25f), "kitchen", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<KitchenStation>();
             Building(PrototypeContent.BuildingShop, new Color(0.3f, 0.5f, 0.62f), "shop", SpriteFit.Standing(1.8f, 1.7f), root).AddComponent<ShopStall>();
+            Building(PrototypeContent.BuildingLab, new Color(0.55f, 0.65f, 0.7f), "lab", SpriteFit.Standing(1.7f, 1.5f), root).AddComponent<LabStation>();
 
             BuildNpc(PrototypeContent.NpcLan, new Color(0.95f, 0.6f, 0.75f), root);
             BuildNpc(PrototypeContent.NpcMinh, new Color(0.5f, 0.75f, 0.95f), root);
             BuildNpc(PrototypeContent.NpcBaTu, new Color(0.8f, 0.8f, 0.6f), root);
             BuildNpc(PrototypeContent.NpcChuSau, new Color(0.75f, 0.6f, 0.4f), root);
+            BuildNpc(PrototypeContent.NpcQuan, new Color(0.85f, 0.88f, 0.9f), root);
         }
 
         /// <summary>One movable building of the base, placed by the layout. Slightly smaller than its cells, so there is room to walk between neighbours.</summary>
@@ -439,6 +442,7 @@ namespace Bnhon.Game
                 case PrototypeContent.SpotPorch: return new Vector2(-5f, 4.5f);
                 case PrototypeContent.SpotKitchen: return Beside(PrototypeContent.BuildingKitchen);
                 case PrototypeContent.SpotShop: return Beside(PrototypeContent.BuildingShop);
+                case PrototypeContent.SpotLab: return Beside(PrototypeContent.BuildingLab);
                 case PrototypeContent.SpotWell: return Beside(PrototypeContent.BuildingWell);
                 case PrototypeContent.SpotGate: return new Vector2(7.4f, -5.2f);
                 case PrototypeContent.SpotFarm: return new Vector2(-8.8f, 0.3f);

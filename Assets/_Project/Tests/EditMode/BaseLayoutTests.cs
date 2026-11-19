@@ -68,12 +68,12 @@ namespace Bnhon.Core.Tests
         }
 
         [Test]
-        public void NewGame_HasAllSixBuildings_NoneOnReservedGround()
+        public void NewGame_HasAllItsBuildings_NoneOnReservedGround()
         {
             GameSession session = PrototypeContent.CreateNewSession(Gender.Male, 1);
             BaseLayout layout = session.Base;
 
-            Assert.That(layout.Buildings.Count, Is.EqualTo(6));
+            Assert.That(layout.Buildings.Count, Is.EqualTo(7));
             foreach (PlacedBuilding building in layout.Buildings)
             {
                 Assert.That(layout.CanPlace(building.Type.Id, building.X, building.Y), Is.True);

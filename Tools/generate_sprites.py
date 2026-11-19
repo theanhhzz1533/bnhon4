@@ -90,6 +90,7 @@ ASSETS = [
     ("crop_water_spinach", "clump of water spinach with long green stalks and narrow leaves", False),
     ("crop_cabbage", "round green cabbage growing in the ground", False),
     ("well", "round stone water well with a wooden bucket", False),
+    ("lab", "makeshift science lab table with glass flasks, test tubes and a microscope", False),
     ("kitchen", "small brick cooking stove with a steaming pot on top", False),
     ("shop", "small market stall with a tarp roof, crates and canned goods on the counter", False),
 ]
@@ -130,6 +131,9 @@ ITEMS = [
     ("meal_spinach_soup", "bowl of clear green vegetable soup", None, DARK),
     ("meal_mugwort_porridge", "bowl of rice porridge with green herbs on top", None, DARK),
     ("meal_cabbage_stir_fry", "plate of stir-fried cabbage with red tomato pieces", None, DARK),
+    ("sample", "small sealed glass vial with dark green zombie tissue inside, a paper label", "tall", None),
+    ("core_electrician", "glowing blue crystal-like organic core with sparks, held in a jar", None, DARK),
+    ("core_butcher", "pulsing dark red organic core, veined, in a jar", None, None),
     ("dagger", "combat dagger with a black handle, upright, blade pointing up", "tall", None),
     ("tea_tin", "small decorated metal tea tin", None, None),
     ("old_cassette", "old audio cassette tape", None, None),

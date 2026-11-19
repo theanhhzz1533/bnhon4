@@ -90,6 +90,16 @@ namespace Bnhon.Core.Saving
 
             foreach (string flag in session.Story.All) data.storyFlags.Add(flag);
 
+            foreach (Charms.CharmDefinition charm in session.Charms.Owned)
+            {
+                data.charms.Add(new CharmSave { id = charm.Id, count = session.Charms.CountOf(charm.Id) });
+            }
+            for (int slot = 0; slot < 3; slot++)
+            {
+                Charms.CharmDefinition worn = slot < session.Charms.Slots ? session.Charms.WornIn(slot) : null;
+                data.wornCharms.Add(worn != null ? worn.Id : string.Empty);
+            }
+
             data.canLevel = session.WateringCan.Level;
             foreach (Layout.PlacedBuilding building in session.Base.Buildings)
             {
@@ -116,7 +126,8 @@ namespace Bnhon.Core.Saving
             GameSession session,
             Func<string, ItemDefinition> findItem,
             Func<string, CropDefinition> findCrop,
-            Func<string, Vitals.BuffDefinition> findBuff = null)
+            Func<string, Vitals.BuffDefinition> findBuff = null,
+            Func<string, Charms.CharmDefinition> findCharm = null)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (session == null) throw new ArgumentNullException(nameof(session));
@@ -199,6 +210,17 @@ namespace Bnhon.Core.Saving
             }
 
             session.Story.Restore(data.storyFlags);
+
+            session.Charms.Clear();
+            if (findCharm != null && data.charms != null)
+            {
+                foreach (CharmSave saved in data.charms)
+                {
+                    Charms.CharmDefinition charm = saved != null ? findCharm(saved.id) : null;
+                    if (charm == null) report.Dropped.Add("charm " + (saved != null ? saved.id : "?"));
+                    else session.Charms.Add(charm, Math.Max(1, saved.count));
+                }
+            }
             if (data.canSaved) session.WateringCan.Restore(data.canLevel, data.canWater);
 
             if (data.buildings != null)

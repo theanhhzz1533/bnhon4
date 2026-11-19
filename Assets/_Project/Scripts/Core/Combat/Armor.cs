@@ -55,11 +55,12 @@ namespace Bnhon.Core.Combat
         /// Takes a hit and returns the damage that gets through to the body. Hits from the
         /// side or behind miss the shield. The hit that breaks the shield is still reduced.
         /// </summary>
-        public float Absorb(float damage, float facingX, float facingY, float fromX, float fromY)
+        /// <param name="wear">Multiplies how much the hit wears the shield down (a charm can raise it).</param>
+        public float Absorb(float damage, float facingX, float facingY, float fromX, float fromY, float wear = 1f)
         {
             if (damage <= 0f || IsBroken || !Armor.IsFrontal(facingX, facingY, fromX, fromY)) return damage;
 
-            Durability = System.Math.Max(0f, Durability - damage);
+            Durability = System.Math.Max(0f, Durability - damage * System.Math.Max(0f, wear));
             return damage * (1f - Reduction);
         }
     }

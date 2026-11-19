@@ -33,7 +33,7 @@ HEADER = """; Ban do raid: Vung ven thi tran (260 x 170)
 ;      ruong lua va cho que (duoi trai), doi thap radio (duoi phai).
 ; Nen: . san be tong   , co   = duong nhua   : dat   ~ ruong nuoc
 ; Dieu kien: X cau dao   J loi ra can bat cau dao   U loi ra can ha trum
-; Y: nguoi cho giai cuu (thu tu tu tren xuong: 0 = Chu Sau)
+; Y: nguoi cho giai cuu (thu tu tu tren xuong: 0 = Quan o truong hoc, 1 = Chu Sau o cho)
 """
 
 
@@ -437,6 +437,8 @@ def place_markers(g, rng, school_parts, gas_parts, huts, market_parts, hill_part
     for (x, y) in house_rooms[30:34]:
         p.at(x, y, "M")
     (bx0, by0, bx1, by1, corridor), pitch, shed = school_parts
+    # Quan has shut himself in the end classroom, the science room (rescue marker 0).
+    p.at(bx1 - 3, by0 + 3, "Y")
     p.in_rect((bx0 + 1, by0 + 1, bx1 - 1, corridor - 2), "M", 8, against_wall=True)
     p.in_rect((bx0 + 1, by0 + 1, bx1 - 1, corridor - 2), "C", 6, against_wall=True)
     p.in_rect((shed[0] + 1, shed[1] + 1, shed[2] - 1, shed[3] - 1), "W", 1)

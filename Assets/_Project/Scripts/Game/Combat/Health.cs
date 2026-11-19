@@ -28,6 +28,23 @@ namespace Bnhon.Game.Combat
             Current = maxHealth;
         }
 
+        /// <summary>Multiplies all damage taken (the Antibody charm lowers it for the player).</summary>
+        public float DamageScale { get; set; } = 1f;
+
+        /// <summary>Seconds since this last took damage.</summary>
+        public float SinceDamaged => UnityEngine.Time.time - _lastDamageTime;
+
+        private float _lastDamageTime = -100f;
+
+        /// <summary>Changes the maximum, keeping the same share of health.</summary>
+        public void SetMaxKeepingShare(float value)
+        {
+            if (value <= 0f || Mathf.Approximately(value, maxHealth)) return;
+            float share = maxHealth > 0f ? Current / maxHealth : 1f;
+            maxHealth = value;
+            Current = Mathf.Clamp(value * share, IsDead ? 0f : 1f, value);
+        }
+
         public void SetMax(float value)
         {
             maxHealth = value;
@@ -37,6 +54,8 @@ namespace Bnhon.Game.Combat
         public void Damage(float amount)
         {
             if (IsDead || Invulnerable || amount <= 0f) return;
+            amount *= DamageScale;
+            _lastDamageTime = UnityEngine.Time.time;
 
             Current = Mathf.Max(0f, Current - amount);
             Damaged?.Invoke(this);

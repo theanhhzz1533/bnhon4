@@ -58,6 +58,8 @@ namespace Bnhon.Game.AI
             get
             {
                 if (_state == State.Following) return _name + " đang theo bạn. Tới một lối rút lui cùng nhau.";
+                if (_rescue.ClearRadius > 0f && ZombieAI.AnyAliveWithin(transform.position, _rescue.ClearRadius))
+                    return _name + " không chịu ra khi còn zombie quanh đây. Dọn sạch khu này trước.";
                 if (_rescue.Needs == null) return "E: Bảo " + _name + " đi theo";
 
                 var needs = _rescue.Needs.Value;
@@ -103,6 +105,12 @@ namespace Bnhon.Game.AI
         {
             if (_state == State.Following) return;
             GameSession session = GameRoot.Instance.Session;
+
+            if (_rescue.ClearRadius > 0f && ZombieAI.AnyAliveWithin(transform.position, _rescue.ClearRadius))
+            {
+                GameRoot.Instance.Notify(_name + ": \"" + Fill(_rescue.Plea) + "\"", 6f);
+                return;
+            }
 
             if (_rescue.Needs != null)
             {

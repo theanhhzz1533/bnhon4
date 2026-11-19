@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bnhon.Core.Charms;
 using Bnhon.Core.Crafting;
 using Bnhon.Core.Farming;
 using Bnhon.Core.Items;
@@ -58,6 +59,11 @@ namespace Bnhon.Core.Content
         public static readonly ItemDefinition TeaTin = new ItemDefinition("tea_tin", "Hộp trà", ItemCategory.Gift, ItemRarity.Uncommon, 1, 1, 1, 40);
         public static readonly ItemDefinition OldCassette = new ItemDefinition("old_cassette", "Băng cassette cũ", ItemCategory.Gift, ItemRarity.Rare, 1, 1, 1, 70);
 
+        // What Quân brews charms from: tissue taken from zombie bodies, and the cores of bosses.
+        public static readonly ItemDefinition Sample = new ItemDefinition("sample", "Mẫu vật", ItemCategory.Material, ItemRarity.Uncommon, 1, 1, 30, 8);
+        public static readonly ItemDefinition CoreElectrician = new ItemDefinition("core_electrician", "Lõi Gã thợ điện", ItemCategory.Quest, ItemRarity.Epic, 1, 1, 1, 0);
+        public static readonly ItemDefinition CoreButcher = new ItemDefinition("core_butcher", "Lõi Đồ tể", ItemCategory.Quest, ItemRarity.Epic, 1, 1, 1, 0);
+
         // Found in the cabinet by the hospital bed. Picking it up gives the player their knife for good.
         public static readonly ItemDefinition Dagger = new ItemDefinition("dagger", "Dao găm", ItemCategory.Quest, ItemRarity.Uncommon, 1, 2, 1, 0);
 
@@ -96,7 +102,8 @@ namespace Bnhon.Core.Content
             Wood, ScrapMetal, Cloth, CircuitBoard, CannedFood, Bandage, PistolAmmo, ShotgunShell, WaterBottle, Pistol, Shotgun, MedKit, BlueprintPistol, BlueprintShotgun, BlueprintMedKit,
             SweetPotatoSeed, CornSeed, MugwortSeed, SweetPotato, Corn, Mugwort, TeaTin, OldCassette,
             TomatoSeed, WaterSpinachSeed, CabbageSeed, Tomato, WaterSpinach, Cabbage,
-            RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry, Dagger
+            RoastedSweetPotato, SpinachSoup, MugwortPorridge, CabbageStirFry, Dagger,
+            Sample, CoreElectrician, CoreButcher
         };
 
         public static ItemDefinition FindItem(string itemId)
@@ -244,7 +251,7 @@ namespace Bnhon.Core.Content
             .Add(CircuitBoard, 10);
 
         /// <summary>What the boss of the town centre always carries.</summary>
-        public static readonly IReadOnlyList<ItemAmount> ButcherLoot = new[] { A(Shotgun, 1), A(ShotgunShell, 6), A(MedKit, 1), A(CircuitBoard, 2) };
+        public static readonly IReadOnlyList<ItemAmount> ButcherLoot = new[] { A(Shotgun, 1), A(ShotgunShell, 6), A(MedKit, 1), A(CircuitBoard, 2), A(CoreButcher, 1), A(Sample, 6) };
 
         public static readonly IReadOnlyList<LootTable> RaidLootTables = new[] { HouseCabinet, MedicalCabinet, SeedStore, WeaponCrate, Safe };
 
@@ -260,7 +267,7 @@ namespace Bnhon.Core.Content
         {
             BossName = "Gã thợ điện",
             BossHealth = 600f,
-            BossLoot = new[] { A(CircuitBoard, 3), A(PistolAmmo, 16), A(MedKit, 1), A(BlueprintPistol, 1) }
+            BossLoot = new[] { A(CircuitBoard, 3), A(PistolAmmo, 16), A(MedKit, 1), A(BlueprintPistol, 1), A(CoreElectrician, 1), A(Sample, 5) }
         };
 
         public static readonly RaidArea AreaTown = new RaidArea(AreaTownId, "Trung tâm thị trấn", "town",
@@ -286,6 +293,7 @@ namespace Bnhon.Core.Content
         public const string NpcMinh = "minh";
         public const string NpcBaTu = "ba_tu";
         public const string NpcChuSau = "chu_sau";
+        public const string NpcQuan = "quan";
 
         /// <summary>The residents who are at the base from the very start.</summary>
         public static readonly IReadOnlyList<string> Founders = new[] { NpcLan, NpcMinh, NpcBaTu };
@@ -301,7 +309,9 @@ namespace Bnhon.Core.Content
                 new NpcProfile(NpcBaTu, "Bà Tư", Gender.Female, false)
                     .Loves(SweetPotato.Id).Likes(TeaTin.Id, Mugwort.Id),
                 new NpcProfile(NpcChuSau, "Chú Sáu", Gender.Male, false)
-                    .Loves(OldCassette.Id, TeaTin.Id).Likes(CannedFood.Id, Corn.Id).Dislikes(Mugwort.Id)
+                    .Loves(OldCassette.Id, TeaTin.Id).Likes(CannedFood.Id, Corn.Id).Dislikes(Mugwort.Id),
+                new NpcProfile(NpcQuan, "Quân", Gender.Male, false)
+                    .Loves(CircuitBoard.Id, Sample.Id).Likes(TeaTin.Id, MedKit.Id).Dislikes(CannedFood.Id, OldCassette.Id)
             };
         }
 
@@ -314,8 +324,9 @@ namespace Bnhon.Core.Content
         public const string SpotGate = "gate";
         public const string SpotFarm = "farm";
         public const string SpotShop = "shop";
+        public const string SpotLab = "lab";
 
-        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm, SpotShop };
+        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm, SpotShop, SpotLab };
 
         public const string EventLanSupplies = "lan_2_supplies";
         public const string EventLanTea = "lan_4_tea";
@@ -438,7 +449,111 @@ namespace Bnhon.Core.Content
             return new NpcLife(NpcChuSau, new NpcSchedule(SpotShop), book) { AddressMale = "con", AddressFemale = "con" };
         }
 
-        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu(), CreateChuSau() };
+        private static NpcLife CreateQuan()
+        {
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Quân. Tôi làm nghiên cứu ở bệnh viện thị trấn. Đừng nhìn tôi như thế, tôi không phải bác sĩ chữa cảm cúm.",
+                AlreadyTalked = "Tôi đang ghi chép. Có mẫu vật thì để lên bàn."
+            };
+            book.Say("Cấu trúc mô của chúng thay đổi theo từng con. Thú vị hơn anh nghĩ đấy.", 0, 3)
+                .Say("Mẫu vật lấy ở xác còn tươi thì tốt hơn. Đừng để quá lâu.", 0, 3)
+                .SayIn(DayPhase.Morning, "Ra ngoài thì lấy giúp tôi ít mẫu. Con chạy nhanh và con bọc thép cho mẫu tốt hơn.", 0, 6)
+                .SayIn(DayPhase.Evening, "Về rồi à. Có mẫu mới không?", 0, 6)
+                .Say("Cô Lan hỏi tôi về thứ tôi tiêm cho anh. Tôi bảo cô ấy là vitamin.", 2, 5)
+                .SayIn(DayPhase.Evening, "Có những câu hỏi mà câu trả lời còn tệ hơn việc không biết.", 4)
+                .Say("Anh tin tôi được bao nhiêu? Đừng trả lời vội.", 5)
+                .SayIn(DayPhase.Morning, "Hôm qua tôi lại mơ về viện nghiên cứu. Lần này có cả anh trong đó.", 7)
+                .OnGift(GiftTaste.Loved, "Cái này... đúng thứ tôi cần. Cảm ơn.")
+                .OnGift(GiftTaste.Liked, "Dùng được. Cảm ơn.")
+                .OnGift(GiftTaste.Neutral, "Ừm.")
+                .OnGift(GiftTaste.Disliked, "Tôi không có thời gian cho thứ này.");
+            book.SayIn(DayPhase.Morning, "Hôm nay tôi thử một mẻ mới. Nếu anh thấy chóng mặt thì báo tôi.", 0, 10);
+            book.SayIn(DayPhase.Evening, "Đêm ở đây yên hơn bệnh viện. Ở đó, đêm nào cũng có tiếng gõ cửa.", 0, 10);
+
+            return new NpcLife(NpcQuan, new NpcSchedule(SpotLab), book) { AddressMale = "anh", AddressFemale = "chị" };
+        }
+
+        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu(), CreateChuSau(), CreateQuan() };
+
+        // ---------------------------------------------------------------------------------
+        // Charms
+        // ---------------------------------------------------------------------------------
+
+        public const string FlagLabOpen = "svc_quan_lab";
+        public const string FlagLabBreakdown = "svc_quan_breakdown";
+        public const string FlagLabCores = "svc_quan_cores";
+        public const string FlagLabGroups = "svc_quan_groups";
+        public const string FlagLabThirdSlot = "svc_quan_slot3";
+        public const string FlagLabFirstBrewUsed = "lab_first_brew_used";
+
+        private static CharmDefinition Charm(string id, string name, CharmRarity rarity, CharmGroup group, CharmStat stat, float amount, string description)
+        {
+            return new CharmDefinition(id, name, rarity, group, stat, amount, description);
+        }
+
+        public static readonly CharmLab Lab = new CharmLab(Sample)
+            .Add(Charm("charm_corpse_scent", "Mùi tử thi", CharmRarity.Common, CharmGroup.Stealth, CharmStat.ZombieSight, 0.2f, "Zombie nhìn thấy bạn ở tầm gần hơn 20%."))
+            .Add(Charm("charm_light_step", "Bước chân nhẹ", CharmRarity.Common, CharmGroup.Stealth, CharmStat.Noise, 0.3f, "Chạy và lăn ồn ít hơn 30%."))
+            .Add(Charm("charm_antibody", "Kháng thể", CharmRarity.Common, CharmGroup.Survival, CharmStat.DamageTaken, 0.1f, "Bị đánh mất ít máu hơn 10%."))
+            .Add(Charm("charm_slow_metabolism", "Trao đổi chất chậm", CharmRarity.Common, CharmGroup.Survival, CharmStat.NeedsDrain, 0.25f, "Đói và khát chậm hơn 25%."))
+            .Add(Charm("charm_quick_hands", "Tay nhanh", CharmRarity.Common, CharmGroup.Stealth, CharmStat.SearchSpeed, 0.3f, "Lục thùng và lục xác nhanh hơn 30%."))
+            .Add(Charm("charm_strong_lungs", "Phổi khỏe", CharmRarity.Common, CharmGroup.Survival, CharmStat.StaminaRegen, 0.2f, "Thể lực hồi nhanh hơn 20%."))
+            .Add(Charm("charm_adrenaline", "Adrenaline", CharmRarity.Rare, CharmGroup.Survival, CharmStat.LowHealthSpeed, 0.2f, "Dưới 25% máu thì chạy nhanh hơn 20%."))
+            .Add(Charm("charm_scent", "Đánh hơi", CharmRarity.Rare, CharmGroup.Stealth, CharmStat.LootSense, 10f, "Thùng đồ chưa lục trong vòng 10 ô sáng lên xuyên tường."))
+            .Add(Charm("charm_weak_point", "Đọc điểm yếu", CharmRarity.Rare, CharmGroup.Combat, CharmStat.ShieldBreak, 0.5f, "Tấm chắn của zombie bọc thép và trùm vỡ nhanh gấp rưỡi."))
+            .Add(Charm("charm_reflex", "Phản xạ", CharmRarity.Rare, CharmGroup.Combat, CharmStat.RollRecovery, 0.5f, "Lăn hồi nhanh gấp đôi."))
+            .Add(Charm("charm_recovery", "Hồi phục", CharmRarity.Rare, CharmGroup.Survival, CharmStat.Regeneration, 0.35f, "Không bị đánh 5 giây thì hồi máu dần."))
+            .Add(Charm("charm_thick_skin", "Da dày", CharmRarity.Epic, CharmGroup.Survival, CharmStat.MaxHealth, 25f, "Thêm 25 máu tối đa."))
+            .Add(Charm("charm_shock", "Xung điện", CharmRarity.Epic, CharmGroup.Combat, CharmStat.MeleeStun, 1.5f, "Đòn dao làm zombie đứng hình 1,5 giây."))
+            .Add(Charm("charm_cold_blood", "Máu lạnh", CharmRarity.Epic, CharmGroup.Combat, CharmStat.Recoil, 0.4f, "Súng giật ít hơn 40%."));
+
+        public static CharmDefinition FindCharm(string charmId) => Lab.Find(charmId);
+
+        public static bool LabOpen(GameSession session) => session.Story.Has(FlagLabOpen);
+
+        public static bool FirstBrewFree(GameSession session) => LabOpen(session) && !session.Story.Has(FlagLabFirstBrewUsed);
+
+        /// <summary>Quân brews a charm: the first one is on the house, then 8 samples each (12 to pick the group).</summary>
+        public static CharmDefinition BrewCharm(GameSession session, CharmGroup? group = null)
+        {
+            if (!LabOpen(session)) return null;
+            if (group != null && !session.Story.Has(FlagLabGroups)) return null;
+
+            bool free = group == null && FirstBrewFree(session);
+            CharmDefinition charm = Lab.Brew(session.Charms, session.Stash, session.Backpack, session.Rng, free, group);
+            if (charm != null && free) session.Story.Set(FlagLabFirstBrewUsed);
+            return charm;
+        }
+
+        public static CharmDefinition BrewFromCore(GameSession session, ItemDefinition core)
+        {
+            if (!session.Story.Has(FlagLabCores)) return null;
+            return Lab.BrewFromCore(session.Charms, core, session.Stash, session.Backpack, session.Rng);
+        }
+
+        public static int BreakDownCharm(GameSession session, CharmDefinition charm)
+        {
+            if (!session.Story.Has(FlagLabBreakdown)) return 0;
+            return Lab.BreakDown(session.Charms, charm, session.Stash, session.Backpack);
+        }
+
+        /// <summary>Samples a zombie's body holds, by kind: "walker", "runner", "screamer", "armored", "boss".</summary>
+        public static int SamplesFromBody(string kind, System.Random rng)
+        {
+            switch (kind)
+            {
+                case "runner":
+                case "screamer":
+                    return rng.NextDouble() < 0.45 ? 1 : 0;
+                case "armored":
+                    return rng.NextDouble() < 0.7 ? 1 + rng.Next(2) : 0;
+                case "boss":
+                    return 0; // a boss carries its own fixed loot, samples included
+                default:
+                    return rng.NextDouble() < 0.28 ? 1 : 0;
+            }
+        }
 
         // ---------------------------------------------------------------------------------
         // Rescues and resident tasks
@@ -452,7 +567,22 @@ namespace Bnhon.Core.Content
 
         public static readonly IReadOnlyList<RescueDefinition> Rescues = new[]
         {
-            new RescueDefinition(NpcChuSau, AreaOutskirtsId, 0, session => !session.InIntro)
+            new RescueDefinition(NpcQuan, AreaOutskirtsId, 0, session => !session.InIntro && session.Story.Has(StoryIds.Extracted))
+            {
+                ClearRadius = 12f,
+                Plea = "Đứng yên. Anh còn sống thật à? Tôi sẽ không bước ra khỏi phòng này chừng nào bầy ngoài sân còn đó. Dọn chúng đi.",
+                Thanks = "Được rồi. Anh đi trước, tôi theo. Đừng để tôi phải chạy.",
+                Health = 80f,
+                Speed = 3.6f,
+                Arrival = new[]
+                {
+                    new SceneLine(null, "Quân đứng ở cổng hợp tác xã, nhìn mọi người như nhìn mẫu vật, rồi gật đầu một cái."),
+                    new SceneLine("Quân", "Tôi cần một cái bàn, một chỗ khô ráo, và mẫu vật. Thật nhiều mẫu vật."),
+                    new SceneLine("Quân", "Đổi lại, tôi pha cho anh thứ giúp anh sống sót ngoài kia. Tám mẫu vật một mũi. Đừng hỏi trong đó có gì."),
+                    new SceneLine(null, "Ông nhìn sang chỗ trống cạnh bếp. Phòng thí nghiệm chỉ cần dựng lên là dùng được.")
+                }
+            },
+            new RescueDefinition(NpcChuSau, AreaOutskirtsId, 1, session => !session.InIntro)
             {
                 Needs = A(Bandage, 1),
                 Plea = "Ai đó? Ơ, người sống! Con ơi, chân chú bị kẹt dưới sạp, chảy máu quá. Có băng gạc không con?",
@@ -477,8 +607,7 @@ namespace Bnhon.Core.Content
             return null;
         }
 
-        public static readonly IReadOnlyList<QuestChain> Chains = new[]
-        {
+        public static readonly QuestChain SauChain =
             new QuestChain(NpcChuSau)
                 .Add(new ChainStep("Mở lại quầy", "Quầy trống trơn. Chú cần ít hàng làm vốn: 2 đồ hộp và 2 chai nước.", FlagShopOpen)
                     .Bring(A(CannedFood, 2), A(WaterBottle, 2))
@@ -495,8 +624,28 @@ namespace Bnhon.Core.Content
                     .Rewards("Khách quen: mọi món giảm giá 10%."))
                 .Add(new ChainStep("Xe ba gác", "Có xe ba gác thì chú chở được nhiều hàng hơn: 10 gỗ và 8 sắt vụn.", FlagShopCart)
                     .Bring(A(Wood, 10), A(ScrapMetal, 8))
-                    .Rewards("Mỗi món về thêm 1 suất mỗi ngày, và bán đồ được 60% giá trị thay vì 50%."))
-        };
+                    .Rewards("Mỗi món về thêm 1 suất mỗi ngày, và bán đồ được 60% giá trị thay vì 50%."));
+
+        public static readonly QuestChain QuanChain = new QuestChain(NpcQuan)
+            .Add(new ChainStep("Phòng thí nghiệm", "Tôi cần một cái bàn và đồ thủy tinh: 6 gỗ, 4 sắt vụn, 1 bảng mạch.", FlagLabOpen)
+                .Bring(A(Wood, 6), A(ScrapMetal, 4), A(CircuitBoard, 1))
+                .Rewards("Mở pha bùa: 8 mẫu vật đổi 1 bùa ngẫu nhiên. Lần pha đầu miễn phí."))
+            .Add(new ChainStep("Kính hiển vi", "Ráp được kính hiển vi thì tôi tách được mẫu từ bùa dư: 2 bảng mạch, 3 vải.", FlagLabBreakdown)
+                .Bring(A(CircuitBoard, 2), A(Cloth, 3))
+                .Rewards("Phân rã bùa trùng thành mẫu vật."))
+            .Add(new ChainStep("Mẫu đặc biệt", "Lõi của con trùm trên tháp radio. Tôi cần xem nó.", FlagLabCores)
+                .Bring(A(CoreElectrician, 1))
+                .Rewards("Pha bùa từ lõi trùm: luôn ra bùa hiếm hoặc quý."))
+            .Add(new ChainStep("Hồ sơ bệnh viện", "Tôi cần nhiều mẫu để đối chiếu, và cần biết anh có giữ mồm được không.", FlagLabGroups)
+                .NeedsHearts(4)
+                .Bring(A(Sample, 20))
+                .Rewards("Pha nhắm theo nhóm: chọn ra bùa Lén lút, Sinh tồn hoặc Chiến đấu (12 mẫu vật)."))
+            .Add(new ChainStep("Viện nghiên cứu", "Lõi của Đồ tể. Và lần này, tôi sẽ kể anh nghe thứ tôi đã làm ở viện.", FlagLabThirdSlot)
+                .NeedsHearts(8)
+                .Bring(A(CoreButcher, 1))
+                .Rewards("Mở ô bùa thứ ba."));
+
+        public static readonly IReadOnlyList<QuestChain> Chains = new[] { SauChain, QuanChain };
 
         public static QuestChain FindChain(string npcId)
         {
@@ -519,6 +668,7 @@ namespace Bnhon.Core.Content
             shop.PriceFactor = session.Story.Has(FlagShopDiscount) ? 0.9 : 1.0;
             shop.SellRate = session.Story.Has(FlagShopCart) ? 0.6 : Trading.Shop.SellFactor;
             shop.ExtraStock = session.Story.Has(FlagShopCart) ? 1 : 0;
+            session.Charms.Slots = session.Story.Has(FlagLabThirdSlot) ? 3 : CharmCollection.BaseSlots;
         }
 
         /// <summary>Completes a resident's current task and updates their services. Returns the step, or null.</summary>
@@ -585,6 +735,7 @@ namespace Bnhon.Core.Content
         public static readonly BuildingType BuildingBed = new BuildingType("bed", "Giường", 1, 2);
         public static readonly BuildingType BuildingKitchen = new BuildingType("kitchen", "Bếp", 2, 1);
         public static readonly BuildingType BuildingWell = new BuildingType("well", "Giếng", 1, 1);
+        public static readonly BuildingType BuildingLab = new BuildingType("lab", "Phòng thí nghiệm", 2, 1);
 
         /// <summary>
         /// The yard: where nothing may be built, and where each building starts. Cell (0,0) is
@@ -607,6 +758,7 @@ namespace Bnhon.Core.Content
             layout.Add(BuildingBed, 17, 10);
             layout.Add(BuildingKitchen, 11, 1);
             layout.Add(BuildingWell, 4, 3);
+            layout.Add(BuildingLab, 14, 1);
         }
 
         /// <summary>What the next watering can level costs, and the workbench level it needs. Null at the top level.</summary>
@@ -719,6 +871,9 @@ namespace Bnhon.Core.Content
             .Add(new StoryStep("rescue_sau", "Bà Tư nhắc: Chú Sáu bán tạp hóa có thể còn kẹt trong nhà lồng chợ quê (vùng ven, phía tây nam). Mang theo băng gạc.",
                 session => Residents.LivesAtBase(session, NpcChuSau))
                 .Says("Chú Sáu đã về căn cứ. Nói chuyện với chú để mở lại quầy mua bán."))
+            .Add(new StoryStep("rescue_quan", "Minh thấy đèn sáng ban đêm ở dãy lớp học của trường (vùng ven, phía bắc). Có người sống trong đó. Dọn sạch zombie quanh đó rồi đưa họ về.",
+                session => Residents.LivesAtBase(session, NpcQuan))
+                .Says("Quân đã về căn cứ. Giúp ông dựng phòng thí nghiệm để pha bùa."))
             .Add(new StoryStep("workbench", "Gom vật liệu nâng bàn chế tạo lên cấp 2.",
                 session => session.Workshop.Level >= 2)
                 .Gives(0, A(BlueprintMedKit, 1))
@@ -804,7 +959,7 @@ namespace Bnhon.Core.Content
         public static GameSession LoadSession(SaveData data, int seed, out LoadReport report)
         {
             var session = CreateNewSession((Gender)data.playerGender, seed);
-            report = SaveMapper.Apply(data, session, FindItem, FindCrop, FindBuff);
+            report = SaveMapper.Apply(data, session, FindItem, FindCrop, FindBuff, FindCharm);
             if (data.version < 5)
             {
                 // Saves from before the opening existed are already living at the base.
@@ -819,6 +974,17 @@ namespace Bnhon.Core.Content
                 session.Story.Set(FlagShopOpen);
             }
             ApplyServices(session);
+
+            // Worn charms go back on once the number of slots is known.
+            if (data.wornCharms != null)
+            {
+                for (int slot = 0; slot < data.wornCharms.Count; slot++)
+                {
+                    CharmDefinition worn = FindCharm(data.wornCharms[slot]);
+                    if (worn != null) session.Charms.Wear(worn, slot);
+                }
+            }
+
             if (report.AbandonedRaid) GrantFallbackWeapon(session);
             return session;
         }

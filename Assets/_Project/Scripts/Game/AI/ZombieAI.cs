@@ -73,6 +73,7 @@ namespace Bnhon.Game.AI
         private Transform _player;
         private Health _playerHealth;
         private float _nextTargetCheck;
+        private float _stunnedUntil;
         private State _state = State.Wander;
         private Vector2 _velocity;
         private Vector2 _wanderDirection;
@@ -144,6 +145,23 @@ namespace Bnhon.Game.AI
         public ZombieKind Kind { get; private set; } = ZombieKind.Walker;
 
         public static int AliveCount => Active.Count;
+
+        /// <summary>Freezes the zombie in place for a moment (the Shock charm).</summary>
+        public void Stun(float seconds)
+        {
+            if (seconds <= 0f || Kind == ZombieKind.Boss) return;
+            _stunnedUntil = Mathf.Max(_stunnedUntil, UnityEngine.Time.time + seconds);
+        }
+
+        /// <summary>True if a living zombie is within a distance of a point.</summary>
+        public static bool AnyAliveWithin(Vector2 point, float radius)
+        {
+            foreach (ZombieAI zombie in Active)
+            {
+                if (zombie != null && ((Vector2)zombie.transform.position - point).sqrMagnitude <= radius * radius) return true;
+            }
+            return false;
+        }
 
         /// <summary>Sends this zombie to look at a place for a while, unless it is already chasing.</summary>
         public void Investigate(Vector2 point, float seconds)
@@ -242,7 +260,8 @@ namespace Bnhon.Game.AI
             if (_shield == null || _shield.IsBroken) return amount;
 
             Vector2 position = transform.position;
-            float through = _shield.Absorb(amount, _facing.x, _facing.y, from.x - position.x, from.y - position.y);
+            float wear = CharmEffects.More(Bnhon.Core.Charms.CharmStat.ShieldBreak);
+            float through = _shield.Absorb(amount, _facing.x, _facing.y, from.x - position.x, from.y - position.y, wear);
             if (through >= amount) return amount;
 
             if (_shield.IsBroken)
@@ -340,6 +359,11 @@ namespace Bnhon.Game.AI
             }
 
             Vector2 position = transform.position;
+            if (UnityEngine.Time.time < _stunnedUntil)
+            {
+                _velocity = Vector2.zero;
+                return;
+            }
             if (UnityEngine.Time.time >= _nextTargetCheck) PickTarget(position);
 
             // Far from the player and with nothing to do: stand still and skip the rest.
@@ -389,7 +413,8 @@ namespace Bnhon.Game.AI
                 Sfx.Play(SoundId.ZombieStep, position, loudness, 11f);
             }
 
-            _seesTarget = distance <= sightRange && !SightBlocker.IsBlocked(position, _target.position);
+            float sight = sightRange * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.ZombieSight);
+            _seesTarget = distance <= sight && !SightBlocker.IsBlocked(position, _target.position);
             if (_seesTarget)
             {
                 _state = State.Chase;
@@ -609,6 +634,11 @@ namespace Bnhon.Game.AI
             GameObject corpse = PlaceholderArt.Box("Corpse_" + Kind, transform.position, new Vector2(0.9f, 0.55f), color, transform.parent, 3, "corpse", SpriteFit.Centered(1.5f, 1.2f));
             corpse.AddComponent<BoxCollider2D>().isTrigger = true;
             var loot = corpse.AddComponent<LootContainer>();
+            if (GameRoot.Instance != null && !GameRoot.Instance.Session.InIntro)
+            {
+                int samples = PrototypeContent.SamplesFromBody(Kind.ToString().ToLowerInvariant(), GameRoot.Instance.Session.Rng);
+                if (samples > 0) loot.AddExtra(PrototypeContent.Sample, samples);
+            }
             var bossArea = Kind == ZombieKind.Boss && Bnhon.Game.Raid.RaidDirector.Instance != null ? Bnhon.Game.Raid.RaidDirector.Instance.CurrentArea : null;
             if (Kind == ZombieKind.Boss) loot.InitFixed(bossArea != null && bossArea.BossLoot != null ? bossArea.BossLoot : PrototypeContent.ButcherLoot, "Xác " + (bossArea != null ? bossArea.BossName : "trùm"));
             else loot.InitCorpse(table, Kind == ZombieKind.Armored ? Mathf.Max(1, RollCorpseItems()) : RollCorpseItems());

@@ -34,6 +34,12 @@ namespace Bnhon.Core.Npcs
         /// <summary>The scene played back at the base once they are rescued.</summary>
         public IReadOnlyList<SceneLine> Arrival { get; set; }
 
+        /// <summary>
+        /// Above zero, they will not move while any zombie is within this distance of them:
+        /// the player has to clear the area first.
+        /// </summary>
+        public float ClearRadius { get; set; }
+
         public float Health { get; set; } = 100f;
         public float Speed { get; set; } = 3.4f;
 

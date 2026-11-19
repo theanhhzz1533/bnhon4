@@ -223,7 +223,7 @@ namespace Bnhon.Game.Combat
                     float offset = UnityEngine.Random.Range(-spread * 0.5f, spread * 0.5f);
                     FireRay(weapon, origin, Rotate(direction, offset));
                 }
-                _bloom.Kick(weapon.RecoilPerShot, weapon.MaxRecoil);
+                _bloom.Kick(weapon.RecoilPerShot * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.Recoil), weapon.MaxRecoil);
                 Fired?.Invoke(direction, weapon.CameraKick);
             }
 
@@ -321,6 +321,10 @@ namespace Bnhon.Game.Combat
                 if (SightBlocker.IsBlocked(origin, target)) continue;
 
                 hurtbox.Owner.Damage(weapon.Damage, origin);
+
+                float stun = CharmEffects.Get(Bnhon.Core.Charms.CharmStat.MeleeStun);
+                var zombie = stun > 0f ? hurtbox.Owner.GetComponent<Bnhon.Game.AI.ZombieAI>() : null;
+                if (zombie != null) zombie.Stun(stun);
             }
 
             // Show the reach of the swing: its two edges and its middle.

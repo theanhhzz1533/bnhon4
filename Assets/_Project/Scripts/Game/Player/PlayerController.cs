@@ -124,7 +124,7 @@ namespace Bnhon.Game.Player
                     _stepTimer = _sprinting ? 0.26f : 0.38f;
                     Sfx.PlayUi(SoundId.Footstep, _sprinting ? 0.45f : 0.28f);
                     // Running is loud enough for nearby zombies to come looking. Walking is silent.
-                    if (_sprinting) Noise.Emit(transform.position, sprintNoiseRadius);
+                    if (_sprinting) Noise.Emit(transform.position, sprintNoiseRadius * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.Noise));
                 }
             }
 
@@ -132,10 +132,10 @@ namespace Bnhon.Game.Player
             {
                 _rollDirection = moving ? _move.normalized : AimDirection;
                 _rollUntil = UnityEngine.Time.time + rollDuration;
-                _nextRollTime = _rollUntil + rollCooldown;
+                _nextRollTime = _rollUntil + rollCooldown * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.RollRecovery);
                 if (_health != null) _health.Invulnerable = true;
                 Sfx.PlayUi(SoundId.Roll, 0.7f);
-                Noise.Emit(transform.position, rollNoiseRadius);
+                Noise.Emit(transform.position, rollNoiseRadius * CharmEffects.Less(Bnhon.Core.Charms.CharmStat.Noise));
                 return;
             }
 
@@ -166,6 +166,7 @@ namespace Bnhon.Game.Player
             float speed = _sprinting ? sprintSpeed : walkSpeed;
             if (_slowed) speed *= usingItemSpeedFactor;
             if (GameRoot.Instance != null) speed *= GameRoot.Instance.Session.Buffs.Multiplier(BuffStat.MoveSpeed);
+            if (_health != null && _health.Current < _health.Max * 0.25f) speed *= CharmEffects.More(Bnhon.Core.Charms.CharmStat.LowHealthSpeed);
             _body.linearVelocity = _move * speed;
         }
 

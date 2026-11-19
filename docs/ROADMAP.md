@@ -72,7 +72,8 @@ Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
 - [ ] Công cụ chuyển bản đồ sang Tilemap và ngược lại
 - [ ] Bản đồ thứ ba; trùm có cơ chế riêng
 - [x] Khung hệ thống NPC: giải cứu trong raid (hộ tống, cần vật phẩm), cư dân chỉ có mặt khi đã về căn cứ, chuỗi việc mở khóa dịch vụ; làm mẫu với Chú Sáu và quầy mua bán
-- [ ] Các cư dân còn lại theo sheet NPC: Quân (bùa), Vy (chở đi raid, 3 điểm xuất phát), Hùng, Khang, Tuấn, Thảo
+- [x] Quân và hệ thống bùa: mẫu vật từ xác zombie, 8 mẫu đổi 1 bùa ngẫu nhiên, 14 bùa 3 bậc, 2 ô đeo (3 sau chuỗi việc), lõi trùm, phân rã bùa trùng, pha nhắm theo nhóm
+- [ ] Các cư dân còn lại theo sheet NPC: Vy (chở đi raid, 3 điểm xuất phát), Hùng, Khang, Tuấn, Thảo
 - [ ] Hẹn hò và kết hôn: cảnh tim 2–10 cho người hẹn hò được
 - [ ] 4 mùa, ảnh hưởng của mùa lên cây trồng và raid
 - [ ] Cây kỹ năng 3 nhánh
