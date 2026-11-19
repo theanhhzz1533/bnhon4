@@ -42,7 +42,8 @@ namespace Bnhon.Game
         private static readonly Vector2 RaidCenter = new Vector2(400f, 0f);
         private static readonly Vector2 BaseSpawn = new Vector2(0f, -2f);
 
-        private static readonly Color WallColor = new Color(0.18f, 0.18f, 0.2f);
+        // Weathered concrete rather than black: walls read as buildings, not holes.
+        private static readonly Color WallColor = new Color(0.3f, 0.28f, 0.26f);
 
         // Base ground and wall art is drawn muted and, for the ground, at twice the size: a busy
         // texture repeated in every cell at full brightness is tiring to look at for long.
@@ -209,6 +210,7 @@ namespace Bnhon.Game
         {
             if (_groundTexture != null) Destroy(_groundTexture);
             _groundTexture = null;
+            _decor = null;
             LoadMap(name);
             if (_raidGeometry != null) Destroy(_raidGeometry.gameObject);
             _raidGeometry = null;
@@ -460,7 +462,21 @@ namespace Bnhon.Game
                 _raidGeometry = new GameObject("RaidGeometry").transform;
                 _raidGeometry.SetParent(_raidWorld.transform, false);
                 BuildFloor();
+                _decor = new World.DecorLayer(_map, CellCenter, _raidGeometry, StableHash(_loadedMap));
+                _decor.FindTrees();
                 BuildWalls();
+                _decor.ScatterGround();
+                _decor.PlaceProps();
+                foreach (Vector2 smoke in _decor.Smokes) Effect<World.SmokePlume>("Smoke", smoke);
+                foreach (Vector2 fire in _decor.Fires)
+                {
+                    Effect<World.FireGlow>("Fire", fire);
+                    Effect<World.SmokePlume>("Smoke", fire).transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+                }
+
+                // Reinforcements must not appear inside a car or a pile of sandbags.
+                var blocked = new HashSet<GridPoint>(_decor.BlockedCells);
+                _openCells.RemoveAll(cell => blocked.Contains(cell));
             }
 
             if (_raidRoot != null) Destroy(_raidRoot.gameObject);
@@ -550,6 +566,26 @@ namespace Bnhon.Game
         }
 
         private Texture2D _groundTexture;
+        private World.DecorLayer _decor;
+
+        private T Effect<T>(string name, Vector2 position) where T : Component
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(_raidGeometry, false);
+            go.transform.position = position;
+            return go.AddComponent<T>();
+        }
+
+        /// <summary>A hash of a string that is the same on every run, unlike string.GetHashCode.</summary>
+        private static int StableHash(string text)
+        {
+            unchecked
+            {
+                int hash = 23;
+                foreach (char c in text ?? string.Empty) hash = hash * 31 + c;
+                return hash;
+            }
+        }
 
         /// <summary>
         /// Draws the ground of the whole map as one picture, a few pixels per cell, coloured by
@@ -574,7 +610,7 @@ namespace Bnhon.Game
                 for (int px = 0; px < width; px++)
                 {
                     int cellX = px / pixelsPerCell;
-                    pixels[py * width + px] = GroundPixel(_map.GroundAt(cellX, cellY), px, py);
+                    pixels[py * width + px] = GroundPixel(cellX, cellY, px % pixelsPerCell, pixelsPerCell - 1 - py % pixelsPerCell, px, py);
                 }
             }
             _groundTexture.SetPixels(pixels);
@@ -589,9 +625,46 @@ namespace Bnhon.Game
             renderer.sortingOrder = 0;
         }
 
-        private static Color GroundPixel(char ground, int px, int py)
+        /// <summary>
+        /// One pixel of the ground. Besides the colour of its kind it gets broad patches of
+        /// lighter and darker (so a big map is not one flat colour), and grass creeping over
+        /// the edges of roads and paving.
+        /// </summary>
+        private Color GroundPixel(int cellX, int cellY, int localX, int localY, int px, int py)
         {
+            char ground = _map.GroundAt(cellX, cellY);
             float grain = Grain(px, py);
+
+            // Ragged edges: a paved cell next to grass loses some of its border pixels to the grass.
+            if ((ground == '=' || ground == '.') && grain > 0.45f)
+            {
+                const int last = 3;
+                bool creep = (localX == 0 && _map.GroundAt(cellX - 1, cellY) == ',')
+                    || (localX == last && _map.GroundAt(cellX + 1, cellY) == ',')
+                    || (localY == 0 && _map.GroundAt(cellX, cellY - 1) == ',')
+                    || (localY == last && _map.GroundAt(cellX, cellY + 1) == ',');
+                if (creep) ground = ',';
+            }
+
+            Color patchy = GroundColor(ground, grain, py);
+            float patch = (ValueNoise(px / 28f, py / 28f) - 0.5f) * 0.08f + (ValueNoise(px / 7f + 31f, py / 7f) - 0.5f) * 0.03f;
+            return new Color(patchy.r + patch, patchy.g + patch * 1.1f, patchy.b + patch * 0.8f, 1f);
+        }
+
+        /// <summary>Smooth noise in 0..1 from the grain hash at whole-number points.</summary>
+        private static float ValueNoise(float x, float y)
+        {
+            int x0 = Mathf.FloorToInt(x), y0 = Mathf.FloorToInt(y);
+            float fx = x - x0, fy = y - y0;
+            fx = fx * fx * (3f - 2f * fx);
+            fy = fy * fy * (3f - 2f * fy);
+            float a = Grain(x0 * 7919, y0 * 104729), b = Grain((x0 + 1) * 7919, y0 * 104729);
+            float c = Grain(x0 * 7919, (y0 + 1) * 104729), d = Grain((x0 + 1) * 7919, (y0 + 1) * 104729);
+            return Mathf.Lerp(Mathf.Lerp(a, b, fx), Mathf.Lerp(c, d, fx), fy);
+        }
+
+        private static Color GroundColor(char ground, float grain, int py)
+        {
             Color color;
             switch (ground)
             {
@@ -663,7 +736,7 @@ namespace Bnhon.Game
                     if (length < 2) continue;
 
                     for (int cell = start; cell < x; cell++) merged[cell, y] = true;
-                    Wall(CellCenter(start + (length - 1) * 0.5f, y), new Vector2(length, 1f), walls, !hasArt);
+                    Wall(CellCenter(start + (length - 1) * 0.5f, y), new Vector2(length, 1f), walls, !hasArt && !IsTree(start, y));
                 }
             }
 
@@ -681,7 +754,7 @@ namespace Bnhon.Game
                     int start = y;
                     while (y < _map.Height && _map.IsWall(x, y) && !merged[x, y]) y++;
                     int length = y - start;
-                    Wall(CellCenter(x, start + (length - 1) * 0.5f), new Vector2(1f, length), walls, !hasArt);
+                    Wall(CellCenter(x, start + (length - 1) * 0.5f), new Vector2(1f, length), walls, !hasArt && !IsTree(x, start));
                 }
             }
 
@@ -690,9 +763,15 @@ namespace Bnhon.Game
             {
                 for (int x = 0; x < _map.Width; x++)
                 {
-                    if (_map.IsWall(x, y)) PlaceholderArt.Tint(PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile), WallTint);
+                    if (_map.IsWall(x, y) && !IsTree(x, y)) PlaceholderArt.Tint(PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile), WallTint);
                 }
             }
+        }
+
+        /// <summary>True if this wall cell is drawn as a tree, so its own wall picture is hidden.</summary>
+        private bool IsTree(int x, int y)
+        {
+            return _decor != null && _decor.IsTreeCell(x, y);
         }
 
         private void BuildExit(Vector2 position, Func<string> lockReason)

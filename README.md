@@ -92,6 +92,9 @@ Thả file PNG vào `Assets/_Project/Resources/Sprites/` với đúng tên dư�
 | --- | --- | --- |
 | `wall.png` | Tường khu raid | Kéo giãn vừa một ô (nên là ảnh vuông). Nền khu raid giờ được vẽ theo loại đất của bản đồ nên `floor.png` không còn dùng |
 | `extraction.png` | Vùng rút lui | Kéo giãn vừa 3×3 ô |
+| `decor_*.png` (vết nứt, máu, vết cháy, vũng nước, lá, rác, kính vỡ, cỏ dại, dây leo) | Chi tiết nằm trên nền khu raid, game tự rải | Chỉ hiện khi có hình |
+| `prop_*.png` (xe cộ, bao cát, rào, thùng phuy, rác, cây, bụi...) | Đồ bỏ lại và cây cối, game tự rải; xe, bao cát, thùng phuy chắn đường và đạn | Không có hình thì là khối màu |
+| `power_switch.png` | Cầu dao máy phát | Co theo bề ngang, giữ tỉ lệ |
 | `crate_house.png`, `crate_medical.png`, `crate_seed.png`, `crate_weapon.png` | Bốn loại thùng đồ | Co theo bề ngang, giữ tỉ lệ |
 | `zombie_walker.png`, `zombie_runner.png`, `zombie_screamer.png`, `corpse.png` | Zombie và xác | Co theo bề ngang, giữ tỉ lệ |
 | `player.png`, `npc_lan.png`, `npc_minh.png`, `npc_ba_tu.png` | Nhân vật | Co theo bề ngang, giữ tỉ lệ |

@@ -68,6 +68,7 @@ Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
 - [x] Bản đồ thứ hai (trung tâm thị trấn) có trùm, chọn khu ở cổng
 - [x] Mức đe dọa tăng theo ngày; zombie bọc thép có tấm chắn phá được
 - [x] Vùng ven làm lại 260×170 theo ảnh ý tưởng: 5 khu, nền nhiều loại đất, cầu dao và lối rút lui có điều kiện, trùm ở tháp radio
+- [x] Không khí tận thế: lớp trang trí tự rải (vết bẩn, đồ bỏ lại, cây), khói và lửa, màu lạnh, viền tối, bụi bay; nền có mảng loang và cỏ lấn mép đường
 - [ ] Công cụ chuyển bản đồ sang Tilemap và ngược lại
 - [ ] Bản đồ thứ ba; trùm có cơ chế riêng
 - [ ] 6 NPC, trong đó 4 hẹn hò được; hẹn hò và kết hôn

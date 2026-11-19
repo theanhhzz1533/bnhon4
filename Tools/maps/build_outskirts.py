@@ -237,9 +237,6 @@ def gas_station(g, rng):
     for i in range(4):
         px = x0 + 34 + i * 7
         g.fill(px, y0 + 42, px + 1, y0 + 43, WALL)
-    # a wrecked car or two
-    g.fill(x1 - 18, y0 + 50, x1 - 15, y0 + 51, WALL)
-    g.fill(x0 + 40, y0 + 54, x0 + 43, y0 + 55, WALL)
     return (gx0, gy0, gx1, gy1), (sx0, sy0, sx1, sy1)
 
 
@@ -354,16 +351,8 @@ def scenery(g, rng):
         x, y = rng.randint(2, W - 3), rng.randint(2, H - 3)
         if g.get(x, y) == GRASS and all(g.get(x + dx, y + dy) == GRASS for dx in (-2, 0, 2) for dy in (-2, 0, 2)):
             g.blob(x, y, 1, only=GRASS)
-    # Wrecked cars and the bus on the roads, never blocking a whole lane.
-    for _ in range(18):
-        x = rng.randint(8, W - 10)
-        y = rng.choice([ROAD_TOP + 1, ROAD_BOTTOM - 2])
-        g.fill(x, y, x + 3, y + 1, WALL)
-    g.fill(10, ROAD_TOP + 1, 21, ROAD_TOP + 3, WALL)  # the bus at the west end
-    for _ in range(4):
-        y = rng.randint(ROAD_BOTTOM + 8, H - 12)
-        left = south_road_left(y)
-        g.fill(left + 1, y, left + 2, y + 3, WALL)
+    # Wrecks, barricades and litter are not part of the map: the game scatters them
+    # (Scripts/Game/World/DecorLayer.cs), with pictures when they exist.
 
 
 # ---------------------------------------------------------------------------------------

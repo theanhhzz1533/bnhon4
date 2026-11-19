@@ -127,12 +127,68 @@ ITEMS = [
 ]
 
 
+# The look of the abandoned world. "flat" things lie on the ground and are seen from straight
+# above; "prop" things stand up and are drawn like the crates and characters.
+APOCALYPSE = "abandoned, weathered, rusty, dusty, post-apocalyptic, muted desaturated colors"
+FLAT_STYLE = ("pixel art, top-down view from directly above, lying flat on the ground, single decal, isolated, "
+              + APOCALYPSE + ", plain white background, game asset")
+PROP_STYLE = OBJECT_STYLE + ", " + APOCALYPSE
+
+# key -> (subject, "flat" or "prop", background or None for white)
+DECOR = [
+    ("decor_crack_1", "network of dark cracks in grey asphalt, thin lines only", "flat", None),
+    ("decor_crack_2", "single long jagged crack with small branches, dark lines", "flat", None),
+    ("decor_blood_pool", "dried dark red blood stain splatter", "flat", None),
+    ("decor_blood_drag", "long smeared dark red blood drag trail", "flat", None),
+    ("decor_scorch", "black burn scorch mark with soot", "flat", None),
+    ("decor_puddle", "dark muddy rain puddle with ripples", "flat", None),
+    ("decor_leaves", "scattered dry brown and yellow fallen leaves", "flat", None),
+    ("decor_trash", "scattered crumpled paper, plastic bags and cans", "flat", None),
+    ("decor_glass", "shattered broken window glass shards", "flat", DARK),
+    ("decor_weeds_1", "small tuft of green weeds growing through a crack", "flat", None),
+    ("decor_weeds_2", "patch of dry yellow grass and small weeds", "flat", None),
+    ("decor_vines", "tangle of green ivy vines and leaves", "flat", None),
+    ("prop_car_rust_red", "rusty abandoned red sedan car with broken windows, seen from above at an angle, side facing right", "prop", None),
+    ("prop_car_rust_blue", "rusty abandoned blue hatchback car with flat tyres, seen from above at an angle, side facing right", "prop", None),
+    ("prop_car_burnt", "burnt out car wreck, charred black metal frame, no paint", "prop", None),
+    ("prop_motorbike", "fallen rusty scooter motorbike lying on its side", "prop", None),
+    ("prop_bicycle", "old bicycle lying on the ground", "prop", None),
+    ("prop_ambulance", "abandoned white ambulance van with a red stripe, doors open, dirty", "prop", None),
+    ("prop_bus", "long abandoned rusty yellow city bus, broken windows, side view from above", "prop", None),
+    ("prop_concrete_barrier", "cracked grey concrete road barrier block", "prop", None),
+    ("prop_sandbags", "low wall of stacked khaki sandbags", "prop", None),
+    ("prop_barbed_wire", "coil of rusty barbed wire on wooden stakes", "prop", None),
+    ("prop_barricade_furniture", "makeshift barricade of broken chairs, tables and planks", "prop", None),
+    ("prop_barrel", "rusty metal oil drum barrel", "prop", None),
+    ("prop_barrel_fire", "rusty oil drum with fire burning inside", "prop", DARK),
+    ("prop_trash_bin", "overturned green plastic wheelie bin", "prop", None),
+    ("prop_rubble", "pile of broken bricks and concrete rubble", "prop", None),
+    ("prop_tire", "old worn car tyre lying flat", "prop", None),
+    ("prop_shopping_cart", "rusty abandoned shopping cart", "prop", None),
+    ("prop_power_pole_fallen", "fallen concrete power pole with tangled wires, lying horizontally", "prop", None),
+    ("prop_sign_fallen", "fallen bent yellow road warning sign", "prop", None),
+    ("prop_suitcase", "abandoned open suitcase with clothes spilling out", "prop", None),
+    ("prop_tarp_body", "body covered by a blue plastic tarp lying on the ground", "prop", None),
+    ("prop_tent_collapsed", "collapsed green relief tent with a red cross", "prop", None),
+    ("prop_tree_green", "leafy green tree canopy seen from above, round", "prop", None),
+    ("prop_tree_dead", "dead leafless grey tree seen from above, bare branches", "prop", None),
+    ("prop_bush_1", "small round green bush", "prop", None),
+    ("prop_bush_2", "overgrown tangled shrub with dry leaves", "prop", None),
+    ("power_switch", "grey electrical breaker box with a big lever on a wall, warning sticker", "prop", None),
+]
+
+
 def all_jobs():
     """Every sprite as (file key, positive prompt, negative prompt, is_tile, orient)."""
     jobs = []
     for key, subject, is_tile in ASSETS:
         style = TILE_STYLE if is_tile else OBJECT_STYLE
         jobs.append((key, subject + ", " + style, TILE_NEGATIVE if is_tile else NEGATIVE, is_tile, None))
+    for key, subject, kind, backdrop in DECOR:
+        style = FLAT_STYLE if kind == "flat" else PROP_STYLE
+        if backdrop is not None:
+            style = style.replace("plain white background", backdrop)
+        jobs.append((key, subject + ", " + style, NEGATIVE, False, None))
     for item_id, subject, orient, backdrop in ITEMS:
         style = ITEM_STYLE if backdrop is None else ITEM_STYLE.replace("plain white background", backdrop)
         jobs.append(("item_" + item_id, subject + ", " + style, NEGATIVE, False, orient))
