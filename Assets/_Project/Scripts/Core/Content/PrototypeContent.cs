@@ -285,6 +285,10 @@ namespace Bnhon.Core.Content
         public const string NpcLan = "lan";
         public const string NpcMinh = "minh";
         public const string NpcBaTu = "ba_tu";
+        public const string NpcChuSau = "chu_sau";
+
+        /// <summary>The residents who are at the base from the very start.</summary>
+        public static readonly IReadOnlyList<string> Founders = new[] { NpcLan, NpcMinh, NpcBaTu };
 
         public static NpcProfile[] CreateNpcs()
         {
@@ -295,7 +299,9 @@ namespace Bnhon.Core.Content
                 new NpcProfile(NpcMinh, "Minh", Gender.Male, true)
                     .Loves(OldCassette.Id, CircuitBoard.Id).Likes(CannedFood.Id, SweetPotato.Id).Dislikes(Cloth.Id),
                 new NpcProfile(NpcBaTu, "Bà Tư", Gender.Female, false)
-                    .Loves(SweetPotato.Id).Likes(TeaTin.Id, Mugwort.Id)
+                    .Loves(SweetPotato.Id).Likes(TeaTin.Id, Mugwort.Id),
+                new NpcProfile(NpcChuSau, "Chú Sáu", Gender.Male, false)
+                    .Loves(OldCassette.Id, TeaTin.Id).Likes(CannedFood.Id, Corn.Id).Dislikes(Mugwort.Id)
             };
         }
 
@@ -307,8 +313,9 @@ namespace Bnhon.Core.Content
         public const string SpotWell = "well";
         public const string SpotGate = "gate";
         public const string SpotFarm = "farm";
+        public const string SpotShop = "shop";
 
-        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm };
+        public static readonly IReadOnlyList<string> BaseSpots = new[] { SpotClinic, SpotWorkshop, SpotPorch, SpotKitchen, SpotWell, SpotGate, SpotFarm, SpotShop };
 
         public const string EventLanSupplies = "lan_2_supplies";
         public const string EventLanTea = "lan_4_tea";
@@ -408,7 +415,120 @@ namespace Bnhon.Core.Content
             return new NpcLife(NpcBaTu, new NpcSchedule(SpotPorch).On(DayPhase.Morning, SpotFarm), book) { AddressMale = "cháu", AddressFemale = "cháu" };
         }
 
-        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu() };
+        private static NpcLife CreateChuSau()
+        {
+            var book = new DialogueBook
+            {
+                FirstMeeting = "Chú là Sáu, bán tạp hóa ở chợ quê ba chục năm. Giờ chợ không còn, nhưng buôn bán thì người ta vẫn cần.",
+                AlreadyTalked = "Nói rồi mà con. Mua gì thì ghé quầy."
+            };
+            book.Say("Ngày xưa sáng nào chú cũng mở sạp từ năm giờ. Giờ thì mở lúc nào có hàng.", 0, 3)
+                .Say("Đồ hộp là vua đó con. Giữ được lâu, đổi được nhiều.", 0, 3)
+                .SayIn(DayPhase.Morning, "Hôm nay ra ngoài nhớ để ý mấy cái tủ bếp. Người ta hay giấu đồ ngon trong đó.", 0, 5)
+                .SayIn(DayPhase.Evening, "Về rồi hả? Có món gì hay thì đem ra chú xem giá.", 0, 5)
+                .Say("Cái chân này còn đau, nhưng ngồi quầy thì không cần chạy.", 0, 2)
+                .Say("Con biết không, ba chục năm buôn bán, chú chưa từng lỗ với khách quen. Con là khách quen rồi đó.", 4)
+                .SayIn(DayPhase.Evening, "Hồi đó tối nào chợ cũng có người hát cải lương. Nhớ ghê.", 4)
+                .SayIn(DayPhase.Morning, "Chú để dành cho con mấy món tốt ở dưới quầy. Đừng nói ai.", 6)
+                .OnGift(GiftTaste.Loved, "Trời đất, cái này quý lắm đó con. Chú cảm ơn!")
+                .OnGift(GiftTaste.Liked, "Được đó, chú nhận.")
+                .OnGift(GiftTaste.Neutral, "Ừ, chú cảm ơn.")
+                .OnGift(GiftTaste.Disliked, "Cái này bán không ai mua đâu con...");
+
+            return new NpcLife(NpcChuSau, new NpcSchedule(SpotShop), book) { AddressMale = "con", AddressFemale = "con" };
+        }
+
+        public static readonly IReadOnlyList<NpcLife> NpcLives = new[] { CreateLan(), CreateMinh(), CreateBaTu(), CreateChuSau() };
+
+        // ---------------------------------------------------------------------------------
+        // Rescues and resident tasks
+        // ---------------------------------------------------------------------------------
+
+        public const string FlagShopOpen = "svc_sau_shop";
+        public const string FlagShopStock = "svc_sau_stock";
+        public const string FlagShopRare = "svc_sau_rare";
+        public const string FlagShopDiscount = "svc_sau_discount";
+        public const string FlagShopCart = "svc_sau_cart";
+
+        public static readonly IReadOnlyList<RescueDefinition> Rescues = new[]
+        {
+            new RescueDefinition(NpcChuSau, AreaOutskirtsId, 0, session => !session.InIntro)
+            {
+                Needs = A(Bandage, 1),
+                Plea = "Ai đó? Ơ, người sống! Con ơi, chân chú bị kẹt dưới sạp, chảy máu quá. Có băng gạc không con?",
+                Thanks = "Đỡ rồi, đỡ rồi. Con đi trước, chú lết theo. Đừng đi nhanh quá nghe.",
+                Health = 90f,
+                Speed = 3.3f,
+                Arrival = new[]
+                {
+                    new SceneLine(null, "Chú Sáu tập tễnh bước qua cổng, nhìn ruộng khoai, nhìn bếp lửa, rồi ngồi phịch xuống."),
+                    new SceneLine("Chú Sáu", "Có ruộng, có bếp, có người. Vậy là còn làm ăn được."),
+                    new SceneLine("Chú Sáu", "Quầy mua bán của mấy đứa bỏ không đó hả? Để chú. Có điều quầy trống thì bán cái gì: con kiếm giúp chú ít hàng làm vốn đã.")
+                }
+            }
+        };
+
+        public static RescueDefinition FindRescue(string areaId, int markerIndex)
+        {
+            foreach (var rescue in Rescues)
+            {
+                if (rescue.AreaId == areaId && rescue.MarkerIndex == markerIndex) return rescue;
+            }
+            return null;
+        }
+
+        public static readonly IReadOnlyList<QuestChain> Chains = new[]
+        {
+            new QuestChain(NpcChuSau)
+                .Add(new ChainStep("Mở lại quầy", "Quầy trống trơn. Chú cần ít hàng làm vốn: 2 đồ hộp và 2 chai nước.", FlagShopOpen)
+                    .Bring(A(CannedFood, 2), A(WaterBottle, 2))
+                    .Rewards("Quầy mua bán mở cửa: đạn, băng gạc, đồ ăn, nước, hạt giống."))
+                .Add(new ChainStep("Hàng tồn kho", "Chú muốn đóng lại cái kệ cho đàng hoàng: 4 sắt vụn và 3 vải.", FlagShopStock)
+                    .Bring(A(ScrapMetal, 4), A(Cloth, 3))
+                    .Rewards("Quầy bán thêm đạn shotgun và bộ sơ cứu."))
+                .Add(new ChainStep("Mạng lưới buôn", "Chú có mối buôn cũ ở thị trấn, cần cái bộ đàm để liên lạc: 2 bảng mạch.", FlagShopRare)
+                    .Bring(A(CircuitBoard, 2))
+                    .Rewards("Thỉnh thoảng có súng ngắn, shotgun và bản vẽ bộ sơ cứu."))
+                .Add(new ChainStep("Sổ nợ", "Chú tìm cuốn băng cải lương hồi xưa hay nghe. Thân thiết hơn chút nữa chú mới dám nhờ.", FlagShopDiscount)
+                    .NeedsHearts(3)
+                    .Bring(A(OldCassette, 1))
+                    .Rewards("Khách quen: mọi món giảm giá 10%."))
+                .Add(new ChainStep("Xe ba gác", "Có xe ba gác thì chú chở được nhiều hàng hơn: 10 gỗ và 8 sắt vụn.", FlagShopCart)
+                    .Bring(A(Wood, 10), A(ScrapMetal, 8))
+                    .Rewards("Mỗi món về thêm 1 suất mỗi ngày, và bán đồ được 60% giá trị thay vì 50%."))
+        };
+
+        public static QuestChain FindChain(string npcId)
+        {
+            foreach (var chain in Chains)
+            {
+                if (chain.NpcId == npcId) return chain;
+            }
+            return null;
+        }
+
+        public static bool ShopOpen(GameSession session) => session.Story.Has(FlagShopOpen);
+
+        /// <summary>
+        /// Brings every resident service in line with the story flags: what the shop sells and
+        /// at what price. Called after loading and whenever a task is finished.
+        /// </summary>
+        public static void ApplyServices(GameSession session)
+        {
+            Trading.Shop shop = session.Shop;
+            shop.PriceFactor = session.Story.Has(FlagShopDiscount) ? 0.9 : 1.0;
+            shop.SellRate = session.Story.Has(FlagShopCart) ? 0.6 : Trading.Shop.SellFactor;
+            shop.ExtraStock = session.Story.Has(FlagShopCart) ? 1 : 0;
+        }
+
+        /// <summary>Completes a resident's current task and updates their services. Returns the step, or null.</summary>
+        public static ChainStep CompleteTask(GameSession session, string npcId)
+        {
+            QuestChain chain = FindChain(npcId);
+            ChainStep step = chain != null ? chain.Complete(session) : null;
+            if (step != null) ApplyServices(session);
+            return step;
+        }
 
         public static NpcLife FindNpcLife(string npcId)
         {
@@ -522,7 +642,8 @@ namespace Bnhon.Core.Content
         public static void SetUpShop(Trading.Shop shop)
         {
             shop.AddEntry(PistolAmmo, 10, 30, 4);
-            shop.AddEntry(ShotgunShell, 4, 32, 2);
+            shop.AddEntry(ShotgunShell, 4, 32, 2).RequiredFlag = FlagShopStock;
+            shop.AddEntry(MedKit, 1, 90, 1).RequiredFlag = FlagShopStock;
             shop.AddEntry(Bandage, 1, 22, 3);
             shop.AddEntry(CannedFood, 1, 26, 3);
             shop.AddEntry(WaterBottle, 1, 18, 3);
@@ -532,8 +653,9 @@ namespace Bnhon.Core.Content
             shop.AddEntry(TomatoSeed, 3, 26, 2);
             shop.AddEntry(WaterSpinachSeed, 3, 16, 2);
             shop.AddEntry(CabbageSeed, 2, 20, 2);
-            shop.AddEntry(Pistol, 1, 220, 1, 0.35);
-            shop.AddEntry(BlueprintMedKit, 1, 120, 1, 0.25);
+            shop.AddEntry(Pistol, 1, 220, 1, 0.5).RequiredFlag = FlagShopRare;
+            shop.AddEntry(Shotgun, 1, 420, 1, 0.3).RequiredFlag = FlagShopRare;
+            shop.AddEntry(BlueprintMedKit, 1, 120, 1, 0.35).RequiredFlag = FlagShopRare;
         }
 
         /// <summary>What is in the cabinet by the hospital bed.</summary>
@@ -594,6 +716,9 @@ namespace Bnhon.Core.Content
                 session => session.Story.Has(StoryIds.Extracted))
                 .Gives(60)
                 .Says("Minh gật đầu: \"Về được là giỏi rồi.\" Nhận 60 tem phiếu."))
+            .Add(new StoryStep("rescue_sau", "Bà Tư nhắc: Chú Sáu bán tạp hóa có thể còn kẹt trong nhà lồng chợ quê (vùng ven, phía tây nam). Mang theo băng gạc.",
+                session => Residents.LivesAtBase(session, NpcChuSau))
+                .Says("Chú Sáu đã về căn cứ. Nói chuyện với chú để mở lại quầy mua bán."))
             .Add(new StoryStep("workbench", "Gom vật liệu nâng bàn chế tạo lên cấp 2.",
                 session => session.Workshop.Level >= 2)
                 .Gives(0, A(BlueprintMedKit, 1))
@@ -640,6 +765,7 @@ namespace Bnhon.Core.Content
             SetUpWorkshop(session.Workshop);
             SetUpShop(session.Shop);
             SetUpKitchen(session.Kitchen);
+            foreach (string founder in Founders) Residents.MoveIn(session, founder);
             SetUpBase(session.Base);
             session.Shop.FillStock();
             session.Loadout.Set(0, Pistol, PistolMagazine);
@@ -685,6 +811,14 @@ namespace Bnhon.Core.Content
                 session.Story.Set(StoryIds.IntroDone);
                 OpeningStory.SkipAll(session);
             }
+            if (data.version < 7)
+            {
+                // Before rescues existed, Chú Sáu's shop was simply open from the start.
+                foreach (string founder in Founders) Residents.MoveIn(session, founder);
+                Residents.MoveIn(session, NpcChuSau);
+                session.Story.Set(FlagShopOpen);
+            }
+            ApplyServices(session);
             if (report.AbandonedRaid) GrantFallbackWeapon(session);
             return session;
         }

@@ -71,7 +71,9 @@ Xong khi: chơi từ đầu đến hết hồi 1 không cần công cụ debug.
 - [x] Không khí tận thế: lớp trang trí tự rải (vết bẩn, đồ bỏ lại, cây), khói và lửa, màu lạnh, viền tối, bụi bay; nền có mảng loang và cỏ lấn mép đường
 - [ ] Công cụ chuyển bản đồ sang Tilemap và ngược lại
 - [ ] Bản đồ thứ ba; trùm có cơ chế riêng
-- [ ] 6 NPC, trong đó 4 hẹn hò được; hẹn hò và kết hôn
+- [x] Khung hệ thống NPC: giải cứu trong raid (hộ tống, cần vật phẩm), cư dân chỉ có mặt khi đã về căn cứ, chuỗi việc mở khóa dịch vụ; làm mẫu với Chú Sáu và quầy mua bán
+- [ ] Các cư dân còn lại theo sheet NPC: Quân (bùa), Vy (chở đi raid, 3 điểm xuất phát), Hùng, Khang, Tuấn, Thảo
+- [ ] Hẹn hò và kết hôn: cảnh tim 2–10 cho người hẹn hò được
 - [ ] 4 mùa, ảnh hưởng của mùa lên cây trồng và raid
 - [ ] Cây kỹ năng 3 nhánh
 - [ ] Kẻ cướp có súng, biết nấp

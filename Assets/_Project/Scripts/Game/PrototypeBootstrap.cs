@@ -407,6 +407,7 @@ namespace Bnhon.Game
             BuildNpc(PrototypeContent.NpcLan, new Color(0.95f, 0.6f, 0.75f), root);
             BuildNpc(PrototypeContent.NpcMinh, new Color(0.5f, 0.75f, 0.95f), root);
             BuildNpc(PrototypeContent.NpcBaTu, new Color(0.8f, 0.8f, 0.6f), root);
+            BuildNpc(PrototypeContent.NpcChuSau, new Color(0.75f, 0.6f, 0.4f), root);
         }
 
         /// <summary>One movable building of the base, placed by the layout. Slightly smaller than its cells, so there is room to walk between neighbours.</summary>
@@ -437,6 +438,7 @@ namespace Bnhon.Game
                 case PrototypeContent.SpotWorkshop: return new Vector2(0.5f, 4.5f);
                 case PrototypeContent.SpotPorch: return new Vector2(-5f, 4.5f);
                 case PrototypeContent.SpotKitchen: return Beside(PrototypeContent.BuildingKitchen);
+                case PrototypeContent.SpotShop: return Beside(PrototypeContent.BuildingShop);
                 case PrototypeContent.SpotWell: return Beside(PrototypeContent.BuildingWell);
                 case PrototypeContent.SpotGate: return new Vector2(7.4f, -5.2f);
                 case PrototypeContent.SpotFarm: return new Vector2(-8.8f, 0.3f);
@@ -485,6 +487,7 @@ namespace Bnhon.Game
             _raidRoot.SetParent(_raidWorld.transform, false);
             _hordePoints.Clear();
 
+            int rescueIndex = 0;
             foreach (MapMarker marker in _map.Markers)
             {
                 Vector2 position = CellCenter(marker.X, marker.Y);
@@ -504,6 +507,8 @@ namespace Bnhon.Game
                             return "Lối mòn sau đồi bị chặn. " + area.BossName + " còn sống thì không ai qua được.";
                         });
                         break;
+
+                    case RaidMap.Rescue: BuildSurvivor(position, rescueIndex++); break;
 
                     case RaidMap.PowerSwitch:
                         GameObject power = PlaceholderArt.Box("PowerSwitch", position, new Vector2(0.7f, 0.9f), new Color(0.9f, 0.8f, 0.15f), _raidRoot, 2, "power_switch", SpriteFit.Crate);
@@ -814,6 +819,31 @@ namespace Bnhon.Game
                 placed++;
             }
             return placed;
+        }
+
+        /// <summary>Puts the person this rescue marker belongs to on the map, if they can be found today.</summary>
+        private void BuildSurvivor(Vector2 position, int markerIndex)
+        {
+            var session = GameRoot.Instance.Session;
+            var area = _director != null ? _director.CurrentArea : null;
+            if (area == null) return;
+
+            Bnhon.Core.Npcs.RescueDefinition rescue = PrototypeContent.FindRescue(area.Id, markerIndex);
+            if (rescue == null || !rescue.IsAvailable(session) || Bnhon.Core.Npcs.Residents.LivesAtBase(session, rescue.NpcId)) return;
+
+            var profile = session.Relationships.Get(rescue.NpcId);
+            string name = profile != null ? profile.Npc.DisplayName : rescue.NpcId;
+
+            GameObject go = PlaceholderArt.Box("Survivor_" + rescue.NpcId, position, new Vector2(0.8f, 0.8f), new Color(0.95f, 0.85f, 0.45f), _raidRoot, 15, "npc_" + rescue.NpcId, SpriteFit.Character);
+            go.AddComponent<CircleCollider2D>().radius = 0.45f;
+            var body = go.AddComponent<Rigidbody2D>();
+            body.gravityScale = 0f;
+            body.freezeRotation = true;
+            body.linearDamping = 4f;
+            go.AddComponent<YSort>();
+            var health = go.AddComponent<Health>();
+            Hurtbox.Attach(go, health).Friendly = true;
+            go.AddComponent<SurvivorAI>().Init(rescue, name, _player.transform);
         }
 
         private ZombieAI BuildZombie(Vector2 position, ZombieKind kind)

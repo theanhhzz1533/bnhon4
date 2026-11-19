@@ -21,6 +21,9 @@ namespace Bnhon.Core.Trading
 
         public int Stock { get; internal set; }
 
+        /// <summary>The story flag that puts this entry on sale. Null for an entry that is always sold.</summary>
+        public string RequiredFlag { get; set; }
+
         public ShopEntry(ItemDefinition item, int bundle, int price, int maxStock, double restockChance)
         {
             Item = item ?? throw new ArgumentNullException(nameof(item));
@@ -40,6 +43,33 @@ namespace Bnhon.Core.Trading
         /// <summary>The shop pays this share of an item's base value.</summary>
         public const double SellFactor = 0.5;
 
+        /// <summary>What items sell for here, as a share of their value. Starts at <see cref="SellFactor"/>.</summary>
+        public double SellRate { get; set; } = SellFactor;
+
+        /// <summary>Multiplies every buying price: 0.9 is a 10% discount.</summary>
+        public double PriceFactor { get; set; } = 1.0;
+
+        /// <summary>Added to every entry's stock when it is refilled.</summary>
+        public int ExtraStock { get; set; }
+
+        public int PriceOf(ShopEntry entry)
+        {
+            if (entry == null) return 0;
+            return Math.Max(entry.Price > 0 ? 1 : 0, (int)Math.Round(entry.Price * PriceFactor));
+        }
+
+        public int StockLimit(ShopEntry entry)
+        {
+            return entry == null || entry.MaxStock <= 0 ? 0 : entry.MaxStock + ExtraStock;
+        }
+
+        /// <summary>What this shop pays for one of an item.</summary>
+        public int SellPriceOf(ItemDefinition item)
+        {
+            if (item == null || item.BaseValue <= 0) return 0;
+            return Math.Max(1, (int)(item.BaseValue * SellRate));
+        }
+
         private readonly List<ShopEntry> _entries = new List<ShopEntry>();
 
         public IReadOnlyList<ShopEntry> Entries => _entries;
@@ -54,7 +84,7 @@ namespace Bnhon.Core.Trading
         /// <summary>Fills every line to its maximum (new game).</summary>
         public void FillStock()
         {
-            foreach (ShopEntry entry in _entries) entry.Stock = entry.MaxStock;
+            foreach (ShopEntry entry in _entries) entry.Stock = StockLimit(entry);
         }
 
         /// <summary>Daily refresh. Always-available lines refill; the others refill only by chance and otherwise keep what is left.</summary>
@@ -62,7 +92,7 @@ namespace Bnhon.Core.Trading
         {
             foreach (ShopEntry entry in _entries)
             {
-                if (entry.RestockChance >= 1.0 || rng.NextDouble() < entry.RestockChance) entry.Stock = entry.MaxStock;
+                if (entry.RestockChance >= 1.0 || rng.NextDouble() < entry.RestockChance) entry.Stock = StockLimit(entry);
             }
         }
 
@@ -77,7 +107,8 @@ namespace Bnhon.Core.Trading
         public bool Buy(ShopEntry entry, Wallet wallet, GridInventory backpack, GridInventory stash)
         {
             if (entry == null || !_entries.Contains(entry) || entry.Stock < 1 || wallet == null) return false;
-            if (wallet.Money < entry.Price) return false;
+            int price = PriceOf(entry);
+            if (wallet.Money < price) return false;
 
             int toBackpack = entry.Bundle - backpack.Add(entry.Item, entry.Bundle);
             int rest = entry.Bundle - toBackpack;
@@ -90,7 +121,7 @@ namespace Bnhon.Core.Trading
                 return false;
             }
 
-            wallet.TrySpend(entry.Price);
+            wallet.TrySpend(price);
             entry.Stock--;
             return true;
         }
@@ -100,7 +131,7 @@ namespace Bnhon.Core.Trading
         {
             if (grid == null || item == null || wallet == null || count < 1 || !grid.Contains(item)) return 0;
 
-            int price = SellPrice(item.Item);
+            int price = SellPriceOf(item.Item);
             if (price <= 0) return 0;
 
             count = Math.Min(count, item.Count);
@@ -117,7 +148,7 @@ namespace Bnhon.Core.Trading
             foreach (ShopEntry entry in _entries)
             {
                 if (entry.Item.Id != itemId) continue;
-                entry.Stock = Math.Max(0, Math.Min(entry.MaxStock, stock));
+                entry.Stock = Math.Max(0, Math.Min(StockLimit(entry), stock));
                 return true;
             }
             return false;

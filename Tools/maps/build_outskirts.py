@@ -33,6 +33,7 @@ HEADER = """; Ban do raid: Vung ven thi tran (260 x 170)
 ;      ruong lua va cho que (duoi trai), doi thap radio (duoi phai).
 ; Nen: . san be tong   , co   = duong nhua   : dat   ~ ruong nuoc
 ; Dieu kien: X cau dao   J loi ra can bat cau dao   U loi ra can ha trum
+; Y: nguoi cho giai cuu (thu tu tu tren xuong: 0 = Chu Sau)
 """
 
 
@@ -450,6 +451,8 @@ def place_markers(g, rng, school_parts, gas_parts, huts, market_parts, hill_part
         p.at(x, y, "S")
     for (x, y) in stalls[6:10]:
         p.at(x, y, "C")
+    # Chu Sau waits in the left room of the market hall (rescue marker 0 of this map).
+    p.at(hall[0] + 5, hall[1] + 6, "Y")
     p.in_rect((hall[0] + 1, hall[1] + 1, hall[2] - 1, hall[3] - 1), "S", 2)
     for (x, y) in huts:
         p.at(x, y, "S")
@@ -510,7 +513,7 @@ PREVIEW_COLORS = {
     DIRT: (122, 98, 70), PADDY: (74, 104, 96),
     "C": (210, 150, 60), "M": (235, 235, 240), "S": (140, 200, 80), "W": (60, 120, 60), "V": (90, 110, 170),
     "Z": (200, 40, 40), "R": (240, 120, 40), "G": (170, 70, 210), "A": (150, 160, 180), "B": (255, 0, 0),
-    "E": (60, 230, 110), "J": (240, 220, 40), "U": (240, 120, 200), "X": (255, 255, 0), "P": (40, 140, 255),
+    "Y": (255, 255, 255), "E": (60, 230, 110), "J": (240, 220, 40), "U": (240, 120, 200), "X": (255, 255, 0), "P": (40, 140, 255),
 }
 
 
@@ -536,7 +539,7 @@ def preview(g, path, scale=4):
             s = g.c[y][x]
             if s in GROUND or s == WALL:
                 continue
-            r = 4 if s in "EJUXPB" else 2
+            r = 4 if s in "EJUXPBY" else 2
             for yy in range(-r, r + 1):
                 for xx in range(-r, r + 1):
                     X, Y = x * scale + scale // 2 + xx, y * scale + scale // 2 + yy

@@ -284,7 +284,7 @@ namespace Bnhon.Game.Combat
                 var hurtbox = other.GetComponent<Hurtbox>();
                 if (hurtbox != null)
                 {
-                    if (hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead) continue;
+                    if (hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead || hurtbox.Friendly) continue;
                     hurtbox.Owner.Damage(weapon.Damage, origin);
                     end = hit.point;
                     break;
@@ -313,7 +313,7 @@ namespace Bnhon.Game.Combat
                 if (other == null) continue;
 
                 var hurtbox = other.GetComponent<Hurtbox>();
-                if (hurtbox == null || hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead) continue;
+                if (hurtbox == null || hurtbox.Owner == null || hurtbox.Owner == _ownHealth || hurtbox.Owner.IsDead || hurtbox.Friendly) continue;
 
                 Vector2 target = other.ClosestPoint(origin);
                 Vector2 toTarget = target - origin;

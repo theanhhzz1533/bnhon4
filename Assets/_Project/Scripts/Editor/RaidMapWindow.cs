@@ -17,14 +17,14 @@ namespace Bnhon.EditorTools
     {
         private const string DefaultMapPath = "Assets/_Project/Resources/Maps/outskirts.txt";
 
-        private static readonly char[] Symbols = { '.', '#', 'P', 'E', 'C', 'M', 'S', 'W', 'Z', 'R', 'G', 'K', 'T', 'H', 'N', 'V', 'A', 'B', ',', '=', ':', '~', 'X', 'J', 'U' };
+        private static readonly char[] Symbols = { '.', '#', 'P', 'E', 'C', 'M', 'S', 'W', 'Z', 'R', 'G', 'K', 'T', 'H', 'N', 'V', 'A', 'B', ',', '=', ':', '~', 'X', 'J', 'U', 'Y' };
         private static readonly string[] SymbolNames =
         {
             ". Sàn", "# Tường", "P Chỗ vào", "E Rút lui", "C Tủ nhà", "M Tủ thuốc", "S Hạt giống", "W Vũ khí",
             "Z Zombie", "R Zombie chạy", "G Zombie gào",
             "K Tủ cốt truyện", "T Bẫy thả đàn", "H Zombie của đàn", "N Người cứu",
             "V Két sắt", "A Zombie bọc thép", "B Trùm",
-            ", Cỏ", "= Đường nhựa", ": Đất", "~ Ruộng nước", "X Cầu dao", "J Lối ra cần điện", "U Lối ra cần hạ trùm"
+            ", Cỏ", "= Đường nhựa", ": Đất", "~ Ruộng nước", "X Cầu dao", "J Lối ra cần điện", "U Lối ra cần hạ trùm", "Y Người chờ cứu"
         };
 
         private TextAsset _asset;
@@ -362,7 +362,7 @@ namespace Bnhon.EditorTools
                 case 'X': return new Color32(255, 255, 0, 255);
                 case 'J': return new Color32(240, 220, 40, 255);
                 case 'U': return new Color32(240, 120, 200, 255);
-                case 'K': case 'T': case 'H': case 'N': return new Color32(255, 255, 255, 255);
+                case 'K': case 'T': case 'H': case 'N': case 'Y': return new Color32(255, 255, 255, 255);
                 default: return new Color32(255, 0, 255, 255);
             }
         }

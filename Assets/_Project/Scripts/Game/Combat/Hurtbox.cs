@@ -11,6 +11,9 @@ namespace Bnhon.Game.Combat
     {
         public Health Owner { get; private set; }
 
+        /// <summary>True for people on the player's side. The player's own shots and swings pass them by.</summary>
+        public bool Friendly { get; set; }
+
         /// <summary>
         /// Adds a hurtbox to a character built by <see cref="PlaceholderArt"/>. It matches the
         /// drawn sprite, slightly narrowed so near misses beside the body stay misses.

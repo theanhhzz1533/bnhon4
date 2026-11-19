@@ -46,7 +46,10 @@ namespace Bnhon.Core.Maps
         public const char Extraction = 'E';
         public const string LootSymbols = "CMSWV";
         public const string ZombieSymbols = "ZRGAB";
-        public const string StorySymbols = "KTHN";
+        public const string StorySymbols = "KTHNY";
+
+        /// <summary>Where someone waits to be rescued. Which person depends on the area and the marker's order.</summary>
+        public const char Rescue = 'Y';
         public const char Rescuer = 'N';
 
         /// <summary>Walkable ground kinds, drawn differently: concrete or indoor floor, grass, road, dirt, paddy.</summary>

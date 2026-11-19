@@ -37,7 +37,7 @@ namespace Bnhon.Game.UI
             Shop shop = session.Shop;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Quầy đổi chác", TitleStyle);
+            GUILayout.Label("Quầy của Chú Sáu", TitleStyle);
             GUILayout.FlexibleSpace();
             ColoredLabel("Tem phiếu: " + session.Wallet.Money, Money);
             GUILayout.EndHorizontal();
@@ -48,14 +48,17 @@ namespace Bnhon.Game.UI
             GUILayout.BeginVertical(GUILayout.Width(400f));
             GUILayout.Label("Mua (hàng về lại mỗi sáng)", HeaderStyle);
             _buyScroll = GUILayout.BeginScrollView(_buyScroll);
-            foreach (ShopEntry entry in shop.Entries) DrawBuy(shop, entry);
+            foreach (ShopEntry entry in shop.Entries)
+            {
+                if (entry.RequiredFlag == null || session.Story.Has(entry.RequiredFlag)) DrawBuy(shop, entry);
+            }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
 
             GUILayout.Space(16f);
 
             GUILayout.BeginVertical();
-            GUILayout.Label("Bán (được nửa giá trị)", HeaderStyle);
+            GUILayout.Label("Bán (được " + Mathf.RoundToInt((float)shop.SellRate * 100f) + "% giá trị)", HeaderStyle);
             _sellScroll = GUILayout.BeginScrollView(_sellScroll);
             int rows = DrawSell(shop, session.Backpack, "balo") + DrawSell(shop, session.Stash, "kho");
             if (rows == 0) ColoredLabel("Không có gì để bán.", Dim);
@@ -69,12 +72,13 @@ namespace Bnhon.Game.UI
         {
             var session = GameRoot.Instance.Session;
             bool inStock = entry.Stock > 0;
-            bool affordable = session.Wallet.Money >= entry.Price;
+            int price = shop.PriceOf(entry);
+            bool affordable = session.Wallet.Money >= price;
 
             GUILayout.BeginHorizontal();
             string name = entry.Item.DisplayName + (entry.Bundle > 1 ? " x" + entry.Bundle : string.Empty);
             ColoredLabel(name, inStock ? Color.white : Dim, GUILayout.Width(170f));
-            ColoredLabel(entry.Price.ToString(), affordable ? Money : Dim, GUILayout.Width(50f));
+            ColoredLabel(price.ToString(), affordable ? Money : Dim, GUILayout.Width(50f));
             ColoredLabel(inStock ? "còn " + entry.Stock : "hết hàng", Dim, GUILayout.Width(70f));
 
             if (Button("Mua", inStock && affordable, 70f))
@@ -95,7 +99,7 @@ namespace Bnhon.Game.UI
 
             foreach (PlacedItem item in grid.Items)
             {
-                int price = Shop.SellPrice(item.Item);
+                int price = shop.SellPriceOf(item.Item);
                 if (price <= 0) continue;
                 shown++;
 

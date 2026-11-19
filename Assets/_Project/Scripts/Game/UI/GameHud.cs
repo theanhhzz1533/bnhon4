@@ -81,8 +81,13 @@ namespace Bnhon.Game.UI
         private void DrawStatus(GameSession session, Health health)
         {
             int buffs = session.Buffs.Active.Count;
+            int escorts = 0;
+            foreach (Bnhon.Game.AI.SurvivorAI survivor in Bnhon.Game.AI.SurvivorAI.All)
+            {
+                if (survivor.IsFollowing) escorts++;
+            }
             bool weakened = session.Needs.IsStarving || session.Needs.IsDehydrated;
-            float panelHeight = Pad * 2f + 40f + 4f * 20f + buffs * 16f + (weakened ? 18f : 0f);
+            float panelHeight = Pad * 2f + 40f + 4f * 20f + buffs * 16f + escorts * 20f + (weakened ? 18f : 0f);
             var panel = new Rect(Margin, Margin, 250f, panelHeight);
             Fill(panel, PanelColor);
 
@@ -107,6 +112,10 @@ namespace Bnhon.Game.UI
             y = Bar(x, y, inner, session.Stamina.IsExhausted ? "Kiệt sức" : "Thể lực", session.Stamina.Current, session.Stamina.Max, StaminaColor);
             y = Bar(x, y, inner, "Đói", session.Needs.Hunger, session.Needs.Max, HungerColor);
             y = Bar(x, y, inner, "Khát", session.Needs.Thirst, session.Needs.Max, ThirstColor);
+            foreach (Bnhon.Game.AI.SurvivorAI survivor in Bnhon.Game.AI.SurvivorAI.All)
+            {
+                if (survivor.IsFollowing) y = Bar(x, y, inner, survivor.DisplayName, survivor.Health.Current, survivor.Health.Max, Gold);
+            }
 
             if (weakened)
             {

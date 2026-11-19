@@ -150,7 +150,79 @@ namespace Bnhon.Game.UI
             }
 
             GUILayout.Space(12f);
+            DrawServices(session);
+            DrawTask(session, relationship);
             DrawQuests(session);
+        }
+
+        /// <summary>Buttons for what this resident does for the base.</summary>
+        private void DrawServices(GameSession session)
+        {
+            if (_npcId != PrototypeContent.NpcChuSau || !PrototypeContent.ShopOpen(session)) return;
+
+            GUILayout.BeginHorizontal();
+            if (Button("Mua bán", true, 150f))
+            {
+                Defer(() =>
+                {
+                    if (ShopScreen.Instance != null) ShopScreen.Instance.Open();
+                });
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(8f);
+        }
+
+        /// <summary>The resident's current task: what to bring, what it opens, and a button to hand it over.</summary>
+        private void DrawTask(GameSession session, Relationship relationship)
+        {
+            QuestChain chain = PrototypeContent.FindChain(_npcId);
+            if (chain == null) return;
+
+            ChainBlock block = chain.Check(session);
+            if (block == ChainBlock.NotResident) return;
+
+            int done = chain.Completed(session);
+            GUILayout.Label("Việc của " + relationship.Npc.DisplayName + " (" + done + "/" + chain.Steps.Count + ")", HeaderStyle);
+            if (block == ChainBlock.Finished)
+            {
+                ColoredLabel("Đã xong mọi việc.", Dim);
+                GUILayout.Space(8f);
+                return;
+            }
+
+            ChainStep step = chain.Current(session);
+            ColoredLabel(step.Title + ": " + Fill(step.Text), Color.white);
+
+            var need = new System.Text.StringBuilder();
+            foreach (Bnhon.Core.Crafting.ItemAmount amount in step.Items)
+            {
+                if (need.Length > 0) need.Append("  ·  ");
+                int have = Bnhon.Core.Crafting.Workshop.CountOwned(amount.Item.Id, session.Stash, session.Backpack);
+                need.Append(amount.Item.DisplayName).Append(' ').Append(have).Append('/').Append(amount.Count);
+            }
+            if (step.MinHearts > 0)
+            {
+                if (need.Length > 0) need.Append("  ·  ");
+                need.Append("cần ").Append(step.MinHearts).Append(" tim (đang ").Append(relationship.Hearts).Append(')');
+            }
+
+            GUILayout.BeginHorizontal();
+            ColoredLabel(need.ToString(), block == ChainBlock.None ? Gold : Color.white);
+            GUILayout.FlexibleSpace();
+            if (Button("Giao", block == ChainBlock.None, 110f))
+            {
+                Defer(() =>
+                {
+                    ChainStep finished = PrototypeContent.CompleteTask(session, _npcId);
+                    if (finished == null) return;
+                    _speech = "Xong \"" + finished.Title + "\". " + finished.RewardText;
+                    Sfx.PlayUi(SoundId.Extract, 0.6f);
+                    GameRoot.Instance.Save(session.IsInRaid);
+                });
+            }
+            GUILayout.EndHorizontal();
+            ColoredLabel("Mở khóa: " + step.RewardText, Dim);
+            GUILayout.Space(8f);
         }
 
         private void DrawQuests(GameSession session)

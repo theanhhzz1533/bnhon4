@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Bnhon.Core.Content;
 using Bnhon.Core.Loot;
+using Bnhon.Game.AI;
 using Bnhon.Game.Audio;
 using Bnhon.Game.Combat;
 using Bnhon.Game.Player;
@@ -100,12 +101,38 @@ namespace Bnhon.Game.Raid
             var session = root.Session;
             if (!session.IsInRaid) return;
 
+            // Whoever is following close behind makes it out too, and moves in for good.
+            List<string> rescued = SurvivorAI.TakeRescued(_player.transform.position, 8f);
+            foreach (string npcId in rescued) Bnhon.Core.Npcs.Residents.MoveIn(session, npcId);
+
             session.CurrentRaid.Extract();
             session.Story.Set(Bnhon.Core.Story.StoryIds.Extracted);
             Sfx.PlayUi(SoundId.Extract, 0.8f);
             root.Save();
             MovePlayer(false);
             root.Notify("Rút lui thành công. Giá trị balo: " + session.Backpack.TotalValue() + ".", 5f);
+            PlayArrivals(rescued, 0);
+        }
+
+        /// <summary>Plays the arrival scene of each rescued person, one after another.</summary>
+        private static void PlayArrivals(List<string> npcIds, int index)
+        {
+            if (index >= npcIds.Count || SceneScreen.Instance == null) return;
+
+            Bnhon.Core.Npcs.RescueDefinition rescue = null;
+            foreach (var candidate in PrototypeContent.Rescues)
+            {
+                if (candidate.NpcId == npcIds[index]) rescue = candidate;
+            }
+
+            var bond = GameRoot.Instance.Session.Relationships.Get(npcIds[index]);
+            string title = bond != null ? bond.Npc.DisplayName + " về căn cứ" : "Người mới";
+            if (rescue == null || rescue.Arrival == null)
+            {
+                PlayArrivals(npcIds, index + 1);
+                return;
+            }
+            SceneScreen.Instance.Play(title, rescue.Arrival, () => PlayArrivals(npcIds, index + 1));
         }
 
         public bool Sleep()

@@ -57,9 +57,19 @@ namespace Bnhon.Game.Interaction
             Place();
         }
 
+        private bool _present = true;
+
         private void Update()
         {
-            Place();
+            // Someone who has not been rescued yet is not at the base: not drawn, not in the way.
+            bool here = Bnhon.Core.Npcs.Residents.LivesAtBase(GameRoot.Instance.Session, _npcId);
+            if (here != _present)
+            {
+                _present = here;
+                foreach (SpriteRenderer renderer in GetComponentsInChildren<SpriteRenderer>()) renderer.enabled = here;
+                foreach (Collider2D collider in GetComponents<Collider2D>()) collider.enabled = here;
+            }
+            if (here) Place();
         }
 
         /// <summary>
@@ -82,6 +92,7 @@ namespace Bnhon.Game.Interaction
 
         public void Interact(PlayerController player)
         {
+            if (!_present) return;
             if (NpcScreen.Instance != null) NpcScreen.Instance.Show(_npcId, _spot);
         }
     }

@@ -98,6 +98,10 @@ namespace Bnhon.Core.Tests
             Assert.That(story.Advance(session).Id, Is.EqualTo("first_raid"));
             Assert.That(session.Wallet.Money, Is.EqualTo(moneyBefore + 60));
 
+            Assert.That(story.Advance(session) == null, Is.True);
+            Bnhon.Core.Npcs.Residents.MoveIn(session, PrototypeContent.NpcChuSau);
+            Assert.That(story.Advance(session).Id, Is.EqualTo("rescue_sau"));
+
             session.Stash.Add(PrototypeContent.Wood, 5);
             session.Stash.Add(PrototypeContent.Wood, 1);
             session.Stash.Add(PrototypeContent.ScrapMetal, 6);

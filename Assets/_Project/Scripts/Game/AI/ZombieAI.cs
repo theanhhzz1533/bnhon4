@@ -70,6 +70,9 @@ namespace Bnhon.Game.AI
         private SpriteRenderer _renderer;
         private Transform _target;
         private Health _targetHealth;
+        private Transform _player;
+        private Health _playerHealth;
+        private float _nextTargetCheck;
         private State _state = State.Wander;
         private Vector2 _velocity;
         private Vector2 _wanderDirection;
@@ -99,6 +102,31 @@ namespace Bnhon.Game.AI
 
         /// <summary>Beyond this distance from the player a wandering zombie does nothing at all.</summary>
         private const float DormantDistance = 40f;
+
+        /// <summary>
+        /// Goes for whoever is nearest: the player, or a survivor they are escorting. Checked a
+        /// couple of times a second, not every frame.
+        /// </summary>
+        private void PickTarget(Vector2 position)
+        {
+            _nextTargetCheck = UnityEngine.Time.time + 0.4f + UnityEngine.Random.value * 0.2f;
+            Transform best = _player;
+            Health bestHealth = _playerHealth;
+            float bestDistance = ((Vector2)_player.position - position).sqrMagnitude;
+
+            foreach (SurvivorAI survivor in SurvivorAI.All)
+            {
+                if (survivor == null || survivor.Health.IsDead) continue;
+                float distance = ((Vector2)survivor.transform.position - position).sqrMagnitude;
+                if (distance >= bestDistance || distance > sightRange * sightRange * 1.5f) continue;
+                best = survivor.transform;
+                bestHealth = survivor.Health;
+                bestDistance = distance;
+            }
+
+            _target = best;
+            _targetHealth = bestHealth;
+        }
 
         private void SetDrawn(bool visible)
         {
@@ -130,6 +158,8 @@ namespace Bnhon.Game.AI
         {
             _target = target;
             _targetHealth = target != null ? target.GetComponent<Health>() : null;
+            _player = _target;
+            _playerHealth = _targetHealth;
             Configure(kind);
             _extras = GetComponentsInChildren<SpriteRenderer>();
             _nextGrowlTime = UnityEngine.Time.time + UnityEngine.Random.Range(0.5f, 5f);
@@ -303,13 +333,14 @@ namespace Bnhon.Game.AI
 
         private void Update()
         {
-            if (_target == null)
+            if (_player == null)
             {
                 _velocity = Vector2.zero;
                 return;
             }
 
             Vector2 position = transform.position;
+            if (UnityEngine.Time.time >= _nextTargetCheck) PickTarget(position);
 
             // Far from the player and with nothing to do: stand still and skip the rest.
             // Noise still reaches it (OnNoise), which wakes it by changing its state.
