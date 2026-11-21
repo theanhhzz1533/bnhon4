@@ -51,6 +51,7 @@ TILE_NEGATIVE = NEGATIVE.replace("multiple objects, ", "") + ", white background
 ASSETS = [
     ("floor", "plain dark grey concrete ground with a few faint cracks", True),
     ("wall", "top of a weathered dull brown brick wall, evenly worn", True),
+    ("wall_face", "front side of a weathered dull brown brick wall seen straight on, rows of bricks, darker toward the ground", True),
     ("crate_house", "old wooden kitchen cabinet", False),
     ("crate_medical", "white metal medical cabinet with a red cross", False),
     ("crate_seed", "open wooden crate full of burlap seed bags", False),

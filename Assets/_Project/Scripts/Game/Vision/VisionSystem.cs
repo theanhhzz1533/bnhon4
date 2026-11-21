@@ -17,7 +17,7 @@ namespace Bnhon.Game.Vision
         [SerializeField] private float nearRadius = 2.2f;
         [SerializeField] private int rayCount = 360;
         [SerializeField] private float wallReveal = 0.45f;
-        [SerializeField] private float fogAlpha = 0.78f;
+        [SerializeField] private float fogAlpha = 0.6f;
         [SerializeField] private float farDistance = 80f;
 
         private PlayerController _player;
@@ -43,7 +43,7 @@ namespace Bnhon.Game.Vision
             _renderer = gameObject.AddComponent<MeshRenderer>();
 
             var material = new Material(PlaceholderArt.UnlitMaterial);
-            material.color = new Color(0f, 0f, 0f, fogAlpha);
+            material.color = new Color(0.02f, 0.03f, 0.06f, fogAlpha);
             _renderer.sharedMaterial = material;
             _renderer.sortingOrder = YSort.AboveEverything;
             _renderer.enabled = false;

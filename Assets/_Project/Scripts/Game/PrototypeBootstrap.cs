@@ -14,6 +14,7 @@ using Bnhon.Game.Player;
 using Bnhon.Game.Raid;
 using Bnhon.Game.UI;
 using Bnhon.Game.Vision;
+using Bnhon.Game.World;
 using UnityEngine;
 
 namespace Bnhon.Game
@@ -55,7 +56,7 @@ namespace Bnhon.Game
         private const string HospitalMap = "hospital";
 
         [SerializeField] private string mapName = "outskirts";
-        [SerializeField] private float cameraSize = 7f;
+        [SerializeField] private float cameraSize = 5f;
 
         [Tooltip("Thêm Pixel Perfect Camera của URP vào camera. Chỉ nên bật khi mọi sprite cùng mật độ điểm ảnh.")]
         [SerializeField] private bool pixelPerfect;
@@ -315,6 +316,7 @@ namespace Bnhon.Game
             body.sleepMode = RigidbodySleepMode2D.NeverSleep;
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
+            Shadows.UnderFeet(go, 0.4f, 0.8f);
             go.AddComponent<YSort>();
             go.AddComponent<Health>();
             go.AddComponent<PlayerWeapons>();
@@ -346,6 +348,7 @@ namespace Bnhon.Game
 
             // Unity needs exactly one listener in the scene for any audio to be heard.
             if (cam.GetComponent<AudioListener>() == null) cam.gameObject.AddComponent<AudioListener>();
+            Look.SetUp(cam);
 
             var follow = cam.GetComponent<CameraFollow>();
             if (follow == null) follow = cam.gameObject.AddComponent<CameraFollow>();
@@ -466,6 +469,7 @@ namespace Bnhon.Game
         {
             GameObject npc = PlaceholderArt.Box("Npc_" + npcId, SpotPosition(PrototypeContent.SpotClinic), new Vector2(0.8f, 0.8f), color, parent, 10, "npc_" + npcId, SpriteFit.Character);
             npc.AddComponent<BoxCollider2D>();
+            Shadows.UnderFeet(npc, 0.4f, 0.8f);
             npc.AddComponent<YSort>();
             npc.AddComponent<NpcView>().Init(npcId, SpotPosition);
         }
@@ -780,6 +784,8 @@ namespace Bnhon.Game
                 }
             }
 
+            BuildWallFronts(walls);
+
             if (!hasArt) return;
             for (int y = 0; y < _map.Height; y++)
             {
@@ -788,6 +794,35 @@ namespace Bnhon.Game
                     if (_map.IsWall(x, y) && !IsTree(x, y)) PlaceholderArt.Tint(PlaceholderArt.Box("WallTile", CellCenter(x, y), Vector2.one, WallColor, walls, 5, "wall", SpriteFit.Tile), WallTint);
                 }
             }
+        }
+
+        /// <summary>
+        /// Every run of wall cells whose south neighbour is open ground shows its front side,
+        /// with a shadow on the ground below. Trees cast none: they have their own picture.
+        /// </summary>
+        private void BuildWallFronts(Transform walls)
+        {
+            for (int y = 0; y < _map.Height; y++)
+            {
+                int x = 0;
+                while (x < _map.Width)
+                {
+                    if (!ShowsFront(x, y))
+                    {
+                        x++;
+                        continue;
+                    }
+                    int start = x;
+                    while (x < _map.Width && ShowsFront(x, y)) x++;
+                    Shadows.WallFront(CellCenter(start + (x - start - 1) * 0.5f, y), x - start, walls, WallColor);
+                }
+            }
+        }
+
+        private bool ShowsFront(int x, int y)
+        {
+            if (!_map.IsWall(x, y) || IsTree(x, y)) return false;
+            return y + 1 < _map.Height && !_map.IsWall(x, y + 1);
         }
 
         /// <summary>True if this wall cell is drawn as a tree, so its own wall picture is hidden.</summary>
@@ -857,6 +892,7 @@ namespace Bnhon.Game
             body.gravityScale = 0f;
             body.freezeRotation = true;
             body.linearDamping = 4f;
+            Shadows.UnderFeet(go, 0.4f, 0.8f);
             go.AddComponent<YSort>();
             var health = go.AddComponent<Health>();
             Hurtbox.Attach(go, health).Friendly = true;
@@ -882,6 +918,7 @@ namespace Bnhon.Game
             body.freezeRotation = true;
             body.linearDamping = 4f;
 
+            Shadows.UnderFeet(go, 0.4f, kind == ZombieKind.Boss ? 1.6f : 0.85f);
             go.AddComponent<YSort>();
             var health = go.AddComponent<Health>();
             Hurtbox.Attach(go, health);

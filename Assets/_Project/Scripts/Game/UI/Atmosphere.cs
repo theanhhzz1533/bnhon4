@@ -11,9 +11,9 @@ namespace Bnhon.Game.UI
     /// </summary>
     public sealed class Atmosphere : MonoBehaviour
     {
-        private static readonly Color RaidCold = new Color(0.12f, 0.17f, 0.22f, 0.22f);
-        private static readonly Color DuskWarm = new Color(1f, 0.5f, 0.15f, 0.10f);
-        private static readonly Color DuskDark = new Color(0.02f, 0.03f, 0.12f, 0.22f);
+        // Colour, dusk and vignette are done by World.Look; this keeps the dust and the haze.
+        private static readonly Color HazeColor = new Color(0.08f, 0.06f, 0.05f, 0.35f);
+        private Texture2D _haze;
 
         private const int DustCount = 70;
 
@@ -29,12 +29,14 @@ namespace Bnhon.Game.UI
         private void Start()
         {
             _vignette = MakeVignette(128);
+            _haze = MakeHaze(32);
             for (int i = 0; i < DustCount; i++) ResetDust(i, true);
         }
 
         private void OnDestroy()
         {
             if (_vignette != null) Destroy(_vignette);
+            if (_haze != null) Destroy(_haze);
         }
 
         private void Update()
@@ -72,7 +74,6 @@ namespace Bnhon.Game.UI
 
             if (_raid > 0f)
             {
-                Draw(full, Texture2D.whiteTexture, new Color(RaidCold.r, RaidCold.g, RaidCold.b, RaidCold.a * _raid));
                 float scale = Screen.height / 720f;
                 float now = UnityEngine.Time.time;
                 for (int i = 0; i < DustCount; i++)
@@ -84,14 +85,16 @@ namespace Bnhon.Game.UI
                 }
             }
 
-            if (_dusk > 0f)
+            // Soft blur-like haze at the top and bottom of the screen, as with a shallow lens.
+            if (_haze != null)
             {
-                Draw(full, Texture2D.whiteTexture, new Color(DuskDark.r, DuskDark.g, DuskDark.b, DuskDark.a * _dusk));
-                Draw(full, Texture2D.whiteTexture, new Color(DuskWarm.r, DuskWarm.g, DuskWarm.b, DuskWarm.a * _dusk));
+                float band = Screen.height * 0.16f;
+                GUI.color = HazeColor;
+                GUI.DrawTexture(new Rect(0f, 0f, Screen.width, band), _haze);
+                // The same gradient upside down for the bottom band.
+                GUI.DrawTextureWithTexCoords(new Rect(0f, Screen.height - band, Screen.width, band), _haze, new Rect(0f, 1f, 1f, -1f));
+                GUI.color = Color.white;
             }
-
-            // Darker edges everywhere, darker still outside the base.
-            if (_vignette != null) Draw(full, _vignette, new Color(0f, 0f, 0f, 0.45f + 0.3f * _raid));
         }
 
         private static void Draw(Rect rect, Texture texture, Color color)
@@ -99,6 +102,22 @@ namespace Bnhon.Game.UI
             GUI.color = color;
             GUI.DrawTexture(rect, texture);
             GUI.color = Color.white;
+        }
+
+        /// <summary>Opaque at the top row, clear at the bottom. Drawn flipped for the bottom band.</summary>
+        private static Texture2D MakeHaze(int size)
+        {
+            var texture = new Texture2D(1, size);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            for (int y = 0; y < size; y++)
+            {
+                // GUI draws texture row size-1 at the top of the rect.
+                float t = y / (size - 1f);
+                texture.SetPixel(0, y, new Color(1f, 1f, 1f, t * t));
+            }
+            texture.Apply();
+            return texture;
         }
 
         /// <summary>Clear in the middle, opaque at the corners. Its colour comes from GUI.color.</summary>
