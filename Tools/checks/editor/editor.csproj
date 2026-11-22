@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Type-checks the Editor scripts against stubs. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../../../Assets/_Project/Scripts/Editor/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../../Assets/_Project/Scripts/Core/**/*.cs" />
+    <Compile Include="S.cs" />
+  </ItemGroup>
+</Project>

@@ -68,3 +68,8 @@ crashlytics-build.properties
 Thumbs.db
 /Tools/ComfyUI/candidates/
 __pycache__/
+
+# Checks that run outside Unity (Tools/checks): keep their project files, not their build output
+!/Tools/checks/**/*.csproj
+/Tools/checks/**/bin/
+/Tools/checks/**/obj/

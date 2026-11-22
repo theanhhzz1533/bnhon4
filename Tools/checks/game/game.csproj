@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Type-checks Bnhon.Game against hand-written Unity stubs. Compiles only; nothing runs. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../../../Assets/_Project/Scripts/**/*.cs" Exclude="$(MSBuildThisFileDirectory)../../../Assets/_Project/Scripts/Editor/**" />
+    <Compile Include="UnityStubs.cs" />
+  </ItemGroup>
+</Project>

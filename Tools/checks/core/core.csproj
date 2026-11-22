@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Builds Bnhon.Core with the EditMode tests outside Unity and runs them, then checks every map. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <UseAppHost>false</UseAppHost>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../../../Assets/_Project/Scripts/Core/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../../Assets/_Project/Tests/EditMode/**/*.cs" />
+    <Compile Include="Shim.cs" />
+    <Compile Include="MapCheck.cs" />
+  </ItemGroup>
+</Project>
